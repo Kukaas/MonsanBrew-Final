@@ -1,18 +1,17 @@
 import './App.css'
-import { Button } from './components/ui/button'
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import Login from './pages/public/Login.jsx';
+import Register from './pages/public/Register.jsx';
 
 function App() {
-  const handleClick = () => {
-    window.alert('Button clicked')
-  }
-
   return (
-    <div className='flex justify-center items-center min-h-screen'>
-      <Button onClick={handleClick}>
-        Click Me
-      </Button>
-    </div>
-  )
+    <BrowserRouter>
+      <Routes>
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+      </Routes>
+    </BrowserRouter>
+  );
 }
 
-export default App
+export default App;
