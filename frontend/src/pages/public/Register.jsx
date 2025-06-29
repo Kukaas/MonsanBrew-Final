@@ -3,20 +3,45 @@ import Form from '../../components/custom/Form';
 import FormInput from '../../components/custom/FormInput';
 import { Button } from '../../components/ui/button';
 import { Eye, EyeOff, ArrowLeft } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import api from '../../lib/axios';
+import { toast } from 'sonner';
 
 export default function Register() {
     const [form, setForm] = useState({ name: '', email: '', password: '', confirmPassword: '' });
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+    const [loading, setLoading] = useState(false);
+    const navigate = useNavigate();
 
     const handleChange = (e) => {
         setForm({ ...form, [e.target.name]: e.target.value });
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        // Add registration logic here
+        if (!form.name || !form.email || !form.password || !form.confirmPassword) {
+            toast.error('Please fill in all fields.');
+            return;
+        }
+        if (form.password !== form.confirmPassword) {
+            toast.error('Passwords do not match.');
+            return;
+        }
+        setLoading(true);
+        try {
+            await api.post('/auth/signup', {
+                name: form.name,
+                email: form.email,
+                password: form.password
+            });
+            toast.success('Registration successful! Please check your email to verify your account.');
+            setTimeout(() => navigate('/login'), 1500);
+        } catch (err) {
+            toast.error(err.message || 'Registration failed.');
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
@@ -92,7 +117,9 @@ export default function Register() {
                         }
                         autoComplete="new-password"
                     />
-                    <Button variant="yellow" type="submit" className="w-full mt-1" size="lg">Register</Button>
+                    <Button variant="yellow" type="submit" className="w-full mt-1" size="lg" disabled={loading}>
+                        {loading ? 'Registering...' : 'Register'}
+                    </Button>
                 </Form>
                 <div className="mt-6 text-center">
                     <span className="text-white text-sm">Have an account? </span>

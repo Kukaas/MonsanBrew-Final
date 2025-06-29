@@ -3,19 +3,39 @@ import Form from '../../components/custom/Form';
 import FormInput from '../../components/custom/FormInput';
 import { Button } from '../../components/ui/button';
 import { Eye, EyeOff, ArrowLeft } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import api from '../../lib/axios';
+import { toast } from 'sonner';
 
 export default function Login() {
     const [form, setForm] = useState({ email: '', password: '' });
     const [showPassword, setShowPassword] = useState(false);
+    const [loading, setLoading] = useState(false);
+    const navigate = useNavigate();
 
     const handleChange = (e) => {
         setForm({ ...form, [e.target.name]: e.target.value });
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        // Add validation and login logic here
+        if (!form.email || !form.password) {
+            toast.error('Please fill in all fields.');
+            return;
+        }
+        setLoading(true);
+        try {
+            await api.post('/auth/login', {
+                email: form.email,
+                password: form.password
+            });
+            toast.success('Login successful!');
+            setTimeout(() => navigate('/'), 1200); // Redirect to home or dashboard
+        } catch (err) {
+            toast.error(err.message || 'Login failed.');
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
@@ -64,7 +84,9 @@ export default function Login() {
                     />
                     <div className="flex flex-col items-start gap-2">
                         <a href="#" className="text-[#FFC107] font-bold text-sm">Forgot Password?</a>
-                        <Button variant="yellow" type="submit" size="lg" className="w-full mt-1">Login</Button>
+                        <Button variant="yellow" type="submit" size="lg" className="w-full mt-1" disabled={loading}>
+                            {loading ? 'Logging in...' : 'Login'}
+                        </Button>
                     </div>
                 </Form>
                 <div className="mt-8 text-center">

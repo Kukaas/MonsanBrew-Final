@@ -8,6 +8,7 @@ export const ENV = {
     JWT_SECRET: process.env.JWT_SECRET,
     EMAIL_USER: process.env.EMAIL_USER,
     EMAIL_APP_PASSWORD: process.env.EMAIL_APP_PASSWORD,
-    FRONTEND_URL: process.env.FRONTEND_URL
+    FRONTEND_URL: process.env.FRONTEND_URL,
+    NODE_ENV: process.env.NODE_ENV
 }
 
