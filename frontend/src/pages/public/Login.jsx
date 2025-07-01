@@ -1,17 +1,27 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Form from '../../components/custom/Form';
 import FormInput from '../../components/custom/FormInput';
 import { Button } from '../../components/ui/button';
 import { Eye, EyeOff, ArrowLeft } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
-import api from '../../lib/axios';
+import { authAPI } from '../../services/api';
 import { toast } from 'sonner';
+import { useAuth } from '../../context/AuthContext';
 
 export default function Login() {
+    const { isAuthenticated, loading } = useAuth();
     const [form, setForm] = useState({ email: '', password: '' });
     const [showPassword, setShowPassword] = useState(false);
-    const [loading, setLoading] = useState(false);
+    const [formLoading, setFormLoading] = useState(false);
     const navigate = useNavigate();
+
+    useEffect(() => {
+        if (!loading && isAuthenticated) {
+            navigate('/');
+        }
+    }, [loading, isAuthenticated, navigate]);
+
+    if (loading || isAuthenticated) return null;
 
     const handleChange = (e) => {
         setForm({ ...form, [e.target.name]: e.target.value });
@@ -23,9 +33,9 @@ export default function Login() {
             toast.error('Please fill in all fields.');
             return;
         }
-        setLoading(true);
+        setFormLoading(true);
         try {
-            await api.post('/auth/login', {
+            await authAPI.login({
                 email: form.email,
                 password: form.password
             });
@@ -34,7 +44,7 @@ export default function Login() {
         } catch (err) {
             toast.error(err.message || 'Login failed.');
         } finally {
-            setLoading(false);
+            setFormLoading(false);
         }
     };
 
@@ -84,8 +94,8 @@ export default function Login() {
                     />
                     <div className="flex flex-col items-start gap-2">
                         <a href="#" className="text-[#FFC107] font-bold text-sm">Forgot Password?</a>
-                        <Button variant="yellow" type="submit" size="lg" className="w-full mt-1" disabled={loading}>
-                            {loading ? 'Logging in...' : 'Login'}
+                        <Button variant="yellow" type="submit" size="lg" className="w-full mt-1" disabled={formLoading}>
+                            {formLoading ? 'Logging in...' : 'Login'}
                         </Button>
                     </div>
                 </Form>

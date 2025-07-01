@@ -1,18 +1,28 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Form from '../../components/custom/Form';
 import FormInput from '../../components/custom/FormInput';
 import { Button } from '../../components/ui/button';
 import { Eye, EyeOff, ArrowLeft } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
-import api from '../../lib/axios';
+import { authAPI } from '../../services/api';
 import { toast } from 'sonner';
+import { useAuth } from '../../context/AuthContext';
 
 export default function Register() {
+    const { isAuthenticated, loading } = useAuth();
     const [form, setForm] = useState({ name: '', email: '', password: '', confirmPassword: '' });
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-    const [loading, setLoading] = useState(false);
+    const [formLoading, setFormLoading] = useState(false);
     const navigate = useNavigate();
+
+    useEffect(() => {
+        if (!loading && isAuthenticated) {
+            navigate('/');
+        }
+    }, [loading, isAuthenticated, navigate]);
+
+    if (loading || isAuthenticated) return null;
 
     const handleChange = (e) => {
         setForm({ ...form, [e.target.name]: e.target.value });
@@ -28,9 +38,9 @@ export default function Register() {
             toast.error('Passwords do not match.');
             return;
         }
-        setLoading(true);
+        setFormLoading(true);
         try {
-            await api.post('/auth/signup', {
+            await authAPI.register({
                 name: form.name,
                 email: form.email,
                 password: form.password
@@ -40,7 +50,7 @@ export default function Register() {
         } catch (err) {
             toast.error(err.message || 'Registration failed.');
         } finally {
-            setLoading(false);
+            setFormLoading(false);
         }
     };
 
@@ -117,8 +127,8 @@ export default function Register() {
                         }
                         autoComplete="new-password"
                     />
-                    <Button variant="yellow" type="submit" className="w-full mt-1" size="lg" disabled={loading}>
-                        {loading ? 'Registering...' : 'Register'}
+                    <Button variant="yellow" type="submit" className="w-full mt-1" size="lg" disabled={formLoading}>
+                        {formLoading ? 'Registering...' : 'Register'}
                     </Button>
                 </Form>
                 <div className="mt-6 text-center">
