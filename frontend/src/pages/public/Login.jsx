@@ -8,14 +8,6 @@ import { authAPI } from '../../services/api';
 import { toast } from 'sonner';
 import { useAuth } from '../../context/AuthContext';
 import {
-    AlertDialog,
-    AlertDialogTrigger,
-    AlertDialogContent,
-    AlertDialogHeader,
-    AlertDialogTitle,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogAction,
     AlertDialogCancel,
 } from '../../components/ui/alert-dialog';
 import CustomAlertDialog from '../../components/custom/CustomAlertDialog';
@@ -39,6 +31,7 @@ export default function Login() {
     const [forgotOpen, setForgotOpen] = useState(false);
     const [forgotEmail, setForgotEmail] = useState('');
     const [forgotLoading, setForgotLoading] = useState(false);
+    const [forgotCooldown, setForgotCooldown] = useState(0);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -46,6 +39,22 @@ export default function Login() {
             navigate('/');
         }
     }, [loading, isAuthenticated, navigate]);
+
+    useEffect(() => {
+        let interval;
+        if (forgotCooldown > 0) {
+            interval = setInterval(() => {
+                setForgotCooldown((prev) => {
+                    if (prev <= 1) {
+                        clearInterval(interval);
+                        return 0;
+                    }
+                    return prev - 1;
+                });
+            }, 1000);
+        }
+        return () => clearInterval(interval);
+    }, [forgotCooldown]);
 
     if (loading || isAuthenticated) return null;
 
@@ -80,9 +89,21 @@ export default function Login() {
             toast.error('Please enter your email.');
             return;
         }
+        // Cooldown logic
+        const key = `forgotCooldown_${forgotEmail}`;
+        const lastSent = localStorage.getItem(key);
+        const now = Date.now();
+        if (lastSent && now - parseInt(lastSent, 10) < 60000) {
+            const secondsLeft = Math.ceil((60000 - (now - parseInt(lastSent, 10))) / 1000);
+            setForgotCooldown(secondsLeft);
+            toast.error(`Please wait ${secondsLeft}s before requesting another reset link.`);
+            return;
+        }
         setForgotLoading(true);
         try {
             await authAPI.forgotPassword(forgotEmail);
+            localStorage.setItem(key, now.toString());
+            setForgotCooldown(60);
             toast.success('Reset link sent! Check your email.');
             setForgotOpen(false);
             setForgotEmail('');
@@ -114,8 +135,8 @@ export default function Login() {
                     actions={
                         <>
                             <AlertDialogCancel type="button" className="h-10">Cancel</AlertDialogCancel>
-                            <Button type="submit" variant="yellow" size="lg" disabled={forgotLoading} form="forgot-form">
-                                {forgotLoading ? 'Sending...' : 'Send Reset Link'}
+                            <Button type="submit" variant="yellow" size="lg" disabled={forgotLoading || forgotCooldown > 0} form="forgot-form">
+                                {forgotLoading ? 'Sending...' : forgotCooldown > 0 ? `Wait ${forgotCooldown}s` : 'Send Reset Link'}
                             </Button>
                         </>
                     }
