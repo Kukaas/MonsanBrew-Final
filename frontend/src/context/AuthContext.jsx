@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { authAPI } from '../services/api';
+import LoadingSpinner from '../components/custom/LoadingSpinner';
 
 const AuthContext = createContext();
 
@@ -29,6 +30,10 @@ export const AuthProvider = ({ children }) => {
     const register = async (registrationData) => {
         await authAPI.register(registrationData);
     };
+
+    if (loading) {
+        return <LoadingSpinner message="Checking authentication..." />;
+    }
 
     return (
         <AuthContext.Provider value={{ user, isAuthenticated: !!user, loading, login, logout, register }}>

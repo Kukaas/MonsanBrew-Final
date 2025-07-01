@@ -1,9 +1,10 @@
 import User from '../models/user.model.js';
-import { sendVerificationEmail } from '../services/email.service.js';
+import { sendVerificationEmail, sendResetPasswordEmail } from '../services/email.service.js';
 import { ENV } from '../config/env.js';
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 import { generateAccessToken, generateRefreshToken } from '../services/generateToken.js';
+import nodemailer from 'nodemailer';
 
 export const signup = async (req, res) => {
     try {
@@ -130,5 +131,62 @@ export const getMe = async (req, res) => {
         res.status(200).json({ success: true, user });
     } catch (error) {
         res.status(500).json({ success: false, message: 'Failed to fetch user' });
+    }
+};
+
+export const forgotPassword = async (req, res) => {
+    try {
+        const { email } = req.body;
+        if (!email) return res.status(400).json({ message: 'Email is required.' });
+        const user = await User.findOne({ email });
+        if (!user) return res.status(401).json({ message: 'Email not found.' });
+        const token = crypto.randomBytes(32).toString('hex');
+        user.resetPasswordToken = token;
+        user.resetPasswordExpires = Date.now() + 60 * 60 * 1000; // 1 hour
+        await user.save();
+        const resetLink = `${ENV.FRONTEND_URL}/reset-password?token=${token}&email=${encodeURIComponent(email)}`;
+        await sendResetPasswordEmail(email, resetLink);
+        res.status(200).json({ message: 'If that email is registered, a reset link has been sent.' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Internal server error.' });
+    }
+};
+
+export const resetPassword = async (req, res) => {
+    try {
+        const { token, email, password } = req.body;
+        if (!token || !email || !password) {
+            return res.status(400).json({ message: 'Invalid request.' });
+        }
+        const user = await User.findOne({ email, resetPasswordToken: token, resetPasswordExpires: { $gt: Date.now() } });
+        if (!user) {
+            return res.status(400).json({ message: 'Invalid or expired reset link.' });
+        }
+        user.password = await bcrypt.hash(password, 10);
+        user.resetPasswordToken = undefined;
+        user.resetPasswordExpires = undefined;
+        await user.save();
+        res.status(200).json({ message: 'Password reset successful. You can now log in.' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Internal server error.' });
+    }
+};
+
+export const verifyResetToken = async (req, res) => {
+    try {
+        const { token } = req.query;
+        if (!token) {
+            return res.status(400).json({ message: 'Invalid or expired reset link.' });
+        }
+        const user = await User.findOne({ resetPasswordToken: token, resetPasswordExpires: { $gt: Date.now() } });
+        if (!user) {
+            return res.status(400).json({ message: 'Invalid or expired reset link.' });
+        }
+        res.status(200).json({ message: 'Valid reset token.' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Internal server error.' });
     }
 };

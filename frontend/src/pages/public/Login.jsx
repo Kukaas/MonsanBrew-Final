@@ -7,12 +7,38 @@ import { Link, useNavigate } from 'react-router-dom';
 import { authAPI } from '../../services/api';
 import { toast } from 'sonner';
 import { useAuth } from '../../context/AuthContext';
+import {
+    AlertDialog,
+    AlertDialogTrigger,
+    AlertDialogContent,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogAction,
+    AlertDialogCancel,
+} from '../../components/ui/alert-dialog';
+import CustomAlertDialog from '../../components/custom/CustomAlertDialog';
+
+const ForgotPasswordTrigger = React.forwardRef((props, ref) => (
+    <button
+        ref={ref}
+        type="button"
+        className="text-[#FFC107] font-bold text-sm px-0 bg-transparent border-0 underline hover:text-[#e6ac06]"
+        {...props}
+    >
+        Forgot Password?
+    </button>
+));
 
 export default function Login() {
     const { isAuthenticated, loading } = useAuth();
     const [form, setForm] = useState({ email: '', password: '' });
     const [showPassword, setShowPassword] = useState(false);
     const [formLoading, setFormLoading] = useState(false);
+    const [forgotOpen, setForgotOpen] = useState(false);
+    const [forgotEmail, setForgotEmail] = useState('');
+    const [forgotLoading, setForgotLoading] = useState(false);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -48,6 +74,25 @@ export default function Login() {
         }
     };
 
+    const handleForgot = async (e) => {
+        e.preventDefault();
+        if (!forgotEmail) {
+            toast.error('Please enter your email.');
+            return;
+        }
+        setForgotLoading(true);
+        try {
+            await authAPI.forgotPassword(forgotEmail);
+            toast.success('Reset link sent! Check your email.');
+            setForgotOpen(false);
+            setForgotEmail('');
+        } catch (err) {
+            toast.error(err.message || 'Failed to send reset link.');
+        } finally {
+            setForgotLoading(false);
+        }
+    };
+
     return (
         <div className="min-h-screen flex items-center justify-center bg-[#232323] px-4 relative">
             <Link to="/" className="absolute left-6 top-6 text-white hover:text-[#FFC107] transition-colors" aria-label="Back">
@@ -60,6 +105,33 @@ export default function Login() {
                     </h1>
                     <p className="text-lg text-[#BDBDBD] font-semibold">Sign in to your account</p>
                 </div>
+                <CustomAlertDialog
+                    open={forgotOpen}
+                    onOpenChange={setForgotOpen}
+                    trigger={null}
+                    title="Forgot Password"
+                    description={"Enter your email address and we'll send you a link to reset your password."}
+                    actions={
+                        <>
+                            <AlertDialogCancel type="button" className="h-10">Cancel</AlertDialogCancel>
+                            <Button type="submit" variant="yellow" size="lg" disabled={forgotLoading} form="forgot-form">
+                                {forgotLoading ? 'Sending...' : 'Send Reset Link'}
+                            </Button>
+                        </>
+                    }
+                >
+                    <form id="forgot-form" onSubmit={handleForgot} className="space-y-4 mt-2">
+                        <FormInput
+                            label="Email"
+                            name="forgotEmail"
+                            type="email"
+                            placeholder="Your email"
+                            value={forgotEmail}
+                            onChange={e => setForgotEmail(e.target.value)}
+                            autoComplete="email"
+                        />
+                    </form>
+                </CustomAlertDialog>
                 <Form onSubmit={handleSubmit} className="w-full space-y-6">
                     <FormInput
                         label="Email"
@@ -93,7 +165,13 @@ export default function Login() {
                         autoComplete="current-password"
                     />
                     <div className="flex flex-col items-start gap-2">
-                        <a href="#" className="text-[#FFC107] font-bold text-sm">Forgot Password?</a>
+                        <button
+                            type="button"
+                            className="text-[#FFC107] font-bold text-sm px-0 bg-transparent border-0 underline hover:text-[#e6ac06]"
+                            onClick={() => setForgotOpen(true)}
+                        >
+                            Forgot Password?
+                        </button>
                         <Button variant="yellow" type="submit" size="lg" className="w-full mt-1" disabled={formLoading}>
                             {formLoading ? 'Logging in...' : 'Login'}
                         </Button>

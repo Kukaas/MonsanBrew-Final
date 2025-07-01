@@ -17,6 +17,8 @@ const userSchema = new mongoose.Schema({
     verificationStringExpires: { type: Date },
     otpCode: { type: String },
     otpExpires: { type: Date },
+    resetPasswordToken: { type: String },
+    resetPasswordExpires: { type: Date },
     photo: { type: String }, // base64 string
     createdAt: { type: Date, default: Date.now },
     updatedAt: { type: Date, default: Date.now },
