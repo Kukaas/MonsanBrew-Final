@@ -24,7 +24,7 @@ const ForgotPasswordTrigger = React.forwardRef((props, ref) => (
 ));
 
 export default function Login() {
-    const { isAuthenticated, loading } = useAuth();
+    const { isAuthenticated, loading, user } = useAuth();
     const [form, setForm] = useState({ email: '', password: '' });
     const [showPassword, setShowPassword] = useState(false);
     const [formLoading, setFormLoading] = useState(false);
@@ -75,7 +75,28 @@ export default function Login() {
                 password: form.password
             });
             toast.success('Login successful!');
-            setTimeout(() => navigate('/'), 1200); // Redirect to home or dashboard
+            setTimeout(() => {
+                if (user && user.role) {
+                    switch (user.role) {
+                        case 'admin':
+                            navigate('/admin/dashboard');
+                            break;
+                        case 'rider':
+                            navigate('/rider/dashboard');
+                            break;
+                        case 'frontdesk':
+                            navigate('/frontdesk/dashboard');
+                            break;
+                        case 'customer':
+                            navigate('/menus');
+                            break;
+                        default:
+                            navigate('/');
+                    }
+                } else {
+                    navigate('/');
+                }
+            }, 1200);
         } catch (err) {
             toast.error(err.message || 'Login failed.');
         } finally {

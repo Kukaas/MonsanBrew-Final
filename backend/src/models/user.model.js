@@ -15,11 +15,10 @@ const userSchema = new mongoose.Schema({
     isVerified: { type: Boolean, default: false },
     verificationString: { type: String },
     verificationStringExpires: { type: Date },
-    otpCode: { type: String },
-    otpExpires: { type: Date },
     resetPasswordToken: { type: String },
     resetPasswordExpires: { type: Date },
     photo: { type: String }, // base64 string
+    role: { type: String, enum: ['admin', 'rider', 'customer', 'frontdesk'], default: 'customer' },
     createdAt: { type: Date, default: Date.now },
     updatedAt: { type: Date, default: Date.now },
 }, { timestamps: true });
