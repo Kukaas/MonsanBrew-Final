@@ -3,10 +3,7 @@ import { cn } from '../../lib/utils';
 import { Label } from '../ui/label';
 import { Input } from '../ui/input';
 
-const FormInput = forwardRef(({ label, error, inputClassName, labelClassName, ...props }, ref) => {
-    const Icon = props.icon;
-    const endIcon = props.endIcon;
-
+const FormInput = forwardRef(({ label, error, inputClassName, labelClassName, icon: Icon, endIcon, ...props }, ref) => {
     return (
         <div className="flex flex-col space-y-2">
             <Label
