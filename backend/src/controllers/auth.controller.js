@@ -122,6 +122,12 @@ export const login = async (req, res) => {
     }
 };
 
+export const logout = async (req, res) => {
+    res.clearCookie('accessToken');
+    res.clearCookie('refreshToken');
+    res.status(200).json({ message: 'Logout successful.' });
+};
+
 export const getMe = async (req, res) => {
     try {
         const user = await User.findById(req.user._id).select('-password');

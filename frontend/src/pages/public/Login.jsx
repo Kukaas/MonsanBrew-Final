@@ -12,17 +12,6 @@ import {
 } from '../../components/ui/alert-dialog';
 import CustomAlertDialog from '../../components/custom/CustomAlertDialog';
 
-const ForgotPasswordTrigger = React.forwardRef((props, ref) => (
-    <button
-        ref={ref}
-        type="button"
-        className="text-[#FFC107] font-bold text-sm px-0 bg-transparent border-0 underline hover:text-[#e6ac06]"
-        {...props}
-    >
-        Forgot Password?
-    </button>
-));
-
 export default function Login() {
     const { isAuthenticated, loading, user, login } = useAuth();
     const [form, setForm] = useState({ email: '', password: '' });
@@ -134,7 +123,12 @@ export default function Login() {
                     description={"Enter your email address and we'll send you a link to reset your password."}
                     actions={
                         <>
-                            <AlertDialogCancel type="button" className="h-10">Cancel</AlertDialogCancel>
+                            <AlertDialogCancel
+                                type="button"
+                                className="h-10 border border-[#FFC107] bg-[#232323] text-white text-lg font-bold shadow-xs hover:bg-[#232323] hover:border-[#b38f00] hover:text-white"
+                            >
+                                Cancel
+                            </AlertDialogCancel>
                             <Button type="submit" variant="yellow" size="lg" disabled={forgotLoading || forgotCooldown > 0} form="forgot-form">
                                 {forgotLoading ? 'Sending...' : forgotCooldown > 0 ? `Wait ${forgotCooldown}s` : 'Send Reset Link'}
                             </Button>

@@ -1,9 +1,11 @@
-import React from "react";
-import { Link, useLocation } from "react-router-dom";
+import React, { useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { User, BarChart2, Users, Folder, Settings, HelpCircle, Search, Database, FileText, File, LogOut } from "lucide-react";
 import { Sidebar, SidebarContent, SidebarSeparator } from "./ui/sidebar";
 import { Avatar, AvatarImage, AvatarFallback } from "./ui/avatar";
 import { useAuth } from "@/context/AuthContext";
+import CustomAlertDialog from "./custom/CustomAlertDialog";
+import { Button } from "./ui/button";
 
 const navMain = [
     { title: "Dashboard", icon: <BarChart2 size={20} />, url: "/admin/dashboard" },
@@ -33,6 +35,24 @@ function getInitials(name) {
 export default function AdminSidebar() {
     const location = useLocation();
     const { user, logout } = useAuth();
+    const navigate = useNavigate();
+    const [logoutOpen, setLogoutOpen] = useState(false);
+    const [logoutLoading, setLogoutLoading] = useState(false);
+
+    const handleLogout = async () => {
+        setLogoutLoading(true);
+        try {
+            const res = await logout();
+            if (res.status === 200) {
+                navigate("/login");
+            }
+        } catch (err) {
+            // Optionally show an error toast here
+        } finally {
+            setLogoutLoading(false);
+        }
+    };
+
     return (
         <Sidebar collapsible="offcanvas">
             <SidebarContent className="flex flex-col h-full bg-[#181818] text-white justify-between">
@@ -89,7 +109,7 @@ export default function AdminSidebar() {
                     <div className="flex items-center gap-3 px-3 py-3 mt-4">
                         <Avatar className="h-8 w-8 text-black">
                             {user?.avatar ? (
-                                <AvatarImage src={user.photo} alt={user?.name} />
+                                <AvatarImage src={user.avatar} alt={user?.name} />
                             ) : null}
                             <AvatarFallback className="rounded-lg">
                                 {getInitials(user?.name)}
@@ -99,7 +119,36 @@ export default function AdminSidebar() {
                             <div className="font-semibold text-white leading-tight truncate max-w-[120px]">{user?.name}</div>
                             <div className="text-xs text-[#BDBDBD] truncate max-w-[120px]">{user?.email}</div>
                         </div>
-                        <button className="hover:text-[#FFC107] transition-colors">
+                        <CustomAlertDialog
+                            open={logoutOpen}
+                            onOpenChange={setLogoutOpen}
+                            title="Logout"
+                            description="Are you sure you want to logout?"
+                            actions={
+                                <>
+                                    <Button
+                                        type="button"
+                                        variant="yellow-outline"
+                                        size="lg"
+                                        onClick={() => setLogoutOpen(false)}
+                                        disabled={logoutLoading}
+                                    >
+                                        Cancel
+                                    </Button>
+                                    <Button
+                                        type="button"
+                                        variant="yellow"
+                                        size="lg"
+                                        onClick={handleLogout}
+                                        disabled={logoutLoading}
+                                    >
+                                        Logout
+                                    </Button>
+                                </>
+                            }
+                        >
+                        </CustomAlertDialog>
+                        <button className="hover:text-[#FFC107] transition-colors" onClick={() => setLogoutOpen(true)}>
                             <LogOut size={20} />
                         </button>
                     </div>

@@ -7,8 +7,6 @@ import {
     AlertDialogTitle,
     AlertDialogDescription,
     AlertDialogFooter,
-    AlertDialogAction,
-    AlertDialogCancel,
 } from '../ui/alert-dialog';
 
 export default function CustomAlertDialog({
