@@ -9,13 +9,12 @@ import { Button } from "./ui/button";
 
 const navMain = [
     { title: "Dashboard", icon: <BarChart2 size={20} />, url: "/admin/dashboard" },
-    { title: "Products", icon: <Folder size={20} />, url: "/admin/products" },
     { title: "Team", icon: <Users size={20} />, url: "#" },
 ];
 const navDocs = [
     { title: "Product Category", icon: <Database size={18} />, url: "/admin/categories" },
     { title: "Add ons", icon: <FileText size={18} />, url: "/admin/add-ons" },
-    { title: "Word Assistant", icon: <File size={18} />, url: "#" },
+    { title: "Products", icon: <Folder size={20} />, url: "/admin/products" },
 ];
 const navSecondary = [
     { title: "Settings", icon: <Settings size={18} />, url: "#" },
