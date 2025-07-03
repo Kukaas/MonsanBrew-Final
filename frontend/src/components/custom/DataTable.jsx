@@ -24,7 +24,7 @@ import {
 } from "@/components/ui/table"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
-export default function DataTable({ columns, data }) {
+export default function DataTable({ columns, data, loading }) {
     const [pagination, setPagination] = React.useState({ pageIndex: 0, pageSize: 10 })
 
     const table = useReactTable({
@@ -56,7 +56,19 @@ export default function DataTable({ columns, data }) {
                         ))}
                     </TableHeader>
                     <TableBody className="**:data-[slot=table-cell]:first:w-8">
-                        {table.getRowModel().rows?.length ? (
+                        {loading ? (
+                            <TableRow>
+                                <TableCell colSpan={columns.length} className="h-24 text-center text-[#FFC107] text-lg font-bold">
+                                    <span className="flex justify-center items-center gap-2">
+                                        <svg className="animate-spin h-6 w-6 text-[#FFC107]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                                        </svg>
+                                        Loading...
+                                    </span>
+                                </TableCell>
+                            </TableRow>
+                        ) : table.getRowModel().rows?.length ? (
                             table.getRowModel().rows.map(row => (
                                 <TableRow
                                     key={row.id}
