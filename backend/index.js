@@ -1,11 +1,11 @@
 import express from 'express';
 import cookieParser from 'cookie-parser'
 import cors from 'cors'
-import { ENV } from './config/env.js';
-import connectDB from './config/db.js';
-import authRoutes from './routes/auth.routes.js';
-import categoryRoutes from './routes/category.route.js';
-import addonsRoutes from './routes/aaddons.route.js';
+import { ENV } from './src/config/env.js';
+import connectDB from './src/config/db.js';
+import authRoutes from './src/routes/auth.routes.js';
+import categoryRoutes from './src/routes/category.route.js';
+import addonsRoutes from './src/routes/aaddons.route.js';
 
 const app = express();
 
@@ -13,7 +13,6 @@ app.use(cookieParser());
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-app.use(express.json());
 
 app.use(cors({
     origin: [ENV.FRONTEND_URL,
