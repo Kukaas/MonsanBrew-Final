@@ -96,13 +96,13 @@ export const login = async (req, res) => {
         res.cookie('accessToken', accessToken, {
             httpOnly: true,
             secure: ENV.NODE_ENV === 'production',
-            sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+            sameSite: ENV.NODE_ENV === 'production' ? 'none' : 'lax',
             maxAge: 15 * 60 * 1000 // 15 minutes
         });
         res.cookie('refreshToken', refreshToken, {
             httpOnly: true,
             secure: ENV.NODE_ENV === 'production',
-            sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+            sameSite: ENV.NODE_ENV === 'production' ? 'none' : 'lax',
             maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
         });
         res.status(200).json({
@@ -123,8 +123,16 @@ export const login = async (req, res) => {
 };
 
 export const logout = async (req, res) => {
-    res.clearCookie('accessToken');
-    res.clearCookie('refreshToken');
+    res.clearCookie('accessToken', {
+        httpOnly: true,
+        secure: ENV.NODE_ENV === 'production',
+        sameSite: ENV.NODE_ENV === 'production' ? 'none' : 'lax',
+    });
+    res.clearCookie('refreshToken', {
+        httpOnly: true,
+        secure: ENV.NODE_ENV === 'production',
+        sameSite: ENV.NODE_ENV === 'production' ? 'none' : 'lax',
+    });
     res.status(200).json({ message: 'Logout successful.' });
 };
 
