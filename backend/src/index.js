@@ -4,6 +4,7 @@ import cors from 'cors'
 import { ENV } from './config/env.js';
 import connectDB from './config/db.js';
 import authRoutes from './routes/auth.routes.js';
+import categoryRoutes from './routes/category.route.js';
 
 const app = express();
 
@@ -23,6 +24,7 @@ app.use(cors({
 connectDB();
 
 app.use('/api/auth', authRoutes);
+app.use('/api/category', categoryRoutes);
 
 app.listen(ENV.PORT, () => {
     console.log(`Server is running on port ${ENV.PORT}`);

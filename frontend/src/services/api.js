@@ -37,3 +37,27 @@ export const authAPI = {
         return await api.get('/auth/me');
     },
 };
+
+// Category API functions
+export const categoryAPI = {
+    // Create category
+    create: async (data) => {
+        return await api.post('/category', data);
+    },
+    // Get all categories
+    getAll: async () => {
+        return await api.get('/category');
+    },
+    // Get category by ID
+    getById: async (id) => {
+        return await api.get(`/category/${id}`);
+    },
+    // Update category
+    update: async (id, data) => {
+        return await api.put(`/category/${id}`, data);
+    },
+    // Delete category
+    delete: async (id) => {
+        return await api.delete(`/category/${id}`);
+    },
+};

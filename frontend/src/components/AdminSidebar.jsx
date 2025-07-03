@@ -13,8 +13,8 @@ const navMain = [
     { title: "Team", icon: <Users size={20} />, url: "#" },
 ];
 const navDocs = [
-    { title: "Data Library", icon: <Database size={18} />, url: "#" },
-    { title: "Reports", icon: <FileText size={18} />, url: "#" },
+    { title: "Product Category", icon: <Database size={18} />, url: "/admin/categories" },
+    { title: "Add ons", icon: <FileText size={18} />, url: "/admin/add-ons" },
     { title: "Word Assistant", icon: <File size={18} />, url: "#" },
 ];
 const navSecondary = [
@@ -77,7 +77,7 @@ export default function AdminSidebar() {
                         <SidebarSeparator />
                         <nav className="mb-6 mt-5">
                             <div className="mb-2 text-xs font-bold text-[#FFC107] uppercase px-2 flex items-center justify-between">
-                                Documents
+                                System Maintenance
                             </div>
                             {navDocs.map((item) => (
                                 <Link

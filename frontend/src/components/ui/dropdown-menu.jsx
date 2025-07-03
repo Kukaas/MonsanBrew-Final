@@ -27,20 +27,22 @@ function DropdownMenuTrigger({
 function DropdownMenuContent({
   className,
   sideOffset = 4,
+  asChild = false,
+  disablePortal = false,
   ...props
 }) {
-  return (
-    (<DropdownMenuPrimitive.Portal>
-      <DropdownMenuPrimitive.Content
-        data-slot="dropdown-menu-content"
-        sideOffset={sideOffset}
-        className={cn(
-          "bg-popover text-popover-foreground data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 z-50 max-h-(--radix-dropdown-menu-content-available-height) min-w-[8rem] origin-(--radix-dropdown-menu-content-transform-origin) overflow-x-hidden overflow-y-auto rounded-md border p-1 shadow-md",
-          className
-        )}
-        {...props} />
-    </DropdownMenuPrimitive.Portal>)
+  const content = (
+    <DropdownMenuPrimitive.Content
+      data-slot="dropdown-menu-content"
+      sideOffset={sideOffset}
+      className={cn(
+        "bg-[#232323] text-white rounded-xl shadow-lg border border-[#232323] p-2 min-w-[8rem] z-50",
+        className
+      )}
+      {...props}
+    />
   );
+  return disablePortal ? content : <DropdownMenuPrimitive.Portal>{content}</DropdownMenuPrimitive.Portal>;
 }
 
 function DropdownMenuGroup({
@@ -61,7 +63,7 @@ function DropdownMenuItem({
       data-inset={inset}
       data-variant={variant}
       className={cn(
-        "focus:bg-accent focus:text-accent-foreground data-[variant=destructive]:text-destructive data-[variant=destructive]:focus:bg-destructive/10 dark:data-[variant=destructive]:focus:bg-destructive/20 data-[variant=destructive]:focus:text-destructive data-[variant=destructive]:*:[svg]:!text-destructive [&_svg:not([class*='text-'])]:text-muted-foreground relative flex cursor-default items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-hidden select-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50 data-[inset]:pl-8 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+        "hover:bg-[#181818] focus:bg-[#181818] text-white rounded-md px-4 py-2 text-base font-semibold cursor-pointer transition-colors",
         className
       )}
       {...props} />)

@@ -11,6 +11,7 @@ import { useAuth } from './context/AuthContext';
 import React from 'react';
 import Menus from './pages/private/customer/Menus';
 import Products from './pages/private/admin/Products';
+import ProductCategory from './pages/private/admin/category/ProductCategory.jsx';
 
 function RequireAuth({ children, allowedRoles }) {
   const { user, loading } = useAuth();
@@ -54,7 +55,11 @@ function App() {
             <Products />
           </RequireAuth>
         } />
-
+        <Route path="/admin/categories" element={
+          <RequireAuth allowedRoles={["admin"]}>
+            <ProductCategory />
+          </RequireAuth>
+        } />
 
         <Route path="/rider/dashboard" element={
           <RequireAuth allowedRoles={["rider"]}>

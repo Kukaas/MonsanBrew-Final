@@ -42,7 +42,7 @@ export default function DataTable({ columns, data }) {
 
     return (
         <div className="w-full bg-[#181818] rounded-2xl shadow-lg p-4 border border-[#232323]">
-            <div className="overflow-hidden rounded-xl">
+            <div className="overflow-visible rounded-xl">
                 <Table className="w-full text-white" style={{ tableLayout: 'fixed' }}>
                     <TableHeader className="bg-[#232323] text-white sticky top-0 z-10 rounded-t-xl">
                         {table.getHeaderGroups().map(headerGroup => (
@@ -64,7 +64,7 @@ export default function DataTable({ columns, data }) {
                                 >
                                     {row.getVisibleCells().map(cell => {
                                         return (
-                                            <TableCell key={cell.id} className="py-3 px-3 text-base text-[#E0E0E0] text-center">
+                                            <TableCell key={cell.id} className="py-3 px-3 text-base text-[#E0E0E0] text-center" style={{ pointerEvents: 'auto' }}>
                                                 {cell.column.columnDef.render
                                                     ? cell.column.columnDef.render(row.original)
                                                     : flexRender(cell.column.columnDef.cell, cell.getContext())}
