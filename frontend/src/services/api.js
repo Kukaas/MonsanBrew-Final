@@ -61,3 +61,27 @@ export const categoryAPI = {
         return await api.delete(`/category/${id}`);
     },
 };
+
+// AddOns API functions
+export const addonsAPI = {
+    // Create addon
+    create: async (data) => {
+        return await api.post('/addons', data);
+    },
+    // Get all addons
+    getAll: async () => {
+        return await api.get('/addons');
+    },
+    // Get addon by ID
+    getById: async (id) => {
+        return await api.get(`/addons/${id}`);
+    },
+    // Update addon
+    update: async (id, data) => {
+        return await api.put(`/addons/${id}`, data);
+    },
+    // Delete addon
+    delete: async (id) => {
+        return await api.delete(`/addons/${id}`);
+    },
+};

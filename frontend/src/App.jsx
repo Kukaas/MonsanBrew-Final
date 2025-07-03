@@ -12,6 +12,7 @@ import React from 'react';
 import Menus from './pages/private/customer/Menus';
 import Products from './pages/private/admin/Products';
 import ProductCategory from './pages/private/admin/category/ProductCategory.jsx';
+import AddOns from './pages/private/admin/add-ons/AddOns';
 
 function RequireAuth({ children, allowedRoles }) {
   const { user, loading } = useAuth();
@@ -55,9 +56,16 @@ function App() {
             <Products />
           </RequireAuth>
         } />
+
         <Route path="/admin/categories" element={
           <RequireAuth allowedRoles={["admin"]}>
             <ProductCategory />
+          </RequireAuth>
+        } />
+
+        <Route path="/admin/add-ons" element={
+          <RequireAuth allowedRoles={["admin"]}>
+            <AddOns />
           </RequireAuth>
         } />
 

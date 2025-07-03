@@ -5,6 +5,7 @@ import { ENV } from './config/env.js';
 import connectDB from './config/db.js';
 import authRoutes from './routes/auth.routes.js';
 import categoryRoutes from './routes/category.route.js';
+import addonsRoutes from './routes/aaddons.route.js';
 
 const app = express();
 
@@ -25,6 +26,7 @@ connectDB();
 
 app.use('/api/auth', authRoutes);
 app.use('/api/category', categoryRoutes);
+app.use('/api/addons', addonsRoutes);
 
 app.listen(ENV.PORT, () => {
     console.log(`Server is running on port ${ENV.PORT}`);

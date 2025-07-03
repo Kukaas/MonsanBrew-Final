@@ -8,7 +8,7 @@ const FormInput = forwardRef(({ label, error, inputClassName, labelClassName, ic
         <div className="flex flex-col space-y-2">
             <Label
                 htmlFor={props.id || props.name}
-                className={cn("text-base font-bold text-white", labelClassName)}
+                className={cn("text-base font-bold text-white text-[#FFC107]", labelClassName)}
             >
                 {label}
             </Label>
