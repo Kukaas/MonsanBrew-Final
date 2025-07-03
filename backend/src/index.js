@@ -16,10 +16,12 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(express.json());
 
 app.use(cors({
-    origin: ENV.FRONTEND_URL,
+    origin: [ENV.FRONTEND_URL,
+        "https://monsanbrew.vercel.app"
+    ],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-    allowedHeaders: ['Content-Type', 'Authorization']
+    allowedHeaders: ['Content-Type', 'Authorization', 'Access-Control-Allow-Headers']
 }));
 
 connectDB();

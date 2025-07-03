@@ -1,0 +1,55 @@
+{
+    "rewrites": [
+        {
+            "source": "/(.*)",
+            "destination": "/"
+        }
+    ],
+    "headers": [
+        {
+            "source": "/sitemap.xml",
+            "headers": [
+                {
+                    "key": "Content-Type",
+                    "value": "application/xml"
+                },
+                {
+                    "key": "Cache-Control",
+                    "value": "public, max-age=3600, must-revalidate"
+                }
+            ]
+        },
+        {
+            "source": "/(.*)",
+            "headers": [
+                {
+                    "key": "Content-Security-Policy",
+                    "value": "default-src 'self'; connect-src 'self' https://monsanbrew-server.vercel.app; script-src 'self' https://apis.google.com; style-src 'self' https://fonts.googleapis.com 'unsafe-inline'; font-src 'self' https://fonts.gstatic.com; img-src 'self data:;"
+                },
+                {
+                    "key": "X-Frame-Options",
+                    "value": "SAMEORIGIN"
+                },
+                {
+                    "key": "X-Content-Type-Options",
+                    "value": "nosniff"
+                },
+                {
+                    "key": "Referrer-Policy",
+                    "value": "no-referrer"
+                },
+                {
+                    "key": "Permissions-Policy",
+                    "value": "geolocation=(self), microphone=()"
+                }
+            ]
+        }
+    ],
+    "build": {
+        "env": {
+            "GENERATE_SITEMAP": "true"
+        }
+    },
+    "cleanUrls": true,
+    "trailingSlash": false
+}
