@@ -10,6 +10,7 @@ import FrontdeskDashboard from './pages/private/frontdesk/Dashboard.jsx';
 import { useAuth } from './context/AuthContext';
 import React from 'react';
 import Menus from './pages/private/customer/Menus';
+import Products from './pages/private/admin/Products';
 
 function RequireAuth({ children, allowedRoles }) {
   const { user, loading } = useAuth();
@@ -42,11 +43,19 @@ function App() {
         <Route path="/register" element={<Register />} />
         <Route path="/verify-email" element={<VerifyEmail />} />
         <Route path="/reset-password" element={<ResetPassword />} />
+
         <Route path="/admin/dashboard" element={
           <RequireAuth allowedRoles={["admin"]}>
             <AdminDashboard />
           </RequireAuth>
         } />
+        <Route path="/admin/products" element={
+          <RequireAuth allowedRoles={["admin"]}>
+            <Products />
+          </RequireAuth>
+        } />
+
+
         <Route path="/rider/dashboard" element={
           <RequireAuth allowedRoles={["rider"]}>
             <RiderDashboard />
