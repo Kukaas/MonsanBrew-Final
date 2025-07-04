@@ -85,3 +85,27 @@ export const addonsAPI = {
         return await api.delete(`/addons/${id}`);
     },
 };
+
+// Raw Materials (Inventory) API functions
+export const rawMaterialsAPI = {
+    // Create raw material
+    create: async (data) => {
+        return await api.post('/inventory', data);
+    },
+    // Get all raw materials
+    getAll: async () => {
+        return await api.get('/inventory');
+    },
+    // Get raw material by ID
+    getById: async (id) => {
+        return await api.get(`/inventory/${id}`);
+    },
+    // Update raw material
+    update: async (id, data) => {
+        return await api.put(`/inventory/${id}`, data);
+    },
+    // Delete raw material
+    delete: async (id) => {
+        return await api.delete(`/inventory/${id}`);
+    },
+};

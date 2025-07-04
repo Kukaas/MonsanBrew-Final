@@ -12,9 +12,19 @@ function Popover({
 }
 
 function PopoverTrigger({
+  className,
   ...props
 }) {
-  return <PopoverPrimitive.Trigger data-slot="popover-trigger" {...props} />;
+  return (
+    <PopoverPrimitive.Trigger
+      data-slot="popover-trigger"
+      className={cn(
+        "w-full bg-[#232323] border border-[#444] focus:border-yellow-400 focus:ring-2 focus:ring-yellow-400 text-white placeholder:text-[#BDBDBD] rounded-md h-11 px-5 py-5 flex justify-between items-center font-normal transition-colors disabled:opacity-60 text-lg font-medium",
+        className
+      )}
+      {...props}
+    />
+  );
 }
 
 function PopoverContent({

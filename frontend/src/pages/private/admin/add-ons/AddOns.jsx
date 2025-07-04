@@ -237,6 +237,8 @@ export default function AddOns() {
                                 disabled={isAdding}
                                 autoFocus
                                 error={formError}
+                                placeholder="e.g. Extra Cheese, Syrup"
+                                variant="dark"
                             />
                             <FormInput
                                 label="Price"
@@ -245,7 +247,9 @@ export default function AddOns() {
                                 value={price}
                                 onChange={e => setPrice(e.target.value)}
                                 disabled={isAdding}
+                                placeholder="Enter Price"
                                 error={formError}
+                                variant="dark"
                             />
                             <div>
                                 <ImageUpload label="Image" value={image} onChange={setImage} disabled={isAdding} error={formError} />
@@ -284,6 +288,8 @@ export default function AddOns() {
                                 disabled={isUpdating}
                                 autoFocus
                                 error={formError}
+                                placeholder="e.g. Extra Cheese, Syrup"
+                                variant="dark"
                             />
                             <FormInput
                                 label="Price"
@@ -293,6 +299,7 @@ export default function AddOns() {
                                 onChange={e => setEditPrice(e.target.value)}
                                 disabled={isUpdating}
                                 error={formError}
+                                variant="dark"
                             />
                             <div>
                                 <ImageUpload label="Image" value={editImage} onChange={setEditImage} disabled={isUpdating} error={formError} />

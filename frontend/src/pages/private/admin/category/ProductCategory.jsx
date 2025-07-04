@@ -205,6 +205,8 @@ export default function ProductCategory() {
                             disabled={isAdding}
                             autoFocus
                             error={formError}
+                            placeholder="e.g. Bread, Coffee, Dairy"
+                            variant="dark"
                         />
                     </Form>
                 </CustomAlertDialog>
@@ -238,6 +240,8 @@ export default function ProductCategory() {
                             disabled={isUpdating}
                             autoFocus
                             error={formError}
+                            placeholder="e.g. Bread, Coffee, Dairy"
+                            variant="dark"
                         />
                     </Form>
                 </CustomAlertDialog>

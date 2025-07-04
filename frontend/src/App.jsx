@@ -11,8 +11,9 @@ import { useAuth } from './context/AuthContext';
 import React from 'react';
 import Menus from './pages/private/customer/Menus';
 import Products from './pages/private/admin/Products';
-import ProductCategory from './pages/private/admin/category/ProductCategory.jsx';
 import AddOns from './pages/private/admin/add-ons/AddOns';
+import RawMaterials from './pages/private/admin/raw-materials/RawMaterials.jsx';
+import ProductCategory from './pages/private/admin/category/ProductCategory';
 
 function RequireAuth({ children, allowedRoles }) {
   const { user, loading } = useAuth();
@@ -66,6 +67,12 @@ function App() {
         <Route path="/admin/add-ons" element={
           <RequireAuth allowedRoles={["admin"]}>
             <AddOns />
+          </RequireAuth>
+        } />
+
+        <Route path="/admin/raw-materials" element={
+          <RequireAuth allowedRoles={["admin"]}>
+            <RawMaterials />
           </RequireAuth>
         } />
 

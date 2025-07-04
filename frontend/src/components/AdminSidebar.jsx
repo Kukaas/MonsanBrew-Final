@@ -11,10 +11,11 @@ const navMain = [
     { title: "Dashboard", icon: <BarChart2 size={20} />, url: "/admin/dashboard" },
     { title: "Team", icon: <Users size={20} />, url: "#" },
 ];
-const navDocs = [
+const navMaintenance = [
     { title: "Product Category", icon: <Database size={18} />, url: "/admin/categories" },
     { title: "Add ons", icon: <FileText size={18} />, url: "/admin/add-ons" },
     { title: "Products", icon: <Folder size={20} />, url: "/admin/products" },
+    { title: "Raw  Materials Inventory", icon: <Folder size={20} />, url: "/admin/raw-materials" },
 ];
 const navSecondary = [
     { title: "Settings", icon: <Settings size={18} />, url: "#" },
@@ -78,7 +79,7 @@ export default function AdminSidebar() {
                             <div className="mb-2 text-xs font-bold text-[#FFC107] uppercase px-2 flex items-center justify-between">
                                 System Maintenance
                             </div>
-                            {navDocs.map((item) => (
+                            {navMaintenance.map((item) => (
                                 <Link
                                     key={item.title}
                                     to={item.url}
