@@ -1,27 +1,27 @@
 import React from 'react';
 import { Badge } from '@/components/ui/badge';
-import { IconCircleCheckFilled, IconLoader, IconAlertTriangle, IconClock } from '@tabler/icons-react';
+import { CheckCircle2, Loader2, AlertTriangle, Clock } from 'lucide-react';
 
 export default function StatusBadge({ stock, status }) {
     let icon, text, textClass;
     if (status === 'in_stock') {
-        icon = <IconCircleCheckFilled className="fill-green-500 dark:fill-green-400" />;
+        icon = <CheckCircle2 className="fill-green-500 dark:fill-green-400" />;
         text = 'In  Stock';
         textClass = 'text-green-500';
     } else if (status === 'out_of_stock') {
-        icon = <IconLoader className="text-red-500" />;
+        icon = <Loader2 className="text-red-500" />;
         text = 'Out of Stock';
         textClass = 'text-red-500';
     } else if (status === 'expired') {
-        icon = <IconClock className="text-red-500" />;
+        icon = <Clock className="text-red-500" />;
         text = 'Expired';
         textClass = 'text-red-500';
     } else if (status === 'low_stock') {
-        icon = <IconAlertTriangle className="text-yellow-400" />;
+        icon = <AlertTriangle className="text-yellow-400" />;
         text = 'Low Stock';
         textClass = 'text-yellow-400';
     } else {
-        icon = <IconLoader className="text-gray-400" />;
+        icon = <Loader2 className="text-gray-400" />;
         text = status || 'Unknown';
         textClass = 'text-gray-400';
     }

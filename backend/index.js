@@ -7,6 +7,7 @@ import authRoutes from './src/routes/auth.routes.js';
 import categoryRoutes from './src/routes/category.route.js';
 import addonsRoutes from './src/routes/aaddons.route.js';
 import inventoryRoutes from './src/routes/inventory.route.js';
+import productRoutes from './src/routes/product.route.js';
 
 const app = express();
 
@@ -30,6 +31,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/category', categoryRoutes);
 app.use('/api/addons', addonsRoutes);
 app.use('/api/inventory', inventoryRoutes);
+app.use('/api/products', productRoutes);
 
 app.listen(ENV.PORT, () => {
     console.log(`Server is running on port ${ENV.PORT}`);

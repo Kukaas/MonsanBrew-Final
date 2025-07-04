@@ -10,10 +10,13 @@ import FrontdeskDashboard from './pages/private/frontdesk/Dashboard.jsx';
 import { useAuth } from './context/AuthContext';
 import React from 'react';
 import Menus from './pages/private/customer/Menus';
-import Products from './pages/private/admin/Products';
+import Products from './pages/private/admin/products/Products';
 import AddOns from './pages/private/admin/add-ons/AddOns';
 import RawMaterials from './pages/private/admin/raw-materials/RawMaterials.jsx';
 import ProductCategory from './pages/private/admin/category/ProductCategory';
+import CreateProduct from './pages/private/admin/products/CreateProduct.jsx';
+import EditProduct from './pages/private/admin/products/EditProduct.jsx';
+import ViewProduct from './pages/private/admin/products/ViewProduct.jsx';
 
 function RequireAuth({ children, allowedRoles }) {
   const { user, loading } = useAuth();
@@ -55,6 +58,21 @@ function App() {
         <Route path="/admin/products" element={
           <RequireAuth allowedRoles={["admin"]}>
             <Products />
+          </RequireAuth>
+        } />
+        <Route path="/admin/products/create" element={
+          <RequireAuth allowedRoles={["admin"]}>
+            <CreateProduct />
+          </RequireAuth>
+        } />
+        <Route path="/admin/products/:id/edit" element={
+          <RequireAuth allowedRoles={["admin"]}>
+            <EditProduct />
+          </RequireAuth>
+        } />
+        <Route path="/admin/products/:id" element={
+          <RequireAuth allowedRoles={["admin"]}>
+            <ViewProduct />
           </RequireAuth>
         } />
 

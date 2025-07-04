@@ -10,7 +10,7 @@ import {
     DropdownMenuItem,
     DropdownMenuLabel,
 } from "@/components/ui/dropdown-menu";
-import { IconDotsVertical } from "@tabler/icons-react";
+import { MoreVertical } from 'lucide-react';
 import { addonsAPI } from "@/services/api";
 import dayjs from 'dayjs';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -169,7 +169,7 @@ export default function AddOns() {
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                         <Button variant="ghost" size="icon">
-                            <IconDotsVertical />
+                            <MoreVertical />
                         </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent disablePortal>

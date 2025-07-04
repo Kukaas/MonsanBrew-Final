@@ -109,3 +109,27 @@ export const rawMaterialsAPI = {
         return await api.delete(`/inventory/${id}`);
     },
 };
+
+// Product API functions
+export const productAPI = {
+    // Create product
+    create: async (data) => {
+        return await api.post('/products', data);
+    },
+    // Get all products
+    getAll: async () => {
+        return await api.get('/products');
+    },
+    // Get product by ID
+    getById: async (id) => {
+        return await api.get(`/products/${id}`);
+    },
+    // Update product
+    update: async (id, data) => {
+        return await api.put(`/products/${id}`, data);
+    },
+    // Delete product
+    delete: async (id) => {
+        return await api.delete(`/products/${id}`);
+    },
+};
