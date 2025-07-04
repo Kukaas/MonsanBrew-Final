@@ -4,6 +4,19 @@ import Inventory from '../models/inventory.model.js';
 export const createInventory = async (req, res) => {
     try {
         const { productName, stock, expirationDate, status, image, unit } = req.body;
+        // Check if product with same name exists
+        let existing = await Inventory.findOne({ productName });
+        if (existing) {
+            // Add to existing stock
+            existing.stock = parseFloat((existing.stock + parseFloat(stock)).toFixed(2));
+            if (expirationDate) existing.expirationDate = expirationDate;
+            if (status) existing.status = status;
+            if (image) existing.image = image;
+            if (unit) existing.unit = unit;
+            await existing.save();
+            return res.status(200).json(existing);
+        }
+        // Create new if not exists
         const newInventory = new Inventory({
             productName,
             stock,

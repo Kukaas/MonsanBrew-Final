@@ -34,7 +34,7 @@ export default function CustomDatePicker({
                     <Button
                         variant="outline"
                         id={name}
-                        className="w-full bg-[#232323] border border-[#444] focus:border-yellow-400 focus:ring-2 focus:ring-yellow-400 text-white placeholder:text-[#BDBDBD] rounded-md h-11 px-3 py-2 flex justify-between items-center font-normal transition-colors disabled:opacity-60"
+                        className="w-full bg-[#232323] hover:bg-[#232323] hover:text-white border border-[#444] focus:border-yellow-400 focus:ring-2 focus:ring-yellow-400 text-white placeholder:text-[#BDBDBD] rounded-md h-11 px-3 py-2 flex justify-between items-center font-normal transition-colors disabled:opacity-60"
                         type="button"
                         disabled={disabled}
                     >
@@ -51,7 +51,9 @@ export default function CustomDatePicker({
                             onChange(date ? date.toISOString() : '');
                             setOpen(false);
                         }}
-                        className="bg-[#232323] text-white border-none"
+                        fromYear={2000}
+                        toYear={2100}
+                        className="bg-[#232323] text-white border-none [&_.rdp-day_selected]:bg-yellow-400 [&_.rdp-day_selected]:text-black [&_.rdp-day]:rounded-md [&_.rdp-day:hover]:bg-yellow-400 [&_.rdp-day:hover]:text-black [&_.rdp-day_outside]:text-[#555] [&_.rdp-day_disabled]:bg-[#232323] [&_.rdp-day_disabled]:text-[#555]"
                     />
                 </PopoverContent>
             </Popover>

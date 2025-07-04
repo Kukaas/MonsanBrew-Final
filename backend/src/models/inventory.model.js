@@ -10,6 +10,12 @@ const inventorySchema = new mongoose.Schema({
         type: Number,
         required: true,
         min: 0,
+        validate: {
+            validator: function (v) {
+                return /^\d+(\.\d{1,2})?$/.test(v.toString());
+            },
+            message: props => `${props.value} is not a valid stock value. Only up to 2 decimal places allowed.`
+        }
     },
     expirationDate: {
         type: Date,
