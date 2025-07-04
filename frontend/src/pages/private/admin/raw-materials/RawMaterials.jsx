@@ -188,17 +188,24 @@ export default function RawMaterials() {
             render: row => {
                 const found = unitOptions.find(opt => opt.value === row.unit);
                 return found ? found.label : row.unit;
-            }
+            },
+            meta: { filterOptions: unitOptions.map(opt => opt.label) }
         },
         {
             accessorKey: "expirationDate",
             header: "Expiration Date",
             render: row => row.expirationDate ? dayjs(row.expirationDate).format('MMMM D, YYYY') : <span className="text-[#BDBDBD]">N/A</span>,
+            meta: { filterType: 'date' }
         },
         {
             id: "status",
             header: "Status",
             render: row => <StatusBadge stock={row.stock} status={row.status} />,
+            meta: { filterOptions: statusOptions.map(opt => opt.label) },
+            accessorFn: row => {
+                const found = statusOptions.find(opt => opt.value === row.status);
+                return found ? found.label : row.status;
+            }
         },
         {
             accessorKey: "image",

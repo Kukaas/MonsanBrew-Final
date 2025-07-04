@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import AdminLayout from "@/layouts/AdminLayout";
 import PageLayout from "@/layouts/PageLayout";
 import DataTable from "@/components/custom/DataTable";
@@ -19,31 +19,10 @@ import { DropdownMenuLabel } from "@radix-ui/react-dropdown-menu";
 import { Separator } from "@/components/ui/separator";
 import CustomAlertDialog from '@/components/custom/CustomAlertDialog';
 import { AlertDialogCancel } from "@/components/ui/alert-dialog";
+import { categoryAPI } from "@/services/api";
 
-const columns = [
-    { accessorKey: "productName", header: "Product Name" },
-    { accessorKey: "category", header: "Category", render: row => row.category?.category || "" },
-    { accessorKey: "price", header: "Price", render: row => `₱${row.price}` },
-    {
-        id: "status",
-        header: "Status",
-        render: (row) => (
-            <Badge variant="outline" className="px-1.5">
-                {row.isAvailable ? (
-                    <CheckCircle2 className="fill-green-500 dark:fill-green-400" />
-                ) : (
-                    <Loader2 className="text-red-500" />
-                )}
-                {row.isAvailable ? <span className="text-green-500">Available</span> : <span className="text-red-500">Not Available</span>}
-            </Badge>
-        ),
-    },
-    {
-        id: "actions",
-        header: "",
-        render: (row) => row.renderActions(row),
-    },
-];
+const statusOptions = ["Available", "Not Available"];
+const sizeOptions = ["Small", "Medium", "Large", "Extra Large"];
 
 export default function Products() {
     const navigate = useNavigate();
@@ -52,6 +31,15 @@ export default function Products() {
     const [deleteItem, setDeleteItem] = useState(null);
     const [deleting, setDeleting] = useState(false)
     const [deleteOpen, setDeleteOpen] = useState(false)
+    const [categoryOptions, setCategoryOptions] = useState([]);
+
+    useEffect(() => {
+        categoryAPI.getAll().then(res => {
+            const cats = (res.data || res || []).map(c => c.category);
+            setCategoryOptions(cats);
+        });
+    }, []);
+
     const { data, isLoading } = useQuery({
         queryKey: ['products'],
         queryFn: async () => {
@@ -102,6 +90,34 @@ export default function Products() {
             </DropdownMenu>
         )
     }));
+
+    const columns = [
+        { accessorKey: "productName", header: "Product Name" },
+        { accessorKey: "category", header: "Category", render: row => row.category?.category || "", meta: { filterOptions: categoryOptions }, accessorFn: row => row.category?.category || "" },
+        { accessorKey: "size", header: "Size", meta: { filterOptions: sizeOptions } },
+        { accessorKey: "price", header: "Price", render: row => `₱${row.price}` },
+        {
+            id: "status",
+            header: "Status",
+            render: (row) => (
+                <Badge variant="outline" className="px-1.5">
+                    {row.isAvailable ? (
+                        <CheckCircle2 className="fill-green-500 dark:fill-green-400" />
+                    ) : (
+                        <Loader2 className="text-red-500" />
+                    )}
+                    {row.isAvailable ? <span className="text-green-500">Available</span> : <span className="text-red-500">Not Available</span>}
+                </Badge>
+            ),
+            meta: { filterOptions: statusOptions },
+            accessorFn: row => row.isAvailable ? "Available" : "Not Available"
+        },
+        {
+            id: "actions",
+            header: "",
+            render: (row) => row.renderActions(row),
+        },
+    ];
 
     return (
         <AdminLayout>

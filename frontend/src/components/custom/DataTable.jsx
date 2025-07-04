@@ -1,5 +1,5 @@
 import * as React from "react"
-import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, FilterX } from 'lucide-react';
 import {
     flexRender,
     getCoreRowModel,
@@ -21,22 +21,40 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 
 export default function DataTable({ columns, data, loading }) {
     const [pagination, setPagination] = React.useState({ pageIndex: 0, pageSize: 10 })
+    const [globalFilter, setGlobalFilter] = React.useState("");
+    const [columnFilters, setColumnFilters] = React.useState([]);
 
     const table = useReactTable({
         data,
         columns,
         state: {
             pagination,
+            globalFilter,
+            columnFilters,
         },
         getRowId: row => row.id.toString(),
         onPaginationChange: setPagination,
         getCoreRowModel: getCoreRowModel(),
         getFilteredRowModel: getFilteredRowModel(),
         getPaginationRowModel: getPaginationRowModel(),
+        onGlobalFilterChange: setGlobalFilter,
+        onColumnFiltersChange: setColumnFilters,
+        globalFilterFn: 'includesString',
     })
 
     return (
         <div className="w-full bg-[#181818] rounded-2xl shadow-lg p-4 border border-[#232323]">
+            <div className="flex justify-start mb-4">
+                <Button
+                    variant="yellow"
+                    size="sm"
+                    className="flex items-center gap-2 font-bold shadow-md rounded-lg transition-transform"
+                    onClick={() => setColumnFilters([])}
+                >
+                    <FilterX className="w-4 h-4" />
+                    Reset Filters
+                </Button>
+            </div>
             <div className="overflow-visible rounded-xl">
                 <Table className="w-full text-white" style={{ tableLayout: 'fixed' }}>
                     <TableHeader className="bg-[#232323] text-white sticky top-0 z-10 rounded-t-xl">
@@ -45,6 +63,38 @@ export default function DataTable({ columns, data, loading }) {
                                 {headerGroup.headers.map(header => (
                                     <TableHead key={header.id} colSpan={header.colSpan} className="py-4 px-3 text-base font-bold bg-[#232323] text-white first:rounded-tl-xl last:rounded-tr-xl text-center">
                                         {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+                                        {/* Per-column filter */}
+                                        {header.column.getCanFilter() && header.column.columnDef.enableColumnFilter !== false && (
+                                            <div className="mt-2">
+                                                {header.column.columnDef.meta?.filterOptions ? (
+                                                    <select
+                                                        value={header.column.getFilterValue() || ""}
+                                                        onChange={e => header.column.setFilterValue(e.target.value)}
+                                                        className="w-full px-2 py-1 rounded border border-[#232323] bg-[#232323] text-white text-xs focus:outline-none focus:ring-1 focus:ring-[#FFC107]"
+                                                    >
+                                                        <option value="">All</option>
+                                                        {header.column.columnDef.meta.filterOptions.map(option => (
+                                                            <option key={option} value={option}>{option}</option>
+                                                        ))}
+                                                    </select>
+                                                ) : header.column.columnDef.meta?.filterType === "date" ? (
+                                                    <input
+                                                        type="date"
+                                                        value={header.column.getFilterValue() || ""}
+                                                        onChange={e => header.column.setFilterValue(e.target.value)}
+                                                        className="w-full px-2 py-1 rounded border border-[#232323] bg-[#232323] text-white text-xs focus:outline-none focus:ring-1 focus:ring-[#FFC107]"
+                                                    />
+                                                ) : (
+                                                    <input
+                                                        type="text"
+                                                        value={header.column.getFilterValue() || ''}
+                                                        onChange={e => header.column.setFilterValue(e.target.value)}
+                                                        placeholder={`Filter...`}
+                                                        className="w-full px-2 py-1 rounded border border-[#232323] bg-[#232323] text-white text-xs focus:outline-none focus:ring-1 focus:ring-[#FFC107]"
+                                                    />
+                                                )}
+                                            </div>
+                                        )}
                                     </TableHead>
                                 ))}
                             </TableRow>
