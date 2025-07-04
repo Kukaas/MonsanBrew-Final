@@ -13,7 +13,7 @@ export default function Register() {
     const [form, setForm] = useState({ name: '', email: '', password: '', confirmPassword: '' });
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-    const [formLoading, setFormLoading] = useState(false);
+    const [registering, setRegistering] = useState(false);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -38,7 +38,7 @@ export default function Register() {
             toast.error('Passwords do not match.');
             return;
         }
-        setFormLoading(true);
+        setRegistering(true);
         try {
             await authAPI.register({
                 name: form.name,
@@ -50,7 +50,7 @@ export default function Register() {
         } catch (err) {
             toast.error(err.message || 'Registration failed.');
         } finally {
-            setFormLoading(false);
+            setRegistering(false);
         }
     };
 
@@ -127,8 +127,8 @@ export default function Register() {
                         }
                         autoComplete="new-password"
                     />
-                    <Button variant="yellow" type="submit" className="w-full mt-1" size="lg" disabled={formLoading}>
-                        {formLoading ? 'Registering...' : 'Register'}
+                    <Button variant="yellow" type="submit" className="w-full mt-1" size="lg" disabled={registering} loading={registering}>
+                        {registering ? 'Registering...' : 'Register'}
                     </Button>
                 </Form>
                 <div className="mt-6 text-center">

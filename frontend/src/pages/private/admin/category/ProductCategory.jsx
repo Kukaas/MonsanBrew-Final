@@ -31,6 +31,9 @@ export default function ProductCategory() {
     const [deleteOpen, setDeleteOpen] = useState(false);
     const [deleteCategory, setDeleteCategory] = useState(null);
     const queryClient = useQueryClient();
+    const [adding, setAdding] = useState(false);
+    const [updating, setUpdating] = useState(false);
+    const [deleting, setDeleting] = useState(false);
 
     const { data, isLoading } = useQuery({
         queryKey: ['categories'],
@@ -44,11 +47,12 @@ export default function ProductCategory() {
         },
     });
 
-    const { mutate, isLoading: isAdding } = useMutation({
+    const { mutate } = useMutation({
         mutationFn: async (newCategory) => {
             return await categoryAPI.create({ category: newCategory });
         },
         onSuccess: () => {
+            setAdding(false);
             queryClient.invalidateQueries(['categories']);
             setCategory("");
             setFormError("");
@@ -56,15 +60,17 @@ export default function ProductCategory() {
             toast.success("Category added successfully!")
         },
         onError: (error) => {
+            setAdding(false);
             setFormError(error?.response?.data?.error || "Failed to add category");
         }
     });
 
-    const { mutate: updateMutate, isLoading: isUpdating } = useMutation({
+    const { mutate: updateMutate } = useMutation({
         mutationFn: async ({ id, category }) => {
             return await categoryAPI.update(id, { category });
         },
         onSuccess: () => {
+            setUpdating(false);
             queryClient.invalidateQueries(['categories']);
             setEditOpen(false);
             setEditCategory(null);
@@ -72,21 +78,24 @@ export default function ProductCategory() {
             toast.success("Category updated successfully!");
         },
         onError: (error) => {
+            setUpdating(false);
             setFormError(error?.response?.data?.error || "Failed to update category");
         }
     });
 
-    const { mutate: deleteMutate, isLoading: isDeleting } = useMutation({
+    const { mutate: deleteMutate } = useMutation({
         mutationFn: async (id) => {
             return await categoryAPI.delete(id);
         },
         onSuccess: () => {
+            setDeleting(false);
             queryClient.invalidateQueries(['categories']);
             setDeleteOpen(false);
             setDeleteCategory(null);
             toast.success("Category deleted successfully!");
         },
         onError: (error) => {
+            setDeleting(false);
             toast.error(error?.response?.data?.error || "Failed to delete category");
         }
     });
@@ -98,6 +107,7 @@ export default function ProductCategory() {
             setFormError("Category name is required");
             return;
         }
+        setAdding(true);
         mutate(category.trim());
     };
 
@@ -108,6 +118,7 @@ export default function ProductCategory() {
             setFormError("Category name is required");
             return;
         }
+        setUpdating(true);
         updateMutate({ id: editCategory._id, category: editValue.trim() });
     };
 
@@ -141,21 +152,21 @@ export default function ProductCategory() {
                         </DropdownMenuLabel>
                         <Separator />
                         <DropdownMenuItem
-                            disabled={isUpdating}
+                            disabled={updating}
                             onClick={() => {
                                 setEditCategory(row);
                                 setEditValue(row.category);
                                 setEditOpen(true);
                             }}>
-                            {isUpdating && editCategory && editCategory._id === row._id ? 'Saving...' : 'Edit'}
+                            {updating && editCategory && editCategory._id === row._id ? 'Saving...' : 'Edit'}
                         </DropdownMenuItem>
                         <DropdownMenuItem className="text-red-500"
-                            disabled={isDeleting}
+                            disabled={deleting}
                             onClick={() => {
                                 setDeleteCategory(row);
                                 setDeleteOpen(true);
                             }}>
-                            {isDeleting && deleteCategory && deleteCategory._id === row._id ? 'Deleting...' : 'Delete'}
+                            {deleting && deleteCategory && deleteCategory._id === row._id ? 'Deleting...' : 'Delete'}
                         </DropdownMenuItem>
                     </DropdownMenuContent>
                 </DropdownMenu>
@@ -179,19 +190,19 @@ export default function ProductCategory() {
                 {/* ADD DIALOG */}
                 <CustomAlertDialog
                     open={open}
-                    onOpenChange={isAdding ? undefined : setOpen}
+                    onOpenChange={adding ? undefined : setOpen}
                     title="Add Category"
                     description="Enter a new product category name."
                     actions={
                         <>
                             <AlertDialogCancel
                                 className="h-10 border border-[#FFC107] bg-[#232323] text-white text-lg font-bold"
-                                disabled={isAdding}
+                                disabled={adding}
                             >
                                 Cancel
                             </AlertDialogCancel>
-                            <Button type="submit" form="add-category-form" variant="yellow" size="lg" loading={isAdding} disabled={isAdding}>
-                                {isAdding ? 'Adding...' : 'Add'}
+                            <Button type="submit" form="add-category-form" variant="yellow" size="lg" loading={adding} disabled={adding}>
+                                {adding ? 'Adding...' : 'Add'}
                             </Button>
                         </>
                     }
@@ -202,7 +213,7 @@ export default function ProductCategory() {
                             name="category"
                             value={category}
                             onChange={e => setCategory(e.target.value)}
-                            disabled={isAdding}
+                            disabled={adding}
                             autoFocus
                             error={formError}
                             placeholder="e.g. Bread, Coffee, Dairy"
@@ -214,19 +225,19 @@ export default function ProductCategory() {
                 {/* EDIT DIALOG */}
                 <CustomAlertDialog
                     open={editOpen}
-                    onOpenChange={isUpdating ? undefined : setEditOpen}
+                    onOpenChange={updating ? undefined : setEditOpen}
                     title="Edit Category"
                     description="Update the product category name."
                     actions={
                         <>
                             <AlertDialogCancel
                                 className="h-10"
-                                disabled={isUpdating}
+                                disabled={updating}
                             >
                                 Cancel
                             </AlertDialogCancel>
-                            <Button type="submit" form="edit-category-form" variant="yellow" size="lg" loading={isUpdating} disabled={isUpdating}>
-                                {isUpdating ? 'Saving...' : 'Save'}
+                            <Button type="submit" form="edit-category-form" variant="yellow" size="lg" loading={updating} disabled={updating}>
+                                {updating ? 'Saving...' : 'Save'}
                             </Button>
                         </>
                     }
@@ -237,7 +248,7 @@ export default function ProductCategory() {
                             name="editCategory"
                             value={editValue}
                             onChange={e => setEditValue(e.target.value)}
-                            disabled={isUpdating}
+                            disabled={updating}
                             autoFocus
                             error={formError}
                             placeholder="e.g. Bread, Coffee, Dairy"
@@ -249,25 +260,25 @@ export default function ProductCategory() {
                 {/* DELETE DIALOG */}
                 <CustomAlertDialog
                     open={deleteOpen}
-                    onOpenChange={isDeleting ? undefined : setDeleteOpen}
+                    onOpenChange={deleting ? undefined : setDeleteOpen}
                     title="Delete Category"
                     description={`Are you sure you want to delete "${deleteCategory?.category}"? This action cannot be undone.`}
                     actions={
                         <>
                             <AlertDialogCancel
                                 className="h-10"
-                                disabled={isDeleting}
+                                disabled={deleting}
                             >
                                 Cancel
                             </AlertDialogCancel>
                             <Button
                                 variant="yellow"
                                 size="lg"
-                                loading={isDeleting}
-                                disabled={isDeleting}
-                                onClick={() => deleteMutate(deleteCategory._id)}
+                                loading={deleting}
+                                disabled={deleting}
+                                onClick={() => { setDeleting(true); deleteMutate(deleteCategory._id); }}
                             >
-                                {isDeleting ? 'Deleting...' : 'Delete'}
+                                {deleting ? 'Deleting...' : 'Delete'}
                             </Button>
                         </>
                     }

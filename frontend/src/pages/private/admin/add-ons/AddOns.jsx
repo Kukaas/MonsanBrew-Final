@@ -38,6 +38,9 @@ export default function AddOns() {
     const [image, setImage] = useState("");
     const [previewImage, setPreviewImage] = useState("");
     const [editImage, setEditImage] = useState("");
+    const [adding, setAdding] = useState(false);
+    const [updating, setUpdating] = useState(false);
+    const [deleting, setDeleting] = useState(false);
 
     const { data, isLoading } = useQuery({
         queryKey: ['addons'],
@@ -51,11 +54,12 @@ export default function AddOns() {
         },
     });
 
-    const { mutate, isLoading: isAdding } = useMutation({
+    const { mutate } = useMutation({
         mutationFn: async (newAddon) => {
             return await addonsAPI.create(newAddon);
         },
         onSuccess: () => {
+            setAdding(false);
             queryClient.invalidateQueries(['addons']);
             setName("");
             setPrice("");
@@ -64,15 +68,17 @@ export default function AddOns() {
             toast.success("Add-on added successfully!")
         },
         onError: (error) => {
+            setAdding(false);
             setFormError(error?.response?.data?.error || "Failed to add add-on");
         }
     });
 
-    const { mutate: updateMutate, isLoading: isUpdating } = useMutation({
+    const { mutate: updateMutate } = useMutation({
         mutationFn: async ({ id, name, price, image }) => {
             return await addonsAPI.update(id, { name, price, image });
         },
         onSuccess: () => {
+            setUpdating(false);
             queryClient.invalidateQueries(['addons']);
             setEditOpen(false);
             setEditAddon(null);
@@ -83,21 +89,24 @@ export default function AddOns() {
             toast.success("Add-on updated successfully!");
         },
         onError: (error) => {
+            setUpdating(false);
             setFormError(error?.response?.data?.error || "Failed to update add-on");
         }
     });
 
-    const { mutate: deleteMutate, isLoading: isDeleting } = useMutation({
+    const { mutate: deleteMutate } = useMutation({
         mutationFn: async (id) => {
             return await addonsAPI.delete(id);
         },
         onSuccess: () => {
+            setDeleting(false);
             queryClient.invalidateQueries(['addons']);
             setDeleteOpen(false);
             setDeleteAddon(null);
             toast.success("Add-on deleted successfully!");
         },
         onError: (error) => {
+            setDeleting(false);
             toast.error(error?.response?.data?.error || "Failed to delete add-on");
         }
     });
@@ -113,6 +122,7 @@ export default function AddOns() {
             setFormError("Valid price is required");
             return;
         }
+        setAdding(true);
         mutate({ name: name.trim(), price: Number(price), image });
     };
 
@@ -127,6 +137,7 @@ export default function AddOns() {
             setFormError("Valid price is required");
             return;
         }
+        setUpdating(true);
         updateMutate({ id: editAddon._id, name: editName.trim(), price: Number(editPrice), image: editImage });
     };
 
@@ -167,7 +178,7 @@ export default function AddOns() {
                         </DropdownMenuLabel>
                         <Separator />
                         <DropdownMenuItem
-                            disabled={isUpdating}
+                            disabled={updating}
                             onClick={() => {
                                 setEditAddon(row);
                                 setEditName(row.name);
@@ -175,15 +186,15 @@ export default function AddOns() {
                                 setEditImage(row.image || "");
                                 setEditOpen(true);
                             }}>
-                            {isUpdating && editAddon && editAddon._id === row._id ? 'Saving...' : 'Edit'}
+                            {updating && editAddon && editAddon._id === row._id ? 'Saving...' : 'Edit'}
                         </DropdownMenuItem>
                         <DropdownMenuItem className="text-red-500"
-                            disabled={isDeleting}
+                            disabled={deleting}
                             onClick={() => {
                                 setDeleteAddon(row);
                                 setDeleteOpen(true);
                             }}>
-                            {isDeleting && deleteAddon && deleteAddon._id === row._id ? 'Deleting...' : 'Delete'}
+                            {deleting && deleteAddon && deleteAddon._id === row._id ? 'Deleting...' : 'Delete'}
                         </DropdownMenuItem>
                     </DropdownMenuContent>
                 </DropdownMenu>
@@ -207,7 +218,7 @@ export default function AddOns() {
                 {/* ADD DIALOG */}
                 <CustomAlertDialog
                     open={open}
-                    onOpenChange={isAdding ? undefined : (val => {
+                    onOpenChange={adding ? undefined : (val => {
                         setOpen(val);
                         if (!val) setImage("");
                     })}
@@ -217,12 +228,12 @@ export default function AddOns() {
                         <>
                             <AlertDialogCancel
                                 className="h-10 border border-[#FFC107] bg-[#232323] text-white text-lg font-bold"
-                                disabled={isAdding}
+                                disabled={adding}
                             >
                                 Cancel
                             </AlertDialogCancel>
-                            <Button type="submit" form="add-addon-form" variant="yellow" size="lg" loading={isAdding} disabled={isAdding}>
-                                {isAdding ? 'Adding...' : 'Add'}
+                            <Button type="submit" form="add-addon-form" variant="yellow" size="lg" loading={adding} disabled={adding}>
+                                {adding ? 'Adding...' : 'Add'}
                             </Button>
                         </>
                     }
@@ -234,7 +245,7 @@ export default function AddOns() {
                                 name="name"
                                 value={name}
                                 onChange={e => setName(e.target.value)}
-                                disabled={isAdding}
+                                disabled={adding}
                                 autoFocus
                                 error={formError}
                                 placeholder="e.g. Extra Cheese, Syrup"
@@ -246,13 +257,13 @@ export default function AddOns() {
                                 type="number"
                                 value={price}
                                 onChange={e => setPrice(e.target.value)}
-                                disabled={isAdding}
+                                disabled={adding}
                                 placeholder="Enter Price"
                                 error={formError}
                                 variant="dark"
                             />
                             <div>
-                                <ImageUpload label="Image" value={image} onChange={setImage} disabled={isAdding} error={formError} />
+                                <ImageUpload label="Image" value={image} onChange={setImage} disabled={adding} error={formError} />
                             </div>
                         </div>
                     </Form>
@@ -261,19 +272,19 @@ export default function AddOns() {
                 {/* EDIT DIALOG */}
                 <CustomAlertDialog
                     open={editOpen}
-                    onOpenChange={isUpdating ? undefined : setEditOpen}
+                    onOpenChange={updating ? undefined : setEditOpen}
                     title="Edit Add-on"
                     description="Update the add-on name and price."
                     actions={
                         <>
                             <AlertDialogCancel
                                 className="h-10"
-                                disabled={isUpdating}
+                                disabled={updating}
                             >
                                 Cancel
                             </AlertDialogCancel>
-                            <Button type="submit" form="edit-addon-form" variant="yellow" size="lg" loading={isUpdating} disabled={isUpdating}>
-                                {isUpdating ? 'Saving...' : 'Save'}
+                            <Button type="submit" form="edit-addon-form" variant="yellow" size="lg" loading={updating} disabled={updating}>
+                                {updating ? 'Saving...' : 'Save'}
                             </Button>
                         </>
                     }
@@ -285,7 +296,7 @@ export default function AddOns() {
                                 name="editName"
                                 value={editName}
                                 onChange={e => setEditName(e.target.value)}
-                                disabled={isUpdating}
+                                disabled={updating}
                                 autoFocus
                                 error={formError}
                                 placeholder="e.g. Extra Cheese, Syrup"
@@ -297,12 +308,12 @@ export default function AddOns() {
                                 type="number"
                                 value={editPrice}
                                 onChange={e => setEditPrice(e.target.value)}
-                                disabled={isUpdating}
+                                disabled={updating}
                                 error={formError}
                                 variant="dark"
                             />
                             <div>
-                                <ImageUpload label="Image" value={editImage} onChange={setEditImage} disabled={isUpdating} error={formError} />
+                                <ImageUpload label="Image" value={editImage} onChange={setEditImage} disabled={updating} error={formError} />
                             </div>
                         </div>
                     </Form>
@@ -311,25 +322,25 @@ export default function AddOns() {
                 {/* DELETE DIALOG */}
                 <CustomAlertDialog
                     open={deleteOpen}
-                    onOpenChange={isDeleting ? undefined : setDeleteOpen}
+                    onOpenChange={deleting ? undefined : setDeleteOpen}
                     title="Delete Add-on"
                     description={`Are you sure you want to delete "${deleteAddon?.name}"? This action cannot be undone.`}
                     actions={
                         <>
                             <AlertDialogCancel
                                 className="h-10"
-                                disabled={isDeleting}
+                                disabled={deleting}
                             >
                                 Cancel
                             </AlertDialogCancel>
                             <Button
                                 variant="yellow"
                                 size="lg"
-                                loading={isDeleting}
-                                disabled={isDeleting}
-                                onClick={() => deleteMutate(deleteAddon._id)}
+                                loading={deleting}
+                                disabled={deleting}
+                                onClick={() => { setDeleting(true); deleteMutate(deleteAddon._id); }}
                             >
-                                {isDeleting ? 'Deleting...' : 'Delete'}
+                                {deleting ? 'Deleting...' : 'Delete'}
                             </Button>
                         </>
                     }

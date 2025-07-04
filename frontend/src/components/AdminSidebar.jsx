@@ -141,6 +141,7 @@ export default function AdminSidebar() {
                                         size="lg"
                                         onClick={handleLogout}
                                         disabled={logoutLoading}
+                                        loading={logoutLoading}
                                     >
                                         Logout
                                     </Button>

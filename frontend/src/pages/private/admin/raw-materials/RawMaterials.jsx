@@ -68,6 +68,9 @@ export default function RawMaterials() {
     const [image, setImage] = useState("");
     const [previewImage, setPreviewImage] = useState("");
     const [editImage, setEditImage] = useState("");
+    const [adding, setAdding] = useState(false);
+    const [updating, setUpdating] = useState(false);
+    const [deleting, setDeleting] = useState(false);
 
     const { data, isLoading } = useQuery({
         queryKey: ['raw-materials'],
@@ -81,11 +84,12 @@ export default function RawMaterials() {
         },
     });
 
-    const { mutate, isLoading: isAdding } = useMutation({
+    const { mutate } = useMutation({
         mutationFn: async (newItem) => {
             return await rawMaterialsAPI.create(newItem);
         },
         onSuccess: () => {
+            setAdding(false);
             queryClient.invalidateQueries(['raw-materials']);
             setProductName("");
             setStock("");
@@ -97,15 +101,17 @@ export default function RawMaterials() {
             toast.success("Raw material added successfully!")
         },
         onError: (error) => {
+            setAdding(false);
             setFormError(error?.response?.data?.error || "Failed to add raw material");
         }
     });
 
-    const { mutate: updateMutate, isLoading: isUpdating } = useMutation({
+    const { mutate: updateMutate } = useMutation({
         mutationFn: async ({ id, productName, stock, expirationDate, status, image, unit }) => {
             return await rawMaterialsAPI.update(id, { productName, stock, expirationDate, status, image, unit });
         },
         onSuccess: () => {
+            setUpdating(false);
             queryClient.invalidateQueries(['raw-materials']);
             setEditOpen(false);
             setEditItem(null);
@@ -119,21 +125,24 @@ export default function RawMaterials() {
             toast.success("Raw material updated successfully!");
         },
         onError: (error) => {
+            setUpdating(false);
             setFormError(error?.response?.data?.error || "Failed to update raw material");
         }
     });
 
-    const { mutate: deleteMutate, isLoading: isDeleting } = useMutation({
+    const { mutate: deleteMutate } = useMutation({
         mutationFn: async (id) => {
             return await rawMaterialsAPI.delete(id);
         },
         onSuccess: () => {
+            setDeleting(false);
             queryClient.invalidateQueries(['raw-materials']);
             setDeleteOpen(false);
             setDeleteItem(null);
             toast.success("Raw material deleted successfully!");
         },
         onError: (error) => {
+            setDeleting(false);
             toast.error(error?.response?.data?.error || "Failed to delete raw material");
         }
     });
@@ -149,6 +158,7 @@ export default function RawMaterials() {
             setFormError("Valid stock is required");
             return;
         }
+        setAdding(true);
         mutate({ productName: productName.trim(), stock: Number(stock), expirationDate, status, image, unit });
     };
 
@@ -163,6 +173,7 @@ export default function RawMaterials() {
             setFormError("Valid stock is required");
             return;
         }
+        setUpdating(true);
         updateMutate({ id: editItem._id, productName: editProductName.trim(), stock: Number(editStock), expirationDate: editExpirationDate, status: editStatus, image: editImage, unit: editUnit });
     };
 
@@ -217,7 +228,7 @@ export default function RawMaterials() {
                         </DropdownMenuLabel>
                         <Separator />
                         <DropdownMenuItem
-                            disabled={isUpdating}
+                            disabled={updating}
                             onClick={() => {
                                 setEditItem(row);
                                 setEditProductName(row.productName);
@@ -228,15 +239,15 @@ export default function RawMaterials() {
                                 setEditImage(row.image || "");
                                 setEditOpen(true);
                             }}>
-                            {isUpdating && editItem && editItem._id === row._id ? 'Saving...' : 'Edit'}
+                            {updating && editItem && editItem._id === row._id ? 'Saving...' : 'Edit'}
                         </DropdownMenuItem>
                         <DropdownMenuItem className="text-red-500"
-                            disabled={isDeleting}
+                            disabled={deleting}
                             onClick={() => {
                                 setDeleteItem(row);
                                 setDeleteOpen(true);
                             }}>
-                            {isDeleting && deleteItem && deleteItem._id === row._id ? 'Deleting...' : 'Delete'}
+                            {deleting && deleteItem && deleteItem._id === row._id ? 'Deleting...' : 'Delete'}
                         </DropdownMenuItem>
                     </DropdownMenuContent>
                 </DropdownMenu>
@@ -260,7 +271,7 @@ export default function RawMaterials() {
                 {/* ADD DIALOG */}
                 <CustomAlertDialog
                     open={open}
-                    onOpenChange={isAdding ? undefined : (val => {
+                    onOpenChange={adding ? undefined : (val => {
                         setOpen(val);
                         if (!val) setImage("");
                     })}
@@ -270,12 +281,12 @@ export default function RawMaterials() {
                         <>
                             <AlertDialogCancel
                                 className="h-10 border border-[#FFC107] bg-[#232323] text-white text-lg font-bold"
-                                disabled={isAdding}
+                                disabled={adding}
                             >
                                 Cancel
                             </AlertDialogCancel>
-                            <Button type="submit" form="add-raw-material-form" variant="yellow" size="lg" loading={isAdding} disabled={isAdding}>
-                                {isAdding ? 'Adding...' : 'Add'}
+                            <Button type="submit" form="add-raw-material-form" variant="yellow" size="lg" loading={adding} disabled={adding}>
+                                {adding ? 'Adding...' : 'Add'}
                             </Button>
                         </>
                     }
@@ -287,7 +298,7 @@ export default function RawMaterials() {
                                 name="productName"
                                 value={productName}
                                 onChange={e => setProductName(e.target.value)}
-                                disabled={isAdding}
+                                disabled={adding}
                                 autoFocus
                                 error={formError}
                                 placeholder="e.g. Buns, Coffee Beans"
@@ -299,7 +310,7 @@ export default function RawMaterials() {
                                 type="number"
                                 value={stock}
                                 onChange={e => setStock(e.target.value)}
-                                disabled={isAdding}
+                                disabled={adding}
                                 error={formError}
                                 placeholder="Enter stock quantity"
                                 variant="dark"
@@ -310,7 +321,7 @@ export default function RawMaterials() {
                                 onChange={setUnit}
                                 options={unitOptions}
                                 placeholder="Select unit"
-                                disabled={isAdding}
+                                disabled={adding}
                                 name="unit"
                             />
                             <CustomDatePicker
@@ -318,7 +329,7 @@ export default function RawMaterials() {
                                 value={expirationDate}
                                 onChange={setExpirationDate}
                                 placeholder="Select date"
-                                disabled={isAdding}
+                                disabled={adding}
                                 name="expirationDate"
                             />
                             <CustomSelect
@@ -327,11 +338,11 @@ export default function RawMaterials() {
                                 onChange={setStatus}
                                 options={statusOptions}
                                 placeholder="Select status"
-                                disabled={isAdding}
+                                disabled={adding}
                                 name="status"
                             />
                             <div>
-                                <ImageUpload label="Image" value={image} onChange={setImage} disabled={isAdding} error={formError} />
+                                <ImageUpload label="Image" value={image} onChange={setImage} disabled={adding} error={formError} />
                             </div>
                         </div>
                     </Form>
@@ -340,19 +351,19 @@ export default function RawMaterials() {
                 {/* EDIT DIALOG */}
                 <CustomAlertDialog
                     open={editOpen}
-                    onOpenChange={isUpdating ? undefined : setEditOpen}
+                    onOpenChange={updating ? undefined : setEditOpen}
                     title="Edit Raw Material"
                     description="Update the raw material."
                     actions={
                         <>
                             <AlertDialogCancel
                                 className="h-10"
-                                disabled={isUpdating}
+                                disabled={updating}
                             >
                                 Cancel
                             </AlertDialogCancel>
-                            <Button type="submit" form="edit-raw-material-form" variant="yellow" size="lg" loading={isUpdating} disabled={isUpdating}>
-                                {isUpdating ? 'Saving...' : 'Save'}
+                            <Button type="submit" form="edit-raw-material-form" variant="yellow" size="lg" loading={updating} disabled={updating}>
+                                {updating ? 'Saving...' : 'Save'}
                             </Button>
                         </>
                     }
@@ -364,7 +375,7 @@ export default function RawMaterials() {
                                 name="editProductName"
                                 value={editProductName}
                                 onChange={e => setEditProductName(e.target.value)}
-                                disabled={isUpdating}
+                                disabled={updating}
                                 autoFocus
                                 error={formError}
                                 placeholder="e.g. Buns, Coffee Beans"
@@ -376,7 +387,7 @@ export default function RawMaterials() {
                                 type="number"
                                 value={editStock}
                                 onChange={e => setEditStock(e.target.value)}
-                                disabled={isUpdating}
+                                disabled={updating}
                                 error={formError}
                                 placeholder="Enter stock quantity"
                                 variant="dark"
@@ -387,7 +398,7 @@ export default function RawMaterials() {
                                 onChange={setEditUnit}
                                 options={unitOptions}
                                 placeholder="Select unit"
-                                disabled={isUpdating}
+                                disabled={updating}
                                 name="editUnit"
                             />
                             <CustomDatePicker
@@ -395,7 +406,7 @@ export default function RawMaterials() {
                                 value={editExpirationDate}
                                 onChange={setEditExpirationDate}
                                 placeholder="Select date"
-                                disabled={isUpdating}
+                                disabled={updating}
                                 name="editExpirationDate"
                             />
                             <CustomSelect
@@ -404,11 +415,11 @@ export default function RawMaterials() {
                                 onChange={setEditStatus}
                                 options={statusOptions}
                                 placeholder="Select status"
-                                disabled={isUpdating}
+                                disabled={updating}
                                 name="editStatus"
                             />
                             <div>
-                                <ImageUpload label="Image" value={editImage} onChange={setEditImage} disabled={isUpdating} error={formError} />
+                                <ImageUpload label="Image" value={editImage} onChange={setEditImage} disabled={updating} error={formError} />
                             </div>
                         </div>
                     </Form>
@@ -417,25 +428,25 @@ export default function RawMaterials() {
                 {/* DELETE DIALOG */}
                 <CustomAlertDialog
                     open={deleteOpen}
-                    onOpenChange={isDeleting ? undefined : setDeleteOpen}
+                    onOpenChange={deleting ? undefined : setDeleteOpen}
                     title="Delete Raw Material"
                     description={`Are you sure you want to delete "${deleteItem?.productName}"? This action cannot be undone.`}
                     actions={
                         <>
                             <AlertDialogCancel
                                 className="h-10"
-                                disabled={isDeleting}
+                                disabled={deleting}
                             >
                                 Cancel
                             </AlertDialogCancel>
                             <Button
                                 variant="yellow"
                                 size="lg"
-                                loading={isDeleting}
-                                disabled={isDeleting}
-                                onClick={() => deleteMutate(deleteItem._id)}
+                                loading={deleting}
+                                disabled={deleting}
+                                onClick={() => { setDeleting(true); deleteMutate(deleteItem._id); }}
                             >
-                                {isDeleting ? 'Deleting...' : 'Delete'}
+                                {deleting ? 'Deleting...' : 'Delete'}
                             </Button>
                         </>
                     }

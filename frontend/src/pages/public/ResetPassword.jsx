@@ -11,7 +11,7 @@ import LoadingSpinner from '../../components/custom/LoadingSpinner';
 export default function ResetPassword() {
     const [searchParams] = useSearchParams();
     const [form, setForm] = useState({ password: '', confirmPassword: '' });
-    const [loading, setLoading] = useState(false);
+    const [resetting, setResetting] = useState(false);
     const navigate = useNavigate();
     const token = searchParams.get('token');
     const email = searchParams.get('email');
@@ -62,7 +62,7 @@ export default function ResetPassword() {
             toast.error('Invalid or expired reset link.');
             return;
         }
-        setLoading(true);
+        setResetting(true);
         setError('');
         try {
             await authAPI.resetPassword({ token, email, password: form.password });
@@ -74,7 +74,7 @@ export default function ResetPassword() {
             setError(msg);
             toast.error(msg);
         } finally {
-            setLoading(false);
+            setResetting(false);
         }
     };
 
@@ -149,8 +149,8 @@ export default function ResetPassword() {
                             }
                             autoComplete="new-password"
                         />
-                        <Button variant="yellow" type="submit" className="w-full mt-1" size="lg" disabled={loading}>
-                            {loading ? 'Resetting...' : 'Reset Password'}
+                        <Button variant="yellow" type="submit" className="w-full mt-1" size="lg" disabled={resetting} loading={resetting}>
+                            {resetting ? 'Resetting...' : 'Reset Password'}
                         </Button>
                     </Form>
                 )}

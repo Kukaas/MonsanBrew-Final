@@ -16,7 +16,7 @@ export default function Login() {
     const { isAuthenticated, loading, user, login } = useAuth();
     const [form, setForm] = useState({ email: '', password: '' });
     const [showPassword, setShowPassword] = useState(false);
-    const [formLoading, setFormLoading] = useState(false);
+    const [loggingIn, setLoggingIn] = useState(false);
     const [forgotOpen, setForgotOpen] = useState(false);
     const [forgotEmail, setForgotEmail] = useState('');
     const [forgotLoading, setForgotLoading] = useState(false);
@@ -57,7 +57,7 @@ export default function Login() {
             toast.error('Please fill in all fields.');
             return;
         }
-        setFormLoading(true);
+        setLoggingIn(true);
         try {
             await login({
                 email: form.email,
@@ -68,7 +68,7 @@ export default function Login() {
         } catch (err) {
             toast.error(err.message || 'Login failed.');
         } finally {
-            setFormLoading(false);
+            setLoggingIn(false);
         }
     };
 
@@ -129,7 +129,14 @@ export default function Login() {
                             >
                                 Cancel
                             </AlertDialogCancel>
-                            <Button type="submit" variant="yellow" size="lg" disabled={forgotLoading || forgotCooldown > 0} form="forgot-form">
+                            <Button
+                                type="submit"
+                                variant="yellow"
+                                size="lg"
+                                disabled={forgotLoading || forgotCooldown > 0}
+                                loading={forgotLoading}
+                                form="forgot-form"
+                            >
                                 {forgotLoading ? 'Sending...' : forgotCooldown > 0 ? `Wait ${forgotCooldown}s` : 'Send Reset Link'}
                             </Button>
                         </>
@@ -187,8 +194,8 @@ export default function Login() {
                         >
                             Forgot Password?
                         </button>
-                        <Button variant="yellow" type="submit" size="lg" className="w-full mt-1" disabled={formLoading}>
-                            {formLoading ? 'Logging in...' : 'Login'}
+                        <Button variant="yellow" type="submit" size="lg" className="w-full mt-1" disabled={loggingIn} loading={loggingIn}>
+                            {loggingIn ? 'Logging in...' : 'Login'}
                         </Button>
                     </div>
                 </Form>
