@@ -61,6 +61,7 @@ const productSchema = new mongoose.Schema({
             return !this.sizes || this.sizes.length === 0;
         }
     },
+    favorites: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User', default: [] }],
     isDeleted: {
         type: Boolean,
         default: false

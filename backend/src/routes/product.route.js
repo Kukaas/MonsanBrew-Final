@@ -4,7 +4,10 @@ import {
     getProducts,
     getProductById,
     updateProduct,
-    deleteProduct
+    deleteProduct,
+    addFavorite,
+    removeFavorite,
+    getFavoriteCount
 } from '../controllers/products.controller.js';
 
 const router = express.Router();
@@ -14,5 +17,8 @@ router.get('/', getProducts);
 router.get('/:id', getProductById);
 router.put('/:id', updateProduct);
 router.delete('/:id', deleteProduct);
+router.post('/:productId/favorite', addFavorite);
+router.post('/:productId/unfavorite', removeFavorite);
+router.get('/:productId/favorites', getFavoriteCount);
 
 export default router;

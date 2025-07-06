@@ -116,3 +116,49 @@ export const deleteProduct = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
+
+// Add product to user's favorites
+export const addFavorite = async (req, res) => {
+    try {
+        const { productId } = req.params;
+        const userId = req.body.userId;
+        if (!userId) return res.status(400).json({ error: 'User ID required' });
+        const product = await Product.findById(productId);
+        if (!product) return res.status(404).json({ error: 'Product not found' });
+        if (!product.favorites.includes(userId)) {
+            product.favorites.push(userId);
+            await product.save();
+        }
+        res.json({ success: true, favorites: product.favorites.length });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+};
+
+// Remove product from user's favorites
+export const removeFavorite = async (req, res) => {
+    try {
+        const { productId } = req.params;
+        const userId = req.body.userId;
+        if (!userId) return res.status(400).json({ error: 'User ID required' });
+        const product = await Product.findById(productId);
+        if (!product) return res.status(404).json({ error: 'Product not found' });
+        product.favorites = product.favorites.filter(id => id.toString() !== userId);
+        await product.save();
+        res.json({ success: true, favorites: product.favorites.length });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+};
+
+// Get favorite count for a product
+export const getFavoriteCount = async (req, res) => {
+    try {
+        const { productId } = req.params;
+        const product = await Product.findById(productId);
+        if (!product) return res.status(404).json({ error: 'Product not found' });
+        res.json({ favorites: product.favorites.length });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+};

@@ -136,6 +136,18 @@ export const productAPI = {
     delete: async (id) => {
         return await api.delete(`/products/${id}`);
     },
+    // Favorite a product
+    addFavorite: async (productId, userId) => {
+        return await api.post(`/products/${productId}/favorite`, { userId });
+    },
+    // Unfavorite a product
+    removeFavorite: async (productId, userId) => {
+        return await api.post(`/products/${productId}/unfavorite`, { userId });
+    },
+    // Get favorite count
+    getFavoriteCount: async (productId) => {
+        return await api.get(`/products/${productId}/favorites`);
+    },
 };
 
 // Cart API functions

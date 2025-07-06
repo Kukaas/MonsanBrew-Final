@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { productAPI, addonsAPI, cartAPI } from '../../../services/api';
 import { Button } from '../../../components/ui/button';
 import { Skeleton } from '../../../components/ui/skeleton';
@@ -19,8 +19,53 @@ export default function ProductDetail() {
             return res.data || res;
         }
     });
-    // Placeholder favorite state
+    const queryClient = useQueryClient();
+    const { user } = useAuth();
+
+    // Real-time favorite count
+    const { data: favoriteCountData, refetch: refetchFavoriteCount } = useQuery({
+        queryKey: ['favoriteCount', id],
+        queryFn: async () => {
+            const res = await productAPI.getFavoriteCount(id);
+            return res.favorites ?? res.data?.favorites ?? 0;
+        },
+        enabled: !!id,
+    });
+    const favoriteCount = favoriteCountData ?? 0;
+
+    // Check if user has favorited
     const [favorite, setFavorite] = useState(false);
+    useEffect(() => {
+        if (product && user) {
+            setFavorite(Array.isArray(product.favorites) && product.favorites.includes(user._id));
+        }
+    }, [product, user]);
+
+    // Favorite/unfavorite mutations
+    const favoriteMutation = useMutation({
+        mutationFn: async (currentFavorite) => {
+            if (!user) throw new Error('Not logged in');
+            if (currentFavorite) {
+                await productAPI.removeFavorite(id, user._id);
+            } else {
+                await productAPI.addFavorite(id, user._id);
+            }
+        },
+        onSuccess: (_data, currentFavorite) => {
+            queryClient.invalidateQueries({ queryKey: ['product', id] });
+            refetchFavoriteCount();
+            setFavorite(f => !f);
+            if (currentFavorite) {
+                toast.success('Removed from favorites!');
+            } else {
+                toast.success('Added to favorites!');
+            }
+        },
+        onError: () => {
+            // Optionally revert state
+        }
+    });
+
     // Placeholder for image gallery
     const images = product?.images && product.images.length > 0
         ? product.images
@@ -68,8 +113,6 @@ export default function ProductDetail() {
             prev.includes(id) ? prev.filter(aid => aid !== id) : [...prev, id]
         );
     };
-
-    const { user } = useAuth();
 
     // Add to Cart handler
     const [addCartLoading, setAddCartLoading] = React.useState(false);
@@ -146,12 +189,14 @@ export default function ProductDetail() {
                             <div className="flex gap-3 items-center">
                                 {/* Favorite Button */}
                                 <button
-                                    onClick={() => setFavorite(f => !f)}
+                                    onClick={() => favoriteMutation.mutate(favorite)}
                                     className={`w-10 h-10 flex items-center justify-center rounded-lg border transition-all shadow ${favorite ? 'bg-[#FFC107] border-[#FFC107]' : 'bg-white border-gray-200'} hover:scale-105`}
-                                    aria-label="Add to favorites"
+                                    aria-label={favorite ? 'Remove from favorites' : 'Add to favorites'}
+                                    disabled={favoriteMutation.isLoading}
                                 >
                                     <Heart className={favorite ? 'text-white' : 'text-[#FFC107]'} fill={favorite ? '#FFC107' : 'none'} size={24} />
                                 </button>
+                                <span className="text-[#FFC107] font-bold text-lg select-none min-w-[24px] text-center">{favoriteCount}</span>
                                 {/* Share Button */}
                                 <button
                                     className="w-10 h-10 flex items-center justify-center rounded-lg border border-gray-200 bg-white hover:bg-gray-100 transition-all shadow"
