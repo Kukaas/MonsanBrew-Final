@@ -25,7 +25,21 @@ export default function ProductCard({ product }) {
                 />
             </div>
             <div className="font-bold text-base text-[#232323] text-left mb-1">{product.productName}</div>
-            <div className="text-[#232323] text-sm text-left mb-2">₱ {product.price?.toLocaleString()}</div>
+            <div className="text-[#232323] text-sm text-left mb-2">
+                {Array.isArray(product.sizes) && product.sizes.length > 0 ? (
+                    (() => {
+                        const prices = product.sizes.map(s => Number(s.price)).filter(p => !isNaN(p));
+                        if (prices.length === 0) return null;
+                        const min = Math.min(...prices);
+                        const max = Math.max(...prices);
+                        return min === max
+                            ? `₱ ${min.toLocaleString()}`
+                            : `₱ ${min.toLocaleString()} - ₱ ${max.toLocaleString()}`;
+                    })()
+                ) : (
+                    <>₱ {product.price?.toLocaleString()}</>
+                )}
+            </div>
             <div className="border-t border-[#E0E0E0] my-2" />
             <Button variant="yellow" className="w-full mt-2" onClick={() => navigate(`/product/${product._id}`)}>Buy</Button>
         </div>

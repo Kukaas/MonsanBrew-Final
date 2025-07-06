@@ -119,20 +119,39 @@ export default function ViewProduct() {
                                     <span className="font-bold text-[#FFC107]">Category: </span>
                                     <span className="text-white font-medium">{product.category?.category || ''}</span>
                                 </div>
-                                <div>
-                                    <span className="font-bold text-[#FFC107]">Price: </span>
-                                    <span className="text-white font-medium">₱{product.price}</span>
-                                </div>
+                                {/* Price/Sizes rendering */}
+                                {product.sizes && product.sizes.length > 0 ? (
+                                    <div className="md:col-span-2">
+                                        <span className="font-bold text-[#FFC107]">Sizes & Prices: </span>
+                                        <div className="mt-2">
+                                            <table className="min-w-[220px] bg-[#232323] rounded-xl overflow-hidden">
+                                                <thead>
+                                                    <tr>
+                                                        <th className="px-4 py-2 text-[#FFC107] text-left">Size</th>
+                                                        <th className="px-4 py-2 text-[#FFC107] text-left">Price</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {product.sizes.map((size, idx) => (
+                                                        <tr key={idx} className="border-t border-[#333]">
+                                                            <td className="px-4 py-2 text-white font-medium">{size.label}</td>
+                                                            <td className="px-4 py-2 text-white font-medium">₱{size.price}</td>
+                                                        </tr>
+                                                    ))}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div>
+                                        <span className="font-bold text-[#FFC107]">Price: </span>
+                                        <span className="text-white font-medium">₱{product.price}</span>
+                                    </div>
+                                )}
                                 <div>
                                     <span className="font-bold text-[#FFC107]">Prep Time: </span>
                                     <span className="text-white font-medium">{product.preparationTime} min</span>
                                 </div>
-                                {product.size && (
-                                    <div>
-                                        <span className="font-bold text-[#FFC107]">Size: </span>
-                                        <span className="text-white font-medium">{product.size}</span>
-                                    </div>
-                                )}
                             </div>
                             <div className="mt-6 text-xl">
                                 <span className="font-bold text-[#FFC107]">Description: </span>
@@ -148,7 +167,7 @@ export default function ViewProduct() {
                                     {product.addOns.map((addon, idx) => (
                                         <li key={idx} className="text-white flex items-center gap-2">
                                             <span className="font-bold text-[#FFC107]">{addon.name || addon}</span>
-                                            {addon.price ? <span className="ml-2 text-gray-300 font-medium">₱{addon.price}</span> : null}
+                                            {addon.price ? <span className="ml-2 text-white font-medium">₱{addon.price}</span> : null}
                                         </li>
                                     ))}
                                 </ul>
@@ -165,7 +184,7 @@ export default function ViewProduct() {
                                     {product.ingredients.map((ing, idx) => (
                                         <li key={idx} className="text-white flex items-center gap-2">
                                             <span className="font-bold text-[#FFC107]">{ing.productName}</span>
-                                            <span className="ml-2 text-gray-300 font-medium">Qty: {ing.quantity}</span>
+                                            <span className="ml-2 text-white font-medium">Qty: {ing.quantity}</span>
                                         </li>
                                     ))}
                                 </ul>

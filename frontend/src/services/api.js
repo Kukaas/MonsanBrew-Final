@@ -137,3 +137,19 @@ export const productAPI = {
         return await api.delete(`/products/${id}`);
     },
 };
+
+// Cart API functions
+export const cartAPI = {
+    addToCart: async (data) => {
+        return await api.post('/cart', data);
+    },
+    getCart: async (userId) => {
+        return await api.get(`/cart?user=${userId}`);
+    },
+    removeFromCart: async (id) => {
+        return await api.delete(`/cart/${id}`);
+    },
+    updateCartItem: async (id, data) => {
+        return await api.patch(`/cart/${id}`, data);
+    },
+};

@@ -19,16 +19,17 @@ export default function CreateProduct() {
     const [category, setCategory] = useState("");
     const [productName, setProductName] = useState("");
     const [description, setDescription] = useState("");
-    const [price, setPrice] = useState("");
     const [addOns, setAddOns] = useState([]);
     const [isAvailable, setIsAvailable] = useState(true);
     const [preparationTime, setPreparationTime] = useState("");
     const [isCustomizable, setIsCustomizable] = useState(false);
     const [ingredients, setIngredients] = useState([{ productName: '', quantity: '' }]);
     const [image, setImage] = useState("");
-    const [size, setSize] = useState("");
+    const [sizes, setSizes] = useState([{ label: '', price: '' }]);
     const [formError, setFormError] = useState("");
     const [showSaving, setShowSaving] = useState(false);
+    const [hasSizes, setHasSizes] = useState(true);
+    const [price, setPrice] = useState('');
 
     const { data: categories, isLoading: loadingCategories, error: errorCategories } = useQuery({
         queryKey: ['categories'],
@@ -90,33 +91,44 @@ export default function CreateProduct() {
         setIngredients(ingredients => ingredients.filter((_, i) => i !== idx));
     };
 
+    const handleSizeChange = (idx, field, value) => {
+        setSizes(sizes => sizes.map((s, i) => i === idx ? { ...s, [field]: value } : s));
+    };
+    const handleAddSize = () => {
+        setSizes([...sizes, { label: '', price: '' }]);
+    };
+    const handleRemoveSize = (idx) => {
+        setSizes(sizes => sizes.filter((_, i) => i !== idx));
+    };
+
     const handleSubmit = (e) => {
         e.preventDefault();
         setFormError("");
         if (!category) return setFormError("Category is required");
         if (!productName.trim()) return setFormError("Product name is required");
         if (!description.trim()) return setFormError("Description is required");
-        if (!price || isNaN(price)) return setFormError("Valid price is required");
+        if (hasSizes) {
+            if (!sizes.length || sizes.some(s => !s.label || !s.price || isNaN(s.price))) return setFormError("All sizes must have a label and price");
+        } else {
+            if (!price || isNaN(price)) return setFormError("Price is required");
+        }
         if (!preparationTime || isNaN(preparationTime)) return setFormError("Preparation time is required");
-        // Validate ingredients
         if (!ingredients.length || ingredients.some(ing => !ing.productName || !ing.quantity || isNaN(ing.quantity))) {
             return setFormError("All ingredients must have a name and quantity");
         }
-        // If not customizable, ensure addOns is an empty array
         const addOnsToSend = isCustomizable ? addOns.filter(a => a) : [];
         setShowSaving(true);
         mutate({
             category,
             productName,
             description,
-            price: Number(price),
             addOns: addOnsToSend,
             isAvailable,
             preparationTime: Number(preparationTime),
             isCustomizable,
             ingredients: ingredients.map(ing => ({ productName: ing.productName, quantity: Number(ing.quantity) })),
             image,
-            size: size || undefined
+            ...(hasSizes ? { sizes: sizes.map(s => ({ label: s.label, price: Number(s.price) })), price: undefined } : { price: Number(price), sizes: [] })
         });
     };
 
@@ -128,6 +140,19 @@ export default function CreateProduct() {
     // Ensure addOns is always at least one item
     if (addOns.length === 0) setAddOns(['']);
 
+    const sizeOptions = [
+        { value: 'Small', label: 'Small' },
+        { value: 'Medium', label: 'Medium' },
+        { value: 'Large', label: 'Large' },
+        { value: 'Extra Large', label: 'Extra Large' }
+    ];
+
+    // Helper to get available size options for a given index
+    const getAvailableSizeOptions = (idx) => {
+        const selectedLabels = sizes.map((s, i) => i === idx ? null : s.label);
+        return sizeOptions.filter(opt => !selectedLabels.includes(opt.value));
+    };
+
     return (
         <AdminLayout>
             <PageLayout title="Create Product" description="Add a new product.">
@@ -137,7 +162,7 @@ export default function CreateProduct() {
                         <div className="col-span-1 md:col-span-2">
                             <h2 className="text-lg font-bold text-[#FFC107] mb-4">Product Information</h2>
                         </div>
-                        {/* Left column: Product Information (Category, Product Name, Description, Price, Preparation Time, Image, Size) */}
+                        {/* Left column: Product Information (Category, Product Name, Description, Preparation Time, Image) */}
                         <div className="flex flex-col gap-4">
                             <div className="flex flex-col gap-1">
                                 <label htmlFor="category" className="font-bold text-[#FFC107]">Category</label>
@@ -153,15 +178,19 @@ export default function CreateProduct() {
                                     disabled={!categoriesLoaded}
                                 />
                             </div>
-                            <FormInput
-                                label={<span className="font-bold text-[#FFC107]">Product Name</span>}
-                                name="productName"
-                                value={productName}
-                                onChange={e => setProductName(e.target.value)}
-                                error={formError}
-                                variant="dark"
-                                placeholder="e.g. Iced Coffee, Bagel, Sandwich"
-                            />
+                            <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-4 w-full">
+                                <div className="flex-1">
+                                    <FormInput
+                                        label={<span className="font-bold text-[#FFC107]">Product Name</span>}
+                                        name="productName"
+                                        value={productName}
+                                        onChange={e => setProductName(e.target.value)}
+                                        error={formError}
+                                        variant="dark"
+                                        placeholder="e.g. Iced Coffee, Bagel, Sandwich"
+                                    />
+                                </div>
+                            </div>
                             <FormInput
                                 label={<span className="font-bold text-[#FFC107]">Description</span>}
                                 name="description"
@@ -170,16 +199,6 @@ export default function CreateProduct() {
                                 error={formError}
                                 variant="dark"
                                 placeholder="Enter a short product description"
-                            />
-                            <FormInput
-                                label={<span className="font-bold text-[#FFC107]">Price</span>}
-                                name="price"
-                                type="number"
-                                value={price}
-                                onChange={e => setPrice(e.target.value)}
-                                error={formError}
-                                variant="dark"
-                                placeholder="e.g. 120"
                             />
                             <FormInput
                                 label={<span className="font-bold text-[#FFC107]">Preparation Time (minutes)</span>}
@@ -191,29 +210,73 @@ export default function CreateProduct() {
                                 variant="dark"
                                 placeholder="e.g. 5"
                             />
-                            <CustomSelect
-                                label={<span className="font-bold text-[#FFC107]">Size <span className="text-gray-400 font-normal">(optional)</span></span>}
-                                name="size"
-                                value={size}
-                                onChange={setSize}
-                                options={[
-                                    { value: 'Small', label: 'Small' },
-                                    { value: 'Medium', label: 'Medium' },
-                                    { value: 'Large', label: 'Large' },
-                                    { value: 'Extra Large', label: 'Extra Large' }
-                                ]}
-                                error={formError}
-                                variant="dark"
-                                placeholder="Select size (optional)"
-                                isClearable={true}
-                            />
                             <div className="flex flex-col gap-1">
                                 <label className="font-bold text-[#FFC107]">Image</label>
                                 <ImageUpload label="" value={image} onChange={setImage} error={formError} placeholder="Upload product image (optional)" />
                             </div>
                         </div>
-                        {/* Right column: Add-ons (array), Customizable, Ingredients */}
+                        {/* Right column: Has Sizes, Add-ons (array), Customizable, Ingredients */}
                         <div className="flex flex-col gap-4">
+                            {/* Has Sizes and Price/Sizes input */}
+                            <div className="flex flex-col gap-2 mb-2">
+                                <label className="font-bold text-[#FFC107] flex items-center gap-2 mt-2">
+                                    <input
+                                        type="checkbox"
+                                        checked={hasSizes}
+                                        onChange={e => setHasSizes(e.target.checked)}
+                                        className="accent-[#FFC107] w-4 h-4"
+                                    />
+                                    Has Sizes?
+                                </label>
+                                {hasSizes ? (
+                                    <div className="flex flex-col gap-1 min-w-[220px]">
+                                        <label className="font-bold text-[#FFC107]">Sizes & Prices</label>
+                                        {sizes.map((size, idx) => (
+                                            <div key={idx} className="flex flex-row gap-2 items-center">
+                                                <CustomSelect
+                                                    value={size.label}
+                                                    onChange={val => handleSizeChange(idx, 'label', val)}
+                                                    options={getAvailableSizeOptions(idx)}
+                                                    placeholder="Select size (e.g. Small)"
+                                                    name={`size-label-${idx}`}
+                                                    variant="dark"
+                                                    className="flex-1"
+                                                />
+                                                <FormInput
+                                                    value={size.price}
+                                                    onChange={e => handleSizeChange(idx, 'price', e.target.value)}
+                                                    placeholder="Price (e.g. 120)"
+                                                    name={`size-price-${idx}`}
+                                                    type="number"
+                                                    min={0}
+                                                    variant="dark"
+                                                    className="w-[120px] text-white"
+                                                />
+                                                <Button type="button" variant="destructive" size="icon" onClick={() => handleRemoveSize(idx)} disabled={sizes.length === 1} aria-label="Remove size" className="rounded-full w-8 h-8 flex items-center justify-center">
+                                                    <Minus className="w-5 h-5 text-white" />
+                                                </Button>
+                                            </div>
+                                        ))}
+                                        <Button type="button" variant="yellow" size="lg" onClick={handleAddSize} aria-label="Add size" className="mt-2 w-full flex items-center justify-center gap-2">
+                                            <Plus className="w-5 h-5" />
+                                            Add Size
+                                        </Button>
+                                    </div>
+                                ) : (
+                                    <FormInput
+                                        name="price"
+                                        value={price}
+                                        onChange={e => setPrice(e.target.value)}
+                                        error={formError}
+                                        variant="dark"
+                                        placeholder="e.g. 120"
+                                        type="number"
+                                        min={0}
+                                        className="min-w-[180px] text-white"
+                                    />
+                                )}
+                            </div>
+                            {/* Add-ons & Customizable */}
                             <div className="flex flex-col gap-1">
                                 <label className="font-bold text-[#FFC107]">Add-ons & Customizable</label>
                                 <div className="flex gap-2 items-center mb-2">
@@ -253,6 +316,7 @@ export default function CreateProduct() {
                                     Add Add-on
                                 </Button>
                             </div>
+                            {/* Ingredients */}
                             <div className="flex flex-col gap-1">
                                 <label className="font-bold text-[#FFC107]">Ingredients</label>
                                 {ingredients.map((ing, idx) => (
@@ -275,7 +339,7 @@ export default function CreateProduct() {
                                             type="number"
                                             min={0}
                                             variant="dark"
-                                            className="w-full sm:w-[200px]"
+                                            className="w-full sm:w-[200px] text-white"
                                         />
                                         <Button type="button" variant="destructive" size="icon" onClick={() => handleRemoveIngredient(idx)} disabled={ingredients.length === 1} aria-label="Remove ingredient" className="rounded-full w-8 h-8 flex items-center justify-center sm:self-auto self-end">
                                             <Minus className="w-5 h-5 text-white" />

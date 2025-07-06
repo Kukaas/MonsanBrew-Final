@@ -1,11 +1,13 @@
 import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { productAPI, addonsAPI } from '../../../services/api';
+import { productAPI, addonsAPI, cartAPI } from '../../../services/api';
 import { Button } from '../../../components/ui/button';
 import { Skeleton } from '../../../components/ui/skeleton';
 import { Heart, Share2 } from 'lucide-react';
 import CustomerLayout from '../../../layouts/CustomerLayout';
+import { toast } from 'sonner';
+import { useAuth } from '@/context/AuthContext';
 
 export default function ProductDetail() {
     const { id } = useParams();
@@ -35,8 +37,10 @@ export default function ProductDetail() {
     const maxQty = product?.stock || 99;
 
     // Size selection
-    const sizes = Array.isArray(product?.size) ? product.size : product?.size ? [product.size] : [];
-    const [selectedSize, setSelectedSize] = React.useState(sizes[0] || null);
+    const sizes = Array.isArray(product?.sizes) && product.sizes.length > 0
+        ? product.sizes
+        : (Array.isArray(product?.size) ? product.size : product?.size ? [product.size] : []);
+    const [selectedSize, setSelectedSize] = React.useState(sizes[0]?.label || sizes[0] || null);
 
     // Customization: fetch add-ons if customizable
     const isCustomizable = product?.isCustomizable;
@@ -55,6 +59,32 @@ export default function ProductDetail() {
         setSelectedAddons((prev) =>
             prev.includes(id) ? prev.filter(aid => aid !== id) : [...prev, id]
         );
+    };
+
+    const { user } = useAuth();
+
+    // Add to Cart handler
+    const [addCartLoading, setAddCartLoading] = React.useState(false);
+    const handleAddToCart = async () => {
+        if (!user) {
+            toast.error('You must be logged in to add to cart.');
+            return;
+        }
+        setAddCartLoading(true);
+        try {
+            await cartAPI.addToCart({
+                user: user._id,
+                product: product._id,
+                size: selectedSize,
+                quantity,
+                addOns: selectedAddons
+            });
+            toast.success('Added to cart!');
+            setAddCartLoading(false);
+        } catch (err) {
+            toast.error('Failed to add to cart.');
+            setAddCartLoading(false);
+        }
     };
 
     if (isLoading) {
@@ -110,7 +140,16 @@ export default function ProductDetail() {
                         </div>
                         {/* Price, Ratings, Sold, Availability */}
                         <div className="flex items-center gap-4 mb-2 flex-wrap">
-                            <div className="text-3xl font-bold text-[#FFC107]">₱ {product.price?.toLocaleString()}</div>
+                            <div className="text-3xl font-bold text-[#FFC107]">
+                                {Array.isArray(product.sizes) && product.sizes.length > 0 && selectedSize ? (
+                                    (() => {
+                                        const found = product.sizes.find(s => s.label === selectedSize);
+                                        return found ? `₱ ${Number(found.price).toLocaleString()}` : `₱ ${product.price?.toLocaleString()}`;
+                                    })()
+                                ) : (
+                                    <>₱ {product.price?.toLocaleString()}</>
+                                )}
+                            </div>
                             <div className="text-[#BDBDBD] text-lg">4.9 ★ | 10+ sold</div>
                             {product.isAvailable ? (
                                 <span className="ml-2 px-3 py-1 rounded-full bg-green-600 text-white text-xs font-bold">Available</span>
@@ -137,18 +176,18 @@ export default function ProductDetail() {
                             </div>
                         )}
                         {/* Size Selector */}
-                        {sizes.length > 0 && (
+                        {Array.isArray(product?.sizes) && product.sizes.length > 0 && (
                             <div className="mb-2">
                                 <div className="font-semibold text-white mb-1">Size:</div>
                                 <div className="flex gap-2 flex-wrap">
-                                    {sizes.map((size, i) => (
+                                    {product.sizes.map((size, i) => (
                                         <Button
                                             key={i}
-                                            variant={selectedSize === size ? 'yellow' : 'outline'}
-                                            onClick={() => setSelectedSize(size)}
+                                            variant={selectedSize === size.label ? 'yellow' : 'yellow-outline'}
+                                            onClick={() => setSelectedSize(size.label)}
                                             className="min-w-[60px] text-white"
                                         >
-                                            {size}
+                                            {size.label}
                                         </Button>
                                     ))}
                                 </div>
@@ -181,7 +220,7 @@ export default function ProductDetail() {
                                                 />
                                                 {addon.image && <img src={addon.image} alt={addon.name} className="w-10 h-10 object-cover rounded border border-[#444] bg-[#232323]" />}
                                                 <span className="text-white font-medium">{addon.name}</span>
-                                                <span className="text-[#FFC107] font-bold ml-2">+₱{addon.price?.toLocaleString()}</span>
+                                                <span className="text-white font-bold ml-2">+₱{addon.price?.toLocaleString()}</span>
                                             </label>
                                         )) : <span className="text-[#BDBDBD]">No add-ons available.</span>}
                                     </div>
@@ -190,7 +229,15 @@ export default function ProductDetail() {
                         )}
                         {/* Action Buttons */}
                         <div className="flex flex-col md:flex-row gap-4 mt-2">
-                            <Button variant="yellow-outline" className="flex-1 w-full">Add to Cart</Button>
+                            <Button
+                                variant="yellow-outline"
+                                className="flex-1 w-full"
+                                onClick={handleAddToCart}
+                                disabled={addCartLoading}
+                                loading={addCartLoading}
+                            >
+                                {addCartLoading ? 'Adding...' : 'Add to Cart'}
+                            </Button>
                             <Button variant="yellow" className="flex-1 w-full">Buy Now</Button>
                         </div>
                     </div>
@@ -198,7 +245,19 @@ export default function ProductDetail() {
                 {/* Product Description (bottom, full width) */}
                 <div className="max-w-2xl w-full mb-10">
                     <h3 className="text-xl font-extrabold mb-3 text-white">Product Description</h3>
-                    <div className="bg-[#232323] rounded-xl p-6 text-[#E0E0E0] text-base shadow-sm border border-[#333]">{product.description || 'No description available.'}</div>
+                    <div className="bg-[#232323] rounded-xl p-6 text-[#E0E0E0] text-base shadow-sm border border-[#333]">
+                        {product.description || 'No description available.'}
+                        {product.ingredients && product.ingredients.length > 0 && (
+                            <div className="mt-6">
+                                <div className="font-bold text-white mb-2">Ingredients:</div>
+                                <ul className="list-disc list-inside text-[#E0E0E0]">
+                                    {product.ingredients.map((ing, i) => (
+                                        <li key={i}>{ing.productName} <span className="text-white font-bold">x{ing.quantity}</span></li>
+                                    ))}
+                                </ul>
+                            </div>
+                        )}
+                    </div>
                 </div>
                 {/* Reviews Section (bottom, full width) */}
                 <div className="max-w-2xl w-full">
