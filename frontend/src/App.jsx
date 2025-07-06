@@ -9,7 +9,7 @@ import RiderDashboard from './pages/private/rider/Dashboard.jsx';
 import FrontdeskDashboard from './pages/private/frontdesk/Dashboard.jsx';
 import { useAuth } from './context/AuthContext';
 import React from 'react';
-import Menus from './pages/private/customer/Menus';
+import Menus from './pages/Menus';
 import Products from './pages/private/admin/products/Products';
 import AddOns from './pages/private/admin/add-ons/AddOns';
 import RawMaterials from './pages/private/admin/raw-materials/RawMaterials.jsx';
@@ -17,6 +17,26 @@ import ProductCategory from './pages/private/admin/category/ProductCategory';
 import CreateProduct from './pages/private/admin/products/CreateProduct.jsx';
 import EditProduct from './pages/private/admin/products/EditProduct.jsx';
 import ViewProduct from './pages/private/admin/products/ViewProduct.jsx';
+
+function RootRedirect() {
+  const { user, loading } = useAuth();
+  const location = useLocation();
+
+  if (loading) return null;
+  if (!user) return <Menus />;
+
+  switch (user.role) {
+    case 'admin': return <Navigate to="/admin/dashboard" replace />;
+    case 'rider': return <Navigate to="/rider/dashboard" replace />;
+    case 'frontdesk': return <Navigate to="/frontdesk/dashboard" replace />;
+    case 'customer':
+      if (location.search.includes('is_from_login=true')) {
+        return <Menus />;
+      }
+      return <Navigate to="/?is_from_login=true" replace />;
+    default: return <Menus />;
+  }
+}
 
 function RequireAuth({ children, allowedRoles }) {
   const { user, loading } = useAuth();
@@ -35,7 +55,7 @@ function RoleRedirect() {
     case 'admin': return <Navigate to="/admin/dashboard" replace />;
     case 'rider': return <Navigate to="/rider/dashboard" replace />;
     case 'frontdesk': return <Navigate to="/frontdesk/dashboard" replace />;
-    case 'customer': return <Navigate to="/menus" replace />;
+    case 'customer': return <Navigate to="/?is_from_login=true" replace />;
     default: return <Navigate to="/login" replace />;
   }
 }
@@ -44,7 +64,7 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<RoleRedirect />} />
+        <Route path="/" element={<RootRedirect />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/verify-email" element={<VerifyEmail />} />
@@ -99,16 +119,13 @@ function App() {
             <RiderDashboard />
           </RequireAuth>
         } />
-        <Route path="/menus" element={
-          <RequireAuth allowedRoles={["customer"]}>
-            <Menus />
-          </RequireAuth>
-        } />
+        <Route path="/menus" element={<Menus />} />
         <Route path="/frontdesk/dashboard" element={
           <RequireAuth allowedRoles={["frontdesk"]}>
             <FrontdeskDashboard />
           </RequireAuth>
         } />
+        <Route path="*" element={<RoleRedirect />} />
       </Routes>
     </BrowserRouter>
   );

@@ -21,6 +21,7 @@ export default function Login() {
     const [forgotEmail, setForgotEmail] = useState('');
     const [forgotLoading, setForgotLoading] = useState(false);
     const [forgotCooldown, setForgotCooldown] = useState(0);
+    const [pendingRedirect, setPendingRedirect] = useState(false);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -45,6 +46,29 @@ export default function Login() {
         return () => clearInterval(interval);
     }, [forgotCooldown]);
 
+    // Post-login redirect effect
+    useEffect(() => {
+        if (pendingRedirect && user) {
+            switch (user.role) {
+                case 'admin':
+                    navigate('/admin/dashboard');
+                    break;
+                case 'rider':
+                    navigate('/rider/dashboard');
+                    break;
+                case 'frontdesk':
+                    navigate('/frontdesk/dashboard');
+                    break;
+                case 'customer':
+                    navigate('/?is_from_login=true');
+                    break;
+                default:
+                    navigate('/');
+            }
+            setPendingRedirect(false);
+        }
+    }, [pendingRedirect, user, navigate]);
+
     if (loading || isAuthenticated) return null;
 
     const handleChange = (e) => {
@@ -64,7 +88,7 @@ export default function Login() {
                 password: form.password
             });
             toast.success('Login successful!');
-            navigate('/');
+            setPendingRedirect(true);
         } catch (err) {
             toast.error(err.message || 'Login failed.');
         } finally {
