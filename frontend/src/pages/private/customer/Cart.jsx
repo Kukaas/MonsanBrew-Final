@@ -5,31 +5,42 @@ import CustomerLayout from '@/layouts/CustomerLayout';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Checkbox } from "@/components/ui/checkbox";
+import { ShoppingCart } from 'lucide-react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useAuth } from '@/context/AuthContext';
 
-function useQuery() {
+function useQueryParams() {
     return new URLSearchParams(useLocation().search);
 }
 
 export default function Cart() {
-    const query = useQuery();
+    const { user, loading: authLoading } = useAuth();
+    const query = useQueryParams();
     const userId = query.get('user');
     const navigate = useNavigate();
-    const [cart, setCart] = React.useState([]);
-    const [loading, setLoading] = React.useState(true);
+    const queryClient = useQueryClient();
 
+    // Redirect to login if not authenticated
     React.useEffect(() => {
-        setLoading(true);
-        cartAPI.getCart(userId)
-            .then(res => {
-                if (res && Array.isArray(res.data)) {
-                    setCart(res.data);
-                } else if (Array.isArray(res)) {
-                    setCart(res);
-                } else {
-                    setCart([]);
-                }
-            })
-            .finally(() => setLoading(false));
+        if (!authLoading && !user) {
+            navigate('/login', { replace: true });
+        }
+    }, [authLoading, user, navigate]);
+
+    // Fetch cart with TanStack Query
+    const {
+        data: cart = [],
+        isLoading,
+        refetch,
+    } = useQuery({
+        queryKey: ['cart', userId],
+        queryFn: () => cartAPI.getCart(userId).then(res => (res && Array.isArray(res.data) ? res.data : Array.isArray(res) ? res : [])),
+        enabled: !!userId,
+    });
+
+    // Set loading to true when userId changes (new fetch)
+    React.useEffect(() => {
+        // setLoading(true); // This line is no longer needed as loading state is managed by TanStack Query
     }, [userId]);
 
     // Group cart items by product, size, and addOns (order-insensitive)
@@ -70,42 +81,44 @@ export default function Cart() {
         setSelectedKeys(prev => prev.includes(key) ? prev.filter(k => k !== key) : [...prev, key]);
     };
 
-    // Handle quantity update
-    const handleUpdateQuantity = async (group, delta) => {
-        // Optimistically update UI
-        setCart(prevCart => {
-            let updated = [...prevCart];
-            group._originalIds.forEach(id => {
-                const idx = updated.findIndex(item => item._id === id);
-                if (idx !== -1) {
-                    updated[idx] = { ...updated[idx], quantity: updated[idx].quantity + delta };
+    // Mutations for cart updates
+    const updateQuantityMutation = useMutation({
+        mutationFn: async ({ group, delta }) => {
+            for (const id of group._originalIds) {
+                const original = cart.find(item => item._id === id);
+                if (!original) continue;
+                const newQty = original.quantity + delta;
+                if (newQty > 0) {
+                    await cartAPI.updateCartItem(id, { quantity: newQty });
+                } else {
+                    await cartAPI.removeFromCart(id);
                 }
-            });
-            // Remove items with quantity <= 0
-            updated = updated.filter(item => item.quantity > 0);
-            return updated;
-        });
-        // Update backend
-        for (const id of group._originalIds) {
-            const original = cart.find(item => item._id === id);
-            if (!original) continue;
-            const newQty = original.quantity + delta;
-            if (newQty > 0) {
-                await cartAPI.updateCartItem(id, { quantity: newQty });
-            } else {
+            }
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['cart', userId] });
+        },
+    });
+
+    const deleteGroupMutation = useMutation({
+        mutationFn: async (group) => {
+            for (const id of group._originalIds) {
                 await cartAPI.removeFromCart(id);
             }
-        }
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['cart', userId] });
+        },
+    });
+
+    // Handle quantity update
+    const handleUpdateQuantity = (group, delta) => {
+        updateQuantityMutation.mutate({ group, delta });
     };
 
     // Handle delete group
-    const handleDeleteGroup = async (group) => {
-        // Optimistically update UI
-        setCart(prevCart => prevCart.filter(item => !group._originalIds.includes(item._id)));
-        // Remove from backend
-        for (const id of group._originalIds) {
-            await cartAPI.removeFromCart(id);
-        }
+    const handleDeleteGroup = (group) => {
+        deleteGroupMutation.mutate(group);
     };
 
     // Helper to calculate total price for a cart item (base + add-ons)
@@ -124,13 +137,22 @@ export default function Cart() {
     const shipping = selectedCart.length > 0 ? 15 : 0;
     const total = subtotal - discount + shipping;
 
-    if (!loading && cart.length === 0) {
+    if (!isLoading && cart.length === 0) {
         return (
             <CustomerLayout>
-                <div className="flex flex-col items-center justify-center min-h-[60vh]">
-                    <img src="/empty-cart.svg" alt="Empty Cart" className="w-40 mb-4" />
-                    <div className="text-lg font-bold text-white mb-2">Your cart is empty</div>
-                    <div className="text-gray-400">Looks like you haven't added anything yet.</div>
+                <div className="min-h-screen bg-[#232323] flex flex-col items-center justify-center py-10 px-2">
+                    <div className="bg-white rounded-2xl shadow-lg flex flex-col items-center justify-center p-10 max-w-md w-full">
+                        <ShoppingCart size={80} strokeWidth={2.5} className="mb-4" style={{ color: '#FFC107', filter: 'drop-shadow(0 0 8px #FFC10788)' }} />
+                        <div className="text-2xl font-extrabold text-[#232323] mb-2 text-center">Your cart is empty</div>
+                        <div className="text-gray-500 mb-6 text-center">Looks like you haven't added anything yet.</div>
+                        <Button
+                            variant="yellow"
+                            className="w-full text-lg font-bold py-3"
+                            onClick={() => navigate('/menus')}
+                        >
+                            Shop Now
+                        </Button>
+                    </div>
                 </div>
             </CustomerLayout>
         );
@@ -154,7 +176,7 @@ export default function Cart() {
                             <span className="text-sm text-[#FFC107] font-bold select-none cursor-pointer" style={{ userSelect: 'none' }}>Select All</span>
                         </div>
                     )}
-                    {loading ? (
+                    {isLoading ? (
                         Array.from({ length: 3 }).map((_, i) => (
                             <div key={i} className="bg-[#232323] rounded-2xl shadow p-4 flex flex-col items-center w-[320px] min-h-[140px]">
                                 <Skeleton className="w-20 h-20 mb-2 rounded-xl bg-[#333]" />

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { productAPI, addonsAPI, cartAPI } from '../../../services/api';
@@ -20,27 +20,35 @@ export default function ProductDetail() {
         }
     });
     // Placeholder favorite state
-    const [favorite, setFavorite] = React.useState(false);
+    const [favorite, setFavorite] = useState(false);
     // Placeholder for image gallery
     const images = product?.images && product.images.length > 0
         ? product.images
         : [product?.image || product?.imageUrl || '/placeholder.png'];
-    const [selectedImage, setSelectedImage] = React.useState(images[0]);
-    React.useEffect(() => {
+    const [selectedImage, setSelectedImage] = useState(images[0]);
+    useEffect(() => {
         if (images[0]) setSelectedImage(images[0]);
     }, [product]);
     // Placeholder for variants
     const variants = product?.variants || [];
-    const [selectedVariant, setSelectedVariant] = React.useState(variants[0] || null);
+    const [selectedVariant, setSelectedVariant] = useState(variants[0] || null);
     // Quantity
-    const [quantity, setQuantity] = React.useState(1);
+    const [quantity, setQuantity] = useState(1);
     const maxQty = product?.stock || 99;
 
     // Size selection
     const sizes = Array.isArray(product?.sizes) && product.sizes.length > 0
         ? product.sizes
         : (Array.isArray(product?.size) ? product.size : product?.size ? [product.size] : []);
-    const [selectedSize, setSelectedSize] = React.useState(sizes[0]?.label || sizes[0] || null);
+    const [selectedSize, setSelectedSize] = useState(null);
+
+    // Set default selected size to 'small' if exists, else first size
+    useEffect(() => {
+        if (sizes && sizes.length > 0) {
+            const small = sizes.find(s => (s.label || s).toString().toLowerCase() === 'small');
+            setSelectedSize(small ? (small.label || small) : (sizes[0].label || sizes[0]));
+        }
+    }, [product]);
 
     // Customization: fetch add-ons if customizable
     const isCustomizable = product?.isCustomizable;
@@ -81,6 +89,21 @@ export default function ProductDetail() {
             });
             toast.success('Added to cart!');
             setAddCartLoading(false);
+            // Reset all form states
+            setQuantity(1);
+            // Reset selected size to default (small or first)
+            if (sizes && sizes.length > 0) {
+                const small = sizes.find(s => (s.label || s).toString().toLowerCase() === 'small');
+                setSelectedSize(small ? (small.label || small) : (sizes[0].label || sizes[0]));
+            } else {
+                setSelectedSize(null);
+            }
+            // Reset selected variant to first or null
+            setSelectedVariant(variants[0] || null);
+            // Reset selected add-ons
+            setSelectedAddons([]);
+            // Reset selected image to first
+            if (images[0]) setSelectedImage(images[0]);
         } catch (err) {
             toast.error('Failed to add to cart.');
             setAddCartLoading(false);
@@ -91,10 +114,10 @@ export default function ProductDetail() {
         return (
             <CustomerLayout>
                 <div className="flex flex-col items-center justify-center min-h-screen bg-[#232323]">
-                    <Skeleton className="w-80 h-80 mb-6 bg-[#333]" />
-                    <Skeleton className="h-8 w-48 mb-2 bg-[#333]" />
-                    <Skeleton className="h-6 w-32 mb-4 bg-[#333]" />
-                    <Skeleton className="h-12 w-64 mb-4 bg-[#333]" />
+                    <Skeleton className="w-80 h-80 mb-6 bg-[#333] rounded-2xl border border-[#333]" />
+                    <Skeleton className="h-8 w-48 mb-2 bg-[#333] rounded-lg" />
+                    <Skeleton className="h-6 w-32 mb-4 bg-[#333] rounded-lg" />
+                    <Skeleton className="h-12 w-64 mb-4 bg-[#333] rounded-lg" />
                 </div>
             </CustomerLayout>
         );
@@ -106,35 +129,35 @@ export default function ProductDetail() {
         <CustomerLayout>
             <div className="min-h-screen bg-[#232323] flex flex-col items-center py-10 px-2">
                 {/* Product Card (not sticky, single column) */}
-                <div className="bg-[#232323] rounded-2xl shadow-2xl max-w-2xl w-full flex flex-col p-10 gap-8 border border-[#333] mb-10">
+                <div className="bg-white rounded-2xl shadow max-w-2xl w-full flex flex-col p-10 gap-8 border border-gray-200 mb-10">
                     {/* Image Gallery */}
                     <div className="flex flex-col items-center justify-center">
                         <img
                             src={selectedImage}
                             alt={product.productName}
-                            className="w-full max-w-xs h-64 md:w-96 md:h-96 object-contain rounded-xl mb-6 border-2 border-[#333] shadow-lg bg-[#232323]"
+                            className="w-full max-w-xs h-64 md:w-96 md:h-96 object-contain rounded-xl mb-6 border-2 border-gray-200 shadow bg-white"
                         />
                     </div>
                     {/* Product Info */}
                     <div className="flex flex-col gap-6">
                         {/* Top: Name, Favorite, Share */}
                         <div className="flex items-start justify-between gap-2">
-                            <h2 className="text-3xl md:text-4xl font-extrabold text-white mb-2 flex-1">{product.productName}</h2>
+                            <h2 className="text-3xl md:text-4xl font-extrabold text-[#232323] mb-2 flex-1">{product.productName}</h2>
                             <div className="flex gap-3 items-center">
                                 {/* Favorite Button */}
                                 <button
                                     onClick={() => setFavorite(f => !f)}
-                                    className={`w-10 h-10 flex items-center justify-center rounded-lg border transition-all shadow ${favorite ? 'bg-[#FFC107] border-[#FFC107]' : 'bg-[#232323] border-[#444]'} hover:scale-105`}
+                                    className={`w-10 h-10 flex items-center justify-center rounded-lg border transition-all shadow ${favorite ? 'bg-[#FFC107] border-[#FFC107]' : 'bg-white border-gray-200'} hover:scale-105`}
                                     aria-label="Add to favorites"
                                 >
                                     <Heart className={favorite ? 'text-white' : 'text-[#FFC107]'} fill={favorite ? '#FFC107' : 'none'} size={24} />
                                 </button>
                                 {/* Share Button */}
                                 <button
-                                    className="w-10 h-10 flex items-center justify-center rounded-lg border border-[#444] bg-[#fff] hover:bg-[#f5f5f5] transition-all shadow"
+                                    className="w-10 h-10 flex items-center justify-center rounded-lg border border-gray-200 bg-white hover:bg-gray-100 transition-all shadow"
                                     aria-label="Share"
                                 >
-                                    <Share2 className="text-[#232323]" size={22} />
+                                    <Share2 className="text-[#FFC107]" size={22} />
                                 </button>
                             </div>
                         </div>
@@ -150,7 +173,7 @@ export default function ProductDetail() {
                                     <>₱ {product.price?.toLocaleString()}</>
                                 )}
                             </div>
-                            <div className="text-[#BDBDBD] text-lg">4.9 ★ | 10+ sold</div>
+                            <div className="text-gray-400 text-lg">4.9 ★ | 10+ sold</div>
                             {product.isAvailable ? (
                                 <span className="ml-2 px-3 py-1 rounded-full bg-green-600 text-white text-xs font-bold">Available</span>
                             ) : (
@@ -160,12 +183,12 @@ export default function ProductDetail() {
                         {/* Variants */}
                         {variants.length > 0 && (
                             <div className="mb-2">
-                                <div className="font-semibold text-white mb-1">Variants:</div>
+                                <div className="font-semibold text-[#232323] mb-1">Variants:</div>
                                 <div className="flex gap-2 flex-wrap">
                                     {variants.map((v, i) => (
                                         <Button
                                             key={i}
-                                            variant={selectedVariant === v ? 'yellow' : 'outline'}
+                                            variant={selectedVariant === v ? 'yellow' : 'yellow-outline'}
                                             onClick={() => setSelectedVariant(v)}
                                             className="min-w-[80px]"
                                         >
@@ -178,14 +201,14 @@ export default function ProductDetail() {
                         {/* Size Selector */}
                         {Array.isArray(product?.sizes) && product.sizes.length > 0 && (
                             <div className="mb-2">
-                                <div className="font-semibold text-white mb-1">Size:</div>
+                                <div className="font-semibold text-[#232323] mb-1">Size:</div>
                                 <div className="flex gap-2 flex-wrap">
                                     {product.sizes.map((size, i) => (
                                         <Button
                                             key={i}
                                             variant={selectedSize === size.label ? 'yellow' : 'yellow-outline'}
                                             onClick={() => setSelectedSize(size.label)}
-                                            className="min-w-[60px] text-white"
+                                            className="min-w-[60px]"
                                         >
                                             {size.label}
                                         </Button>
@@ -195,19 +218,19 @@ export default function ProductDetail() {
                         )}
                         {/* Quantity Selector */}
                         <div className="flex items-center gap-3 mb-2">
-                            <div className="font-semibold text-white">Quantity:</div>
+                            <div className="font-semibold text-[#232323]">Quantity:</div>
                             <div className="flex items-center gap-1">
-                                <Button variant="outline" size="icon" onClick={() => setQuantity(q => Math.max(1, q - 1))}>-</Button>
-                                <span className="px-3 text-lg font-bold text-white">{quantity}</span>
-                                <Button variant="outline" size="icon" onClick={() => setQuantity(q => Math.min(maxQty, q + 1))}>+</Button>
+                                <Button variant="yellow-outline" size="icon" onClick={() => setQuantity(q => Math.max(1, q - 1))}>-</Button>
+                                <span className="px-3 text-lg font-bold text-[#232323]">{quantity}</span>
+                                <Button variant="yellow-outline" size="icon" onClick={() => setQuantity(q => Math.min(maxQty, q + 1))}>+</Button>
                             </div>
                         </div>
                         {/* Customization Section */}
                         {isCustomizable && (
-                            <div className="bg-[#181818] rounded-xl p-4 mb-2 border border-[#333]">
-                                <div className="font-bold text-white mb-3 text-lg">Customize your order</div>
+                            <div className="bg-gray-50 rounded-xl p-4 mb-2 border border-gray-200">
+                                <div className="font-bold text-[#232323] mb-3 text-lg">Customize your order</div>
                                 {loadingAddons ? (
-                                    <Skeleton className="h-8 w-32 bg-[#333]" />
+                                    <Skeleton className="h-8 w-32 bg-[#333] rounded-lg" />
                                 ) : (
                                     <div className="flex flex-col gap-3">
                                         {addons && addons.length > 0 ? addons.map(addon => (
@@ -218,11 +241,11 @@ export default function ProductDetail() {
                                                     onChange={() => handleAddonToggle(addon._id)}
                                                     className="accent-[#FFC107] w-5 h-5"
                                                 />
-                                                {addon.image && <img src={addon.image} alt={addon.name} className="w-10 h-10 object-cover rounded border border-[#444] bg-[#232323]" />}
-                                                <span className="text-white font-medium">{addon.name}</span>
-                                                <span className="text-white font-bold ml-2">+₱{addon.price?.toLocaleString()}</span>
+                                                {addon.image && <img src={addon.image} alt={addon.name} className="w-10 h-10 object-cover rounded border border-gray-200 bg-white" />}
+                                                <span className="text-[#232323] font-medium">{addon.name}</span>
+                                                <span className="text-[#FFC107] font-bold ml-2">+₱{addon.price?.toLocaleString()}</span>
                                             </label>
-                                        )) : <span className="text-[#BDBDBD]">No add-ons available.</span>}
+                                        )) : <span className="text-gray-400">No add-ons available.</span>}
                                     </div>
                                 )}
                             </div>
@@ -244,15 +267,15 @@ export default function ProductDetail() {
                 </div>
                 {/* Product Description (bottom, full width) */}
                 <div className="max-w-2xl w-full mb-10">
-                    <h3 className="text-xl font-extrabold mb-3 text-white">Product Description</h3>
-                    <div className="bg-[#232323] rounded-xl p-6 text-[#E0E0E0] text-base shadow-sm border border-[#333]">
+                    <h3 className="text-xl font-extrabold mb-3 text-[#FFC107]">Product Description</h3>
+                    <div className="bg-white rounded-xl p-6 text-gray-700 text-base shadow-sm border border-gray-200">
                         {product.description || 'No description available.'}
                         {product.ingredients && product.ingredients.length > 0 && (
                             <div className="mt-6">
-                                <div className="font-bold text-white mb-2">Ingredients:</div>
-                                <ul className="list-disc list-inside text-[#E0E0E0]">
+                                <div className="font-bold text-[#232323] mb-2">Ingredients:</div>
+                                <ul className="list-disc list-inside text-gray-700">
                                     {product.ingredients.map((ing, i) => (
-                                        <li key={i}>{ing.productName} <span className="text-white font-bold">x{ing.quantity}</span></li>
+                                        <li key={i}>{ing.productName} <span className="text-[#232323] font-bold">x{ing.quantity}</span></li>
                                     ))}
                                 </ul>
                             </div>
@@ -261,8 +284,8 @@ export default function ProductDetail() {
                 </div>
                 {/* Reviews Section (bottom, full width) */}
                 <div className="max-w-2xl w-full">
-                    <h3 className="text-xl font-extrabold mb-3 text-white">Reviews</h3>
-                    <div className="bg-[#232323] rounded-xl p-6 text-[#BDBDBD] text-base shadow-sm border border-[#333]">No reviews yet.</div>
+                    <h3 className="text-xl font-extrabold mb-3 text-[#FFC107]">Reviews</h3>
+                    <div className="bg-white rounded-xl p-6 text-gray-400 text-base shadow-sm border border-gray-200">No reviews yet.</div>
                 </div>
             </div>
         </CustomerLayout>
