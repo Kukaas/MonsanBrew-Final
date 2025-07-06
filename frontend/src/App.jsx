@@ -17,6 +17,7 @@ import ProductCategory from './pages/private/admin/category/ProductCategory';
 import CreateProduct from './pages/private/admin/products/CreateProduct.jsx';
 import EditProduct from './pages/private/admin/products/EditProduct.jsx';
 import ViewProduct from './pages/private/admin/products/ViewProduct.jsx';
+import ProductDetail from './pages/private/customer/ProductDetail';
 
 function RootRedirect() {
   const { user, loading } = useAuth();
@@ -125,6 +126,7 @@ function App() {
             <FrontdeskDashboard />
           </RequireAuth>
         } />
+        <Route path="/product/:id" element={<ProductDetail />} />
         <Route path="*" element={<RoleRedirect />} />
       </Routes>
     </BrowserRouter>

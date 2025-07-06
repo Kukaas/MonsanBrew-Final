@@ -3,7 +3,7 @@ import Header from '../components/Header';
 import MobileNavBar from '../components/MobileNavBar';
 import MobileTopBar from '../components/MobileTopBar';
 
-export default function MenuLayout({ children }) {
+export default function CustomerLayout({ children }) {
     return (
         <div className="min-h-screen bg-[#232323] flex flex-col">
             {/* Desktop Header */}

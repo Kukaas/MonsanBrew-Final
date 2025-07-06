@@ -84,6 +84,10 @@ export const addonsAPI = {
     delete: async (id) => {
         return await api.delete(`/addons/${id}`);
     },
+    // Fetch multiple add-ons by IDs
+    getMany: async (ids) => {
+        return await api.post('/addons/bulk', { ids });
+    },
 };
 
 // Raw Materials (Inventory) API functions

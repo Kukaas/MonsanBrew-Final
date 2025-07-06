@@ -59,3 +59,17 @@ export const deleteAddon = async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 };
+
+// Bulk fetch add-ons by IDs
+export const getAddonsBulk = async (req, res) => {
+    try {
+        const { ids } = req.body;
+        if (!Array.isArray(ids) || ids.length === 0) {
+            return res.status(400).json({ message: 'No IDs provided.' });
+        }
+        const addons = await Addon.find({ _id: { $in: ids } });
+        res.json(addons);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};

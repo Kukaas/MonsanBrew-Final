@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import MenuLayout from '../layouts/MenuLayout';
+import CustomerLayout from '../layouts/CustomerLayout';
 import { useQuery } from '@tanstack/react-query';
 import { categoryAPI, productAPI } from '../services/api';
 import ProductCard from '../components/ProductCard';
@@ -47,7 +47,7 @@ export default function Menus() {
     ));
 
     return (
-        <MenuLayout>
+        <CustomerLayout>
             <div className="bg-[#232323] min-h-screen w-full flex flex-col">
                 <div className="flex-1 w-full flex flex-col items-center py-8">
                     <div className="w-full max-w-6xl px-4 flex flex-col items-center">
@@ -96,6 +96,6 @@ export default function Menus() {
                     </div>
                 </div>
             </div>
-        </MenuLayout>
+        </CustomerLayout>
     );
 }

@@ -4,7 +4,8 @@ import {
     getAddons,
     getAddonById,
     updateAddon,
-    deleteAddon
+    deleteAddon,
+    getAddonsBulk
 } from '../controllers/addons.controller.js';
 
 const router = express.Router();
@@ -23,5 +24,7 @@ router.put('/:id', updateAddon);
 
 // Delete an addon
 router.delete('/:id', deleteAddon);
+
+router.post('/bulk', getAddonsBulk);
 
 export default router;
