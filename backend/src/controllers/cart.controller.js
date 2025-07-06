@@ -48,6 +48,7 @@ export const addToCart = async (req, res) => {
 export const getCart = async (req, res) => {
     try {
         const { user } = req.query;
+        if (!user) return res.status(400).json({ message: 'User ID is required' });
         const cart = await CartItem.find({ user }).sort({ createdAt: -1 });
         res.json(cart);
     } catch (error) {

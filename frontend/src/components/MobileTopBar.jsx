@@ -1,8 +1,10 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Search, ShoppingCart, MessageCircle } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
 
 export default function MobileTopBar() {
+    const { user } = useAuth();
     return (
         <div className="fixed top-0 left-0 right-0 z-50 bg-[#232323] border-b border-gray-700 flex items-center justify-between px-3 h-14 md:hidden">
             <div className="flex-1 flex items-center">
@@ -18,7 +20,7 @@ export default function MobileTopBar() {
                 </div>
             </div>
             <div className="flex items-center gap-3 ml-3">
-                <Link to="/cart" className="text-[#FFC107] hover:text-[#b38f00]" aria-label="Cart">
+                <Link to={user ? `/cart?user=${user._id}` : '/cart'} className="text-[#FFC107] hover:text-[#b38f00]" aria-label="Cart">
                     <ShoppingCart size={24} />
                 </Link>
                 <Link to="/messages" className="text-[#FFC107] hover:text-[#b38f00]" aria-label="Messages">

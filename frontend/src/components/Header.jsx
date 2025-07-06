@@ -49,7 +49,7 @@ export default function Header() {
                     <Link to="/" className={isActive('/') && !isActive('/order-status') && !isActive('/favorites') && !isActive('/cart') && !isActive('/notifications') ? 'text-[#FFC107] font-bold' : 'hover:text-[#FFC107]'}>Menu</Link>
                     <Link to="/order-status" className={isActive('/order-status', true) ? 'text-[#FFC107] font-bold' : 'hover:text-[#FFC107]'}>Orders</Link>
                     <Link to="/favorites" className={isActive('/favorites', true) ? 'text-[#FFC107] font-bold' : 'hover:text-[#FFC107]'}>Favorites</Link>
-                    <Link to="/cart" className={isActive('/cart', true) ? 'text-[#FFC107]' : 'hover:text-[#FFC107]'} aria-label="Cart">
+                    <Link to={user ? `/cart?user=${user._id}` : '/cart'} className={isActive('/cart', true) ? 'text-[#FFC107]' : 'hover:text-[#FFC107]'} aria-label="Cart">
                         <ShoppingCart size={28} />
                     </Link>
                     <Link to="/notifications" className={isActive('/notifications', true) ? 'text-[#FFC107]' : 'hover:text-[#FFC107]'} aria-label="Notifications">
