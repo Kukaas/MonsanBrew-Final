@@ -10,7 +10,7 @@ import {
     DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle2, Loader2, MoreVertical } from 'lucide-react';
+import { CheckCircle2, XCircle, MoreVertical } from 'lucide-react';
 import { useNavigate } from "react-router-dom";
 import { productAPI } from "@/services/api";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -20,6 +20,7 @@ import { Separator } from "@/components/ui/separator";
 import CustomAlertDialog from '@/components/custom/CustomAlertDialog';
 import { AlertDialogCancel } from "@/components/ui/alert-dialog";
 import { categoryAPI } from "@/services/api";
+import { Select, SelectTrigger, SelectContent, SelectItem } from "@/components/ui/select";
 
 const statusOptions = ["Available", "Not Available"];
 const sizeOptions = ["Small", "Medium", "Large", "Extra Large"];
@@ -32,6 +33,10 @@ export default function Products() {
     const [deleting, setDeleting] = useState(false)
     const [deleteOpen, setDeleteOpen] = useState(false)
     const [categoryOptions, setCategoryOptions] = useState([]);
+    const [statusDialogOpen, setStatusDialogOpen] = useState(false);
+    const [statusChangingProduct, setStatusChangingProduct] = useState(null);
+    const [newStatus, setNewStatus] = useState(null);
+    const [statusLoading, setStatusLoading] = useState(false);
 
     useEffect(() => {
         categoryAPI.getAll().then(res => {
@@ -57,6 +62,22 @@ export default function Products() {
         onError: () => {
             toast.error("Failed to delete product");
             setDeleteId(null);
+        }
+    });
+    const { mutate: updateProduct } = useMutation({
+        mutationFn: async ({ id, data }) => await productAPI.update(id, data),
+        onSuccess: () => {
+            toast.success("Product status updated!");
+            setStatusDialogOpen(false);
+            setStatusChangingProduct(null);
+            setNewStatus(null);
+            queryClient.invalidateQueries(['products']);
+        },
+        onError: () => {
+            toast.error("Failed to update product status");
+            setStatusDialogOpen(false);
+            setStatusChangingProduct(null);
+            setNewStatus(null);
         }
     });
 
@@ -100,14 +121,41 @@ export default function Products() {
             id: "status",
             header: "Status",
             render: (row) => (
-                <Badge variant="outline" className="px-1.5">
-                    {row.isAvailable ? (
-                        <CheckCircle2 className="fill-green-500 dark:fill-green-400" />
-                    ) : (
-                        <Loader2 className="text-red-500" />
-                    )}
-                    {row.isAvailable ? <span className="text-green-500">Available</span> : <span className="text-red-500">Not Available</span>}
-                </Badge>
+                <div className="flex justify-center items-center w-full">
+                    <Select
+                        value={row.isAvailable ? "Available" : "Not Available"}
+                        onValueChange={(value) => {
+                            setStatusChangingProduct(row);
+                            setNewStatus(value === "Available");
+                            setStatusDialogOpen(true);
+                        }}
+                        disabled={statusLoading && statusChangingProduct && statusChangingProduct._id === row._id}
+                    >
+                        <SelectTrigger className="w-[170px] bg-[#232323] border border-[#444] focus:border-yellow-400 focus:ring-2 focus:ring-yellow-400 text-white placeholder:text-[#BDBDBD] rounded-md py-2 px-3 text-base font-medium transition-colors disabled:opacity-60">
+                            {row.isAvailable ? (
+                                <span className="flex items-center gap-1 text-green-500">
+                                    <CheckCircle2 className="w-4 h-4 text-green-500" /> Available
+                                </span>
+                            ) : (
+                                <span className="flex items-center gap-1 text-red-500">
+                                    <XCircle className="w-4 h-4 text-red-500" /> Not Available
+                                </span>
+                            )}
+                        </SelectTrigger>
+                        <SelectContent className="bg-[#232323] border border-[#444] text-white rounded-md shadow-lg">
+                            <SelectItem value="Available">
+                                <span className="flex items-center gap-1 text-green-500">
+                                    <CheckCircle2 className="w-4 h-4 text-green-500" /> Available
+                                </span>
+                            </SelectItem>
+                            <SelectItem value="Not Available">
+                                <span className="flex items-center gap-1 text-red-500">
+                                    <XCircle className="w-4 h-4 text-red-500" /> Not Available
+                                </span>
+                            </SelectItem>
+                        </SelectContent>
+                    </Select>
+                </div>
             ),
             meta: { filterOptions: statusOptions },
             accessorFn: row => row.isAvailable ? "Available" : "Not Available"
@@ -158,6 +206,40 @@ export default function Products() {
                                 }}
                             >
                                 {deleting ? 'Deleting...' : 'Delete'}
+                            </Button>
+                        </>
+                    }
+                />
+                {/* Status Change Dialog */}
+                <CustomAlertDialog
+                    open={statusDialogOpen}
+                    onOpenChange={statusLoading ? undefined : setStatusDialogOpen}
+                    title="Change Product Status"
+                    description={`Are you sure you want to mark "${statusChangingProduct?.productName}" as ${newStatus ? 'Available' : 'Not Available'}?`}
+                    actions={
+                        <>
+                            <AlertDialogCancel
+                                className="h-10"
+                                disabled={statusLoading}
+                            >
+                                Cancel
+                            </AlertDialogCancel>
+                            <Button
+                                variant="yellow"
+                                size="lg"
+                                loading={statusLoading}
+                                disabled={statusLoading}
+                                onClick={() => {
+                                    setStatusLoading(true);
+                                    updateProduct({
+                                        id: statusChangingProduct._id,
+                                        data: { isAvailable: newStatus },
+                                    }, {
+                                        onSettled: () => setStatusLoading(false)
+                                    });
+                                }}
+                            >
+                                {statusLoading ? 'Updating...' : 'Confirm'}
                             </Button>
                         </>
                     }
