@@ -23,47 +23,47 @@ export default function ViewProduct() {
     if (isLoading) return (
         <AdminLayout>
             <PageLayout title="Product Information" description="See all details for this product.">
-                <div className="mb-8 flex items-center gap-4">
+                <div className="mb-8 flex flex-col sm:flex-row items-center gap-4">
                     <Skeleton className="w-12 h-12 rounded-full" />
                     <Skeleton className="h-8 w-32 rounded" />
                 </div>
-                <div className="w-full max-w-7xl mx-auto bg-[#181818]/80 p-12 rounded-3xl border border-[#232323] flex flex-col md:flex-row gap-12 md:gap-20 items-stretch shadow-2xl backdrop-blur-md">
+                <div className="w-full max-w-7xl mx-auto bg-[#181818]/80 p-4 sm:p-8 md:p-12 rounded-3xl border border-[#232323] flex flex-col md:flex-row gap-8 md:gap-12 lg:gap-20 items-stretch shadow-2xl backdrop-blur-md">
                     {/* Image section */}
-                    <div className="flex-shrink-0 flex flex-col items-center md:items-start w-full md:w-[500px]">
+                    <div className="flex-shrink-0 flex flex-col items-center md:items-start w-full md:w-[350px] lg:w-[500px]">
                         <Skeleton className="w-full aspect-[4/3] rounded-2xl border-4 border-[#FFC107]" />
-                        <div className="mt-8 flex flex-wrap gap-4">
+                        <div className="mt-6 flex flex-wrap gap-4 w-full">
                             <Skeleton className="h-10 w-32 rounded" />
                             <Skeleton className="h-10 w-32 rounded" />
                         </div>
                     </div>
                     {/* Details section */}
-                    <div className="flex-1 flex flex-col gap-12 justify-center">
+                    <div className="flex-1 flex flex-col gap-8 md:gap-12 justify-center">
                         {/* Product Info */}
                         <div>
                             <Skeleton className="h-8 w-48 mb-6 rounded" />
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-16 gap-y-5 text-xl">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 md:gap-x-16 gap-y-4 md:gap-y-5 text-xl">
                                 <Skeleton className="h-7 w-64 mb-2 rounded" />
                                 <Skeleton className="h-7 w-64 mb-2 rounded" />
                                 <Skeleton className="h-7 w-64 mb-2 rounded" />
                                 <Skeleton className="h-7 w-64 mb-2 rounded" />
                             </div>
-                            <div className="mt-6">
-                                <Skeleton className="h-7 w-96 rounded" />
+                            <div className="mt-4 md:mt-6">
+                                <Skeleton className="h-7 w-64 md:w-96 rounded" />
                             </div>
                         </div>
                         <div className="border-t border-[#232323] my-4" />
                         {/* Add-ons */}
                         <div>
-                            <Skeleton className="h-8 w-48 mb-6 rounded" />
-                            <Skeleton className="h-7 w-64 mb-2 rounded" />
-                            <Skeleton className="h-7 w-64 mb-2 rounded" />
+                            <Skeleton className="h-8 w-48 mb-4 md:mb-6 rounded" />
+                            <Skeleton className="h-7 w-40 md:w-64 mb-2 rounded" />
+                            <Skeleton className="h-7 w-40 md:w-64 mb-2 rounded" />
                         </div>
                         <div className="border-t border-[#232323] my-4" />
                         {/* Ingredients */}
                         <div>
-                            <Skeleton className="h-8 w-48 mb-6 rounded" />
-                            <Skeleton className="h-7 w-64 mb-2 rounded" />
-                            <Skeleton className="h-7 w-64 mb-2 rounded" />
+                            <Skeleton className="h-8 w-48 mb-4 md:mb-6 rounded" />
+                            <Skeleton className="h-7 w-40 md:w-64 mb-2 rounded" />
+                            <Skeleton className="h-7 w-40 md:w-64 mb-2 rounded" />
                         </div>
                     </div>
                 </div>

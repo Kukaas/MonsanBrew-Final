@@ -231,7 +231,7 @@ export default function CreateProduct() {
                                 </div>
                                 {/* Add-ons array */}
                                 {addOns.map((addon, idx) => (
-                                    <div key={idx} className="flex gap-2 items-center">
+                                    <div key={idx} className="flex flex-col sm:flex-row gap-2 w-full sm:items-center">
                                         <CustomSelect
                                             value={addon}
                                             onChange={val => setAddOns(addOns => addOns.map((a, i) => i === idx ? val : a))}
@@ -241,10 +241,9 @@ export default function CreateProduct() {
                                             error={formError}
                                             disabled={!isCustomizable || !addonsLoaded}
                                             variant="dark"
-                                            style={{ minWidth: 180, width: 220 }}
-                                            className="flex-1"
+                                            className="flex-1 w-full"
                                         />
-                                        <Button type="button" variant="destructive" size="icon" onClick={() => setAddOns(addOns => addOns.filter((_, i) => i !== idx))} disabled={addOns.length === 1} aria-label="Remove add-on" className="rounded-full w-8 h-8 flex items-center justify-center">
+                                        <Button type="button" variant="destructive" size="icon" onClick={() => setAddOns(addOns => addOns.filter((_, i) => i !== idx))} disabled={addOns.length === 1} aria-label="Remove add-on" className="rounded-full w-8 h-8 flex items-center justify-center sm:self-auto self-end">
                                             <Minus className="w-5 h-5 text-white" />
                                         </Button>
                                     </div>
@@ -257,7 +256,7 @@ export default function CreateProduct() {
                             <div className="flex flex-col gap-1">
                                 <label className="font-bold text-[#FFC107]">Ingredients</label>
                                 {ingredients.map((ing, idx) => (
-                                    <div key={idx} className="flex gap-2 items-center bg-[#232323] rounded-lg p-2 border border-[#333] w-full">
+                                    <div key={idx} className="flex flex-col sm:flex-row gap-2 w-full sm:items-center bg-[#232323] rounded-lg p-2 border border-[#333]">
                                         <CustomSelect
                                             value={ing.productName}
                                             onChange={val => handleIngredientChange(idx, 'productName', val)}
@@ -266,7 +265,7 @@ export default function CreateProduct() {
                                             name={`ingredient-productName-${idx}`}
                                             variant="dark"
                                             disabled={!ingredientsLoaded}
-                                            className="flex-1"
+                                            className="flex-1 w-full"
                                         />
                                         <FormInput
                                             value={ing.quantity}
@@ -276,9 +275,9 @@ export default function CreateProduct() {
                                             type="number"
                                             min={0}
                                             variant="dark"
-                                            style={{ width: 200 }}
+                                            className="w-full sm:w-[200px]"
                                         />
-                                        <Button type="button" variant="destructive" size="icon" onClick={() => handleRemoveIngredient(idx)} disabled={ingredients.length === 1} aria-label="Remove ingredient" className="rounded-full w-8 h-8 flex items-center justify-center">
+                                        <Button type="button" variant="destructive" size="icon" onClick={() => handleRemoveIngredient(idx)} disabled={ingredients.length === 1} aria-label="Remove ingredient" className="rounded-full w-8 h-8 flex items-center justify-center sm:self-auto self-end">
                                             <Minus className="w-5 h-5 text-white" />
                                         </Button>
                                     </div>
