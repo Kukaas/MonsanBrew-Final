@@ -19,6 +19,7 @@ import EditProduct from './pages/private/admin/products/EditProduct.jsx';
 import ViewProduct from './pages/private/admin/products/ViewProduct.jsx';
 import ProductDetail from './pages/private/customer/ProductDetail';
 import Cart from './pages/private/customer/Cart';
+import Favorites from './pages/private/customer/Favorites.jsx';
 
 function RootRedirect() {
   const { user, loading } = useAuth();
@@ -131,6 +132,11 @@ function App() {
         <Route path="/cart" element={
           <RequireAuth allowedRoles={["customer"]}>
             <Cart />
+          </RequireAuth>
+        } />
+        <Route path="/favorites/:userId" element={
+          <RequireAuth allowedRoles={["customer"]}>
+            <Favorites />
           </RequireAuth>
         } />
         <Route path="*" element={<RoleRedirect />} />

@@ -30,7 +30,7 @@ const FormInput = forwardRef(({ label, error, inputClassName, labelClassName, ic
                         variant === 'dark' && darkInputClass,
                         variant === 'white' && whiteInputClass,
                         Icon && "pl-12",
-                        endIcon && "pr-12",
+                        endIcon && "pr-16", // <-- increased padding
                         error && "border-red-500 focus:border-red-500 focus:ring-red-500",
                         inputClassName
                     )}
@@ -39,7 +39,7 @@ const FormInput = forwardRef(({ label, error, inputClassName, labelClassName, ic
                     {...props}
                 />
                 {endIcon && (
-                    <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center">
+                    <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center z-10">
                         {endIcon}
                     </div>
                 )}

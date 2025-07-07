@@ -8,8 +8,16 @@ import { Heart, Share2 } from 'lucide-react';
 import CustomerLayout from '../../../layouts/CustomerLayout';
 import { toast } from 'sonner';
 import { useAuth } from '@/context/AuthContext';
+import CustomAlertDialog from '@/components/custom/CustomAlertDialog';
+import FormInput from '@/components/custom/FormInput';
+import QRCode from 'react-qr-code';
+import { Copy as CopyIcon } from 'lucide-react';
+import { AlertDialogCancel } from '@/components/ui/alert-dialog';
 
 export default function ProductDetail() {
+    // All hooks must be at the top
+    const [shareOpen, setShareOpen] = useState(false);
+    const [showQR, setShowQR] = useState(false);
     const { id } = useParams();
     const navigate = useNavigate();
     const { data: product, isLoading, error } = useQuery({
@@ -168,6 +176,18 @@ export default function ProductDetail() {
     if (error || !product) {
         return <CustomerLayout><div className="text-center text-red-500 py-8">Product not found.</div></CustomerLayout>;
     }
+
+    // Only compute these after product is loaded
+    const url = `${window.location.origin}/product/${product._id}`;
+    const handleCopy = (url) => {
+        if (navigator.clipboard) {
+            navigator.clipboard.writeText(url);
+            toast.success('Product link copied!');
+        } else {
+            alert(url);
+        }
+    };
+
     return (
         <CustomerLayout>
             <div className="min-h-screen bg-[#232323] flex flex-col items-center py-10 px-2">
@@ -198,12 +218,65 @@ export default function ProductDetail() {
                                 </button>
                                 <span className="text-[#FFC107] font-bold text-lg select-none min-w-[24px] text-center">{favoriteCount}</span>
                                 {/* Share Button */}
-                                <button
-                                    className="w-10 h-10 flex items-center justify-center rounded-lg border border-gray-200 bg-white hover:bg-gray-100 transition-all shadow"
-                                    aria-label="Share"
-                                >
-                                    <Share2 className="text-[#FFC107]" size={22} />
-                                </button>
+                                {product && (
+                                    <>
+                                        <button
+                                            className="w-10 h-10 flex items-center justify-center rounded-lg border border-gray-200 bg-white hover:bg-gray-100 transition-all shadow"
+                                            aria-label="Share"
+                                            type="button"
+                                            onClick={() => { setShareOpen(true); setShowQR(false); }}
+                                        >
+                                            <Share2 className="text-[#FFC107]" size={22} />
+                                        </button>
+                                        <CustomAlertDialog
+                                            open={shareOpen}
+                                            onOpenChange={open => {
+                                                setShareOpen(open); setShowQR(false);
+                                            }}
+                                            title="Share Product"
+                                            description="Share this product with others."
+                                            actions={
+                                                <AlertDialogCancel className="w-full rounded-lg font-bold py-3 text-lg border-[#FFC107] text-[#FFC107] hover:bg-[#FFC107] hover:text-white transition">
+                                                    Close
+                                                </AlertDialogCancel>
+                                            }
+                                        >
+                                            <div className="flex flex-col gap-4 items-center">
+                                                <div className="w-full relative">
+                                                    <FormInput
+                                                        label="Product Link"
+                                                        value={url}
+                                                        readOnly
+                                                        variant="dark"
+                                                        inputClassName="text-center font-mono text-sm pr-12  "
+                                                        className="w-full text-white"
+                                                        endIcon={
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => handleCopy(url)}
+                                                                className="ml-2 p-1 rounded hover:bg-[#FFC107]/20 transition"
+                                                                aria-label="Copy link"
+                                                            >
+                                                                <CopyIcon size={20} className="text-[#FFC107]" />
+                                                            </button>
+                                                        }
+                                                    />
+                                                </div>
+                                                <div className="flex gap-2 w-full mb-2">
+                                                    <Button variant="yellow-outline" className="flex-1 rounded-lg font-bold py-3 text-lg" onClick={() => setShowQR(q => !q)}>{showQR ? 'Hide QR' : 'Show QR Code'}</Button>
+                                                </div>
+                                                {showQR && (
+                                                    <div className="flex flex-col items-center mt-2 w-full">
+                                                        <div className="bg-[#232323] border-2 border-[#FFC107] rounded-2xl p-4 shadow-lg flex flex-col items-center w-full">
+                                                            <QRCode value={url} size={140} bgColor="#232323" fgColor="#FFC107" style={{ background: '#232323', boxShadow: '0 4px 24px #0004' }} />
+                                                            <div className="text-yellow-400 font-bold mt-3 text-center text-base">Scan to open product</div>
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </CustomAlertDialog>
+                                    </>
+                                )}
                             </div>
                         </div>
                         {/* Price, Ratings, Sold, Availability */}

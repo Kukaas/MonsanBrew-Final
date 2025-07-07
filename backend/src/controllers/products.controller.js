@@ -162,3 +162,18 @@ export const getFavoriteCount = async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 };
+
+// Get all favorite products for a specific user
+export const getFavoritesByUser = async (req, res) => {
+    try {
+        const { userId } = req.params;
+        if (!userId) return res.status(400).json({ error: 'User ID required' });
+        const products = await Product.find({ favorites: userId, isDeleted: { $ne: true } })
+            .populate('category', 'category')
+            .populate('addOns', 'name price')
+            .lean();
+        res.status(200).json(products);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+};

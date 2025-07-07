@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { cartAPI } from '@/services/api';
 import CustomerLayout from '@/layouts/CustomerLayout';
@@ -21,7 +21,7 @@ export default function Cart() {
     const queryClient = useQueryClient();
 
     // Redirect to login if not authenticated
-    React.useEffect(() => {
+    useEffect(() => {
         if (!authLoading && !user) {
             navigate('/login', { replace: true });
         }
@@ -37,11 +37,6 @@ export default function Cart() {
         queryFn: () => cartAPI.getCart(userId).then(res => (res && Array.isArray(res.data) ? res.data : Array.isArray(res) ? res : [])),
         enabled: !!userId,
     });
-
-    // Set loading to true when userId changes (new fetch)
-    React.useEffect(() => {
-        // setLoading(true); // This line is no longer needed as loading state is managed by TanStack Query
-    }, [userId]);
 
     // Group cart items by product, size, and addOns (order-insensitive)
     function groupCartItems(items) {
@@ -64,7 +59,7 @@ export default function Cart() {
     const groupedCart = groupCartItems(cart);
 
     // Selection state for checkout
-    const [selectedKeys, setSelectedKeys] = React.useState([]);
+    const [selectedKeys, setSelectedKeys] = useState([]);
 
     // Helper to get group key for a cart item
     function getGroupKey(item) {

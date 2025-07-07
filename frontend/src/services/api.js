@@ -148,6 +148,10 @@ export const productAPI = {
     getFavoriteCount: async (productId) => {
         return await api.get(`/products/${productId}/favorites`);
     },
+    // Get all favorites for a user
+    getFavoritesByUser: async (userId) => {
+        return await api.get(`/products/favorites/${userId}`);
+    },
 };
 
 // Cart API functions
