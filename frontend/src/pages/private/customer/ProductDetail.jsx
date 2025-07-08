@@ -393,7 +393,7 @@ export default function ProductDetail() {
                                 <div className="font-bold text-[#232323] mb-2">Ingredients:</div>
                                 <ul className="list-disc list-inside text-gray-700">
                                     {product.ingredients.map((ing, i) => (
-                                        <li key={i}>{ing.productName} <span className="text-[#232323] font-bold">x{ing.quantity}</span></li>
+                                        <li key={i}>{ing.productName} <span className="text-[#232323] font-bold">: {ing.quantity}{ing.unit ? ` ${ing.unit}` : ''}</span></li>
                                     ))}
                                 </ul>
                             </div>

@@ -23,7 +23,7 @@ export default function CreateProduct() {
     const [isAvailable, setIsAvailable] = useState(true);
     const [preparationTime, setPreparationTime] = useState("");
     const [isCustomizable, setIsCustomizable] = useState(false);
-    const [ingredients, setIngredients] = useState([{ productName: '', quantity: '' }]);
+    const [ingredients, setIngredients] = useState([{ productName: '', quantity: '', unit: '' }]);
     const [image, setImage] = useState("");
     const [sizes, setSizes] = useState([{ label: '', price: '' }]);
     const [formError, setFormError] = useState("");
@@ -80,11 +80,21 @@ export default function CreateProduct() {
 
     // Handler to update an ingredient row
     const handleIngredientChange = (idx, field, value) => {
-        setIngredients(ingredients => ingredients.map((ing, i) => i === idx ? { ...ing, [field]: value } : ing));
+        setIngredients(ingredients => ingredients.map((ing, i) => {
+            if (i === idx) {
+                if (field === 'productName') {
+                    // Find unit from ingredientsOptions
+                    const found = ingredientsOptions?.find(opt => opt.productName === value);
+                    return { ...ing, productName: value, unit: found?.unit || '' };
+                }
+                return { ...ing, [field]: value };
+            }
+            return ing;
+        }));
     };
     // Handler to add a new ingredient row
     const handleAddIngredient = () => {
-        setIngredients([...ingredients, { productName: '', quantity: '' }]);
+        setIngredients([...ingredients, { productName: '', quantity: '', unit: '' }]);
     };
     // Handler to remove an ingredient row
     const handleRemoveIngredient = (idx) => {
@@ -126,7 +136,7 @@ export default function CreateProduct() {
             isAvailable,
             preparationTime: Number(preparationTime),
             isCustomizable,
-            ingredients: ingredients.map(ing => ({ productName: ing.productName, quantity: Number(ing.quantity) })),
+            ingredients: ingredients.map(ing => ({ productName: ing.productName, quantity: Number(ing.quantity), unit: ing.unit })),
             image,
             ...(hasSizes ? { sizes: sizes.map(s => ({ label: s.label, price: Number(s.price) })), price: undefined } : { price: Number(price), sizes: [] })
         });
@@ -340,6 +350,14 @@ export default function CreateProduct() {
                                             min={0}
                                             variant="dark"
                                             className="w-full sm:w-[200px] text-white"
+                                        />
+                                        <FormInput
+                                            value={ing.unit}
+                                            readOnly
+                                            placeholder="Unit"
+                                            name={`ingredient-unit-${idx}`}
+                                            variant="dark"
+                                            className="w-full sm:w-[100px] text-white"
                                         />
                                         <Button type="button" variant="destructive" size="icon" onClick={() => handleRemoveIngredient(idx)} disabled={ingredients.length === 1} aria-label="Remove ingredient" className="rounded-full w-8 h-8 flex items-center justify-center sm:self-auto self-end">
                                             <Minus className="w-5 h-5 text-white" />

@@ -184,7 +184,7 @@ export default function ViewProduct() {
                                     {product.ingredients.map((ing, idx) => (
                                         <li key={idx} className="text-white flex items-center gap-2">
                                             <span className="font-bold text-[#FFC107]">{ing.productName}</span>
-                                            <span className="ml-2 text-white font-medium">Qty: {ing.quantity}</span>
+                                            <span className="ml-2 text-white font-medium">Qty: {ing.quantity} {ing.unit ? ing.unit : ''}</span>
                                         </li>
                                     ))}
                                 </ul>

@@ -1,9 +1,10 @@
 import Product from '../models/products.model.js';
+import Inventory from '../models/inventory.model.js';
 
 // Create a new product
 export const createProduct = async (req, res) => {
     try {
-        const { category, productName, description, addOns, isAvailable, preparationTime, isCustomizable, ingredients, image, sizes } = req.body;
+        const { category, productName, description, addOns, isAvailable, preparationTime, isCustomizable, ingredients, image, sizes, price } = req.body;
 
         // Check for duplicate product name (case-insensitive, not deleted)
         const existing = await Product.findOne({ productName: { $regex: `^${productName}$`, $options: 'i' }, isDeleted: { $ne: true } });
@@ -26,6 +27,17 @@ export const createProduct = async (req, res) => {
             return res.status(400).json({ message: 'Add-ons are required when product is customizable.' });
         }
 
+        // Attach unit to each ingredient
+        let ingredientsWithUnit = [];
+        if (ingredients && ingredients.length > 0) {
+            for (const ing of ingredients) {
+                let unit = '';
+                const inv = await Inventory.findOne({ productName: ing.productName });
+                if (inv) unit = inv.unit;
+                ingredientsWithUnit.push({ ...ing, unit });
+            }
+        }
+
         const product = new Product({
             category,
             productName,
@@ -34,9 +46,10 @@ export const createProduct = async (req, res) => {
             isAvailable,
             preparationTime,
             isCustomizable,
-            ingredients,
+            ingredients: ingredientsWithUnit,
             image,
-            sizes
+            sizes,
+            price
         });
         await product.save();
         res.status(201).json(product);
@@ -77,7 +90,7 @@ export const getProductById = async (req, res) => {
 // Update a product
 export const updateProduct = async (req, res) => {
     try {
-        const { category, productName, description, addOns, isAvailable, preparationTime, isCustomizable, ingredients, image, sizes } = req.body;
+        const { category, productName, description, addOns, isAvailable, preparationTime, isCustomizable, ingredients, image, sizes, price } = req.body;
         // Check for duplicate product name (case-insensitive, not deleted, different _id)
         const existing = await Product.findOne({ productName: { $regex: `^${productName}$`, $options: 'i' }, isDeleted: { $ne: true }, _id: { $ne: req.params.id } });
         if (existing) {
@@ -86,9 +99,21 @@ export const updateProduct = async (req, res) => {
         if (isCustomizable && (!addOns || addOns.length === 0)) {
             return res.status(400).json({ message: 'Add-ons are required when product is customizable.' });
         }
+
+        // Attach unit to each ingredient
+        let ingredientsWithUnit = [];
+        if (ingredients && ingredients.length > 0) {
+            for (const ing of ingredients) {
+                let unit = '';
+                const inv = await Inventory.findOne({ productName: ing.productName });
+                if (inv) unit = inv.unit;
+                ingredientsWithUnit.push({ ...ing, unit });
+            }
+        }
+
         const product = await Product.findByIdAndUpdate(
             req.params.id,
-            { category, productName, description, addOns, isAvailable, preparationTime, isCustomizable, ingredients, image, sizes },
+            { category, productName, description, addOns, isAvailable, preparationTime, isCustomizable, ingredients: ingredientsWithUnit, image, sizes, price },
             { new: true }
         );
         if (!product) {
