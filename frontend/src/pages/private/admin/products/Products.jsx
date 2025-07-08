@@ -115,8 +115,6 @@ export default function Products() {
     const columns = [
         { accessorKey: "productName", header: "Product Name" },
         { accessorKey: "category", header: "Category", render: row => row.category?.category || "", meta: { filterOptions: categoryOptions }, accessorFn: row => row.category?.category || "" },
-        { accessorKey: "size", header: "Size", meta: { filterOptions: sizeOptions } },
-        { accessorKey: "price", header: "Price", render: row => `₱${row.price}` },
         {
             id: "status",
             header: "Status",
