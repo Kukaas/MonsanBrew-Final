@@ -1,13 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation, useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
-import { userAPI } from '@/services/api';
+import { userAPI, orderAPI, cartAPI } from '@/services/api';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
 import FormInput from '@/components/custom/FormInput';
 import gcashLogo from '@/assets/gcash.png';
 import codLogo from '@/assets/cod.png';
 import ImageUpload from '@/components/custom/ImageUpload';
+import { toast } from 'sonner';
 
 export default function Checkout() {
     const { state } = useLocation();
@@ -28,11 +29,15 @@ export default function Checkout() {
         }
     }
 
-    // Address state
+    // All hooks must be called before any return
     const [address, setAddress] = useState(null);
     const [addressLoading, setAddressLoading] = useState(true);
+    const [deliveryInstructions, setDeliveryInstructions] = useState('');
+    const [paymentMethod, setPaymentMethod] = useState('gcash');
+    const [referenceNumber, setReferenceNumber] = useState('');
+    const [proofImage, setProofImage] = useState('');
+    const [placingOrder, setPlacingOrder] = useState(false);
 
-    // Fetch address on mount
     useEffect(() => {
         userAPI.getAddress()
             .then(res => {
@@ -51,22 +56,72 @@ export default function Checkout() {
         }
     }, [selectedCart, userId, navigate]);
 
-    if (!selectedCart) return null;
-
-    // Delivery Instructions state
-    const [deliveryInstructions, setDeliveryInstructions] = useState('');
-    // Update deliveryInstructions when address changes
     useEffect(() => {
         if (address && typeof address.landmark === 'string') {
             setDeliveryInstructions(address.landmark);
         }
     }, [address]);
 
-    // Payment method state
-    const [paymentMethod, setPaymentMethod] = useState('gcash');
-    const [referenceNumber, setReferenceNumber] = useState('');
-    const [proofImage, setProofImage] = useState('');
+    // Delivery fee
+    const deliveryFee = 15;
 
+    // Calculate total
+    const subtotal = selectedCart.reduce((sum, item) => sum + ((Number(item.price) + (item.addOns ? item.addOns.reduce((s, a) => s + (Number(a.price) || 0), 0) : 0)) * item.quantity), 0);
+    const total = subtotal + deliveryFee;
+
+    // Place order handler
+    const handlePlaceOrder = async () => {
+        setPlacingOrder(true);
+        try {
+            // Prepare order data
+            const orderData = {
+                userId: user?._id || userId,
+                items: selectedCart.map(item => ({
+                    productId: item.product,
+                    productName: item.productName,
+                    image: item.image,
+                    size: item.size,
+                    addOns: item.addOns,
+                    quantity: item.quantity,
+                    price: item.price
+                })),
+                address: address,
+                deliveryInstructions,
+                paymentMethod,
+                referenceNumber: paymentMethod === 'gcash' ? referenceNumber : undefined,
+                proofImage: paymentMethod === 'gcash' ? proofImage : undefined,
+                total: total
+            };
+            // Place order
+            await orderAPI.placeOrder(orderData);
+            // Remove checked out products from cart
+            for (const item of selectedCart) {
+                if (item._originalIds && Array.isArray(item._originalIds)) {
+                    for (const id of item._originalIds) {
+                        await cartAPI.removeFromCart(id);
+                    }
+                } else if (item._id) {
+                    await cartAPI.removeFromCart(item._id);
+                }
+            }
+            localStorage.removeItem('selectedCart');
+            toast.success('Order placed successfully!');
+            setTimeout(() => {
+                navigate(`/order/user${user?._id || userId}`);
+            }, 1000);
+        } catch (err) {
+            toast.error('Failed to place order.');
+        } finally {
+            setPlacingOrder(false);
+        }
+    };
+
+    // Only return early after all hooks
+    if (!selectedCart) return null;
+
+    // Delivery Instructions state
+    // Update deliveryInstructions when address changes
+    // Payment method state
     // Place order button enabled logic
     const canPlaceOrder = (paymentMethod === 'cod') || (paymentMethod === 'gcash' && referenceNumber.trim() && proofImage);
 
@@ -77,6 +132,7 @@ export default function Checkout() {
             <span className="text-base sm:text-sm text-[#232323] font-medium break-all">{value && value.trim() !== '' ? value : 'N/A'}</span>
         </div>
     );
+
 
     return (
         <div className="min-h-screen bg-[#232323] flex flex-col items-center px-2 sm:px-4 py-0">
@@ -218,12 +274,28 @@ export default function Checkout() {
                     </div>
                 ))}
             </div>
+            <div className="w-full max-w-2xl mx-auto bg-white rounded-2xl p-8 shadow flex flex-col gap-4 mb-8">
+                <div className="flex justify-between text-lg font-bold text-[#232323]">
+                    <span>Subtotal</span>
+                    <span>₱ {subtotal.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between text-lg font-bold text-[#232323]">
+                    <span>Delivery Fee</span>
+                    <span>₱ {deliveryFee.toFixed(2)}</span>
+                </div>
+                <hr className="my-2 border-gray-300" />
+                <div className="flex justify-between text-2xl font-extrabold text-[#232323]">
+                    <span>Total</span>
+                    <span>₱ {total.toFixed(2)}</span>
+                </div>
+            </div>
             <Button
                 variant="yellow"
                 className="w-full max-w-2xl text-xl font-bold py-4 mb-10"
-                disabled={!canPlaceOrder}
+                disabled={!canPlaceOrder || placingOrder}
+                onClick={handlePlaceOrder}
             >
-                Place Order
+                {placingOrder ? 'Placing Order...' : 'Place Order'}
             </Button>
         </div>
     );

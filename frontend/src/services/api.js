@@ -178,3 +178,9 @@ export const userAPI = {
         return await api.put('/user/address', address);
     },
 };
+
+export const orderAPI = {
+    placeOrder: async (orderData) => {
+        return await api.post('/orders', orderData);
+    },
+};
