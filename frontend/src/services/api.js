@@ -169,3 +169,12 @@ export const cartAPI = {
         return await api.patch(`/cart/${id}`, data);
     },
 };
+
+export const userAPI = {
+    getAddress: async () => {
+        return await api.get('/user/address');
+    },
+    updateAddress: async (address) => {
+        return await api.put('/user/address', address);
+    },
+};

@@ -1,0 +1,230 @@
+import React, { useEffect, useState } from 'react';
+import { useLocation, useParams, useNavigate } from 'react-router-dom';
+import { ArrowLeft } from 'lucide-react';
+import { userAPI } from '@/services/api';
+import { useAuth } from '@/context/AuthContext';
+import { Button } from '@/components/ui/button';
+import FormInput from '@/components/custom/FormInput';
+import gcashLogo from '@/assets/gcash.png';
+import codLogo from '@/assets/cod.png';
+import ImageUpload from '@/components/custom/ImageUpload';
+
+export default function Checkout() {
+    const { state } = useLocation();
+    const { userId } = useParams();
+    const navigate = useNavigate();
+    const { user } = useAuth();
+
+    // Restore selectedCart from state or localStorage
+    let selectedCart = state?.selectedCart;
+    if (!selectedCart) {
+        const stored = localStorage.getItem('selectedCart');
+        if (stored) {
+            try {
+                selectedCart = JSON.parse(stored);
+            } catch {
+                selectedCart = null;
+            }
+        }
+    }
+
+    // Address state
+    const [address, setAddress] = useState(null);
+    const [addressLoading, setAddressLoading] = useState(true);
+
+    // Fetch address on mount
+    useEffect(() => {
+        userAPI.getAddress()
+            .then(res => {
+                setAddress(res.address || null);
+            })
+            .catch((err) => {
+                console.error('API error:', err);
+                setAddress(null);
+            })
+            .finally(() => setAddressLoading(false));
+    }, []);
+
+    useEffect(() => {
+        if (!selectedCart) {
+            navigate(`/cart?user=${userId}`);
+        }
+    }, [selectedCart, userId, navigate]);
+
+    if (!selectedCart) return null;
+
+    // Delivery Instructions state
+    const [deliveryInstructions, setDeliveryInstructions] = useState('');
+    // Update deliveryInstructions when address changes
+    useEffect(() => {
+        if (address && typeof address.landmark === 'string') {
+            setDeliveryInstructions(address.landmark);
+        }
+    }, [address]);
+
+    // Payment method state
+    const [paymentMethod, setPaymentMethod] = useState('gcash');
+    const [referenceNumber, setReferenceNumber] = useState('');
+    const [proofImage, setProofImage] = useState('');
+
+    // Place order button enabled logic
+    const canPlaceOrder = (paymentMethod === 'cod') || (paymentMethod === 'gcash' && referenceNumber.trim() && proofImage);
+
+    // Helper to render info row
+    const InfoRow = ({ label, value }) => (
+        <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 mb-2">
+            <span className="text-xs sm:text-xs font-semibold text-gray-500 w-32 inline-block">{label}</span>
+            <span className="text-base sm:text-sm text-[#232323] font-medium break-all">{value && value.trim() !== '' ? value : 'N/A'}</span>
+        </div>
+    );
+
+    return (
+        <div className="min-h-screen bg-[#232323] flex flex-col items-center px-2 sm:px-4 py-0">
+            {/* Sticky Top Bar */}
+            <div className="w-full sticky top-0 z-30 bg-[#232323] flex items-center px-4 py-4 shadow-md">
+                <button
+                    className="text-white hover:text-[#FFC107] mr-2"
+                    aria-label="Back"
+                    onClick={() => navigate(`/cart?user=${userId}`)}
+                >
+                    <ArrowLeft size={28} />
+                </button>
+                <h1 className="text-xl font-extrabold text-white flex-1 text-center mr-8">Checkout</h1>
+            </div>
+            {/* Customer Info & Address Section */}
+            <div className="w-full max-w-2xl bg-white rounded-2xl p-4 sm:p-6 shadow flex flex-col gap-4 mb-10 sm:mb-6 mt-6">
+                {/* Contact Information */}
+                <div>
+                    <div className="font-bold text-base sm:text-lg mb-2">Contact Information</div>
+                    {addressLoading ? (
+                        <div className="animate-pulse flex flex-col gap-2">
+                            <div className="h-4 bg-gray-200 rounded w-1/2" />
+                            <div className="h-4 bg-gray-200 rounded w-1/3" />
+                        </div>
+                    ) : (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                            <InfoRow label="Full name" value={user?.name || 'N/A'} />
+                            <InfoRow label="Phone Number" value={address?.contactNumber} />
+                        </div>
+                    )}
+                </div>
+                {/* Delivery Information */}
+                <div>
+                    <div className="font-bold text-base sm:text-lg mb-2 mt-4">Delivery Information</div>
+                    {addressLoading ? (
+                        <div className="animate-pulse flex flex-col gap-2">
+                            <div className="h-4 bg-gray-200 rounded w-1/4" />
+                            <div className="h-4 bg-gray-200 rounded w-1/4" />
+                            <div className="h-4 bg-gray-200 rounded w-1/3" />
+                            <div className="h-4 bg-gray-200 rounded w-1/2" />
+                            <div className="h-4 bg-gray-200 rounded w-1/3" />
+                            <div className="h-4 bg-gray-200 rounded w-1/4" />
+                            <div className="h-8 bg-gray-200 rounded w-full mt-2" />
+                        </div>
+                    ) : (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                            <InfoRow label="Lot No" value={address?.lotNo} />
+                            <InfoRow label="Purok" value={address?.purok} />
+                            <InfoRow label="Street" value={address?.street} />
+                            <InfoRow label="Barangay" value={address?.barangay} />
+                            <InfoRow label="Municipality" value={address?.municipality} />
+                            <InfoRow label="Province" value={address?.province} />
+                            <div className="flex flex-col sm:col-span-2">
+                                <FormInput
+                                    label="Delivery Instructions"
+                                    name="deliveryInstructions"
+                                    value={deliveryInstructions}
+                                    onChange={e => setDeliveryInstructions(e.target.value)}
+                                    placeholder="Add any special instructions for delivery (optional)"
+                                    variant="white"
+                                />
+                            </div>
+                        </div>
+                    )}
+                </div>
+                <Button
+                    variant="yellow"
+                    size="sm"
+                    className="ml-auto mt-2"
+                    onClick={() => navigate('/profile/address')}
+                    disabled={addressLoading}
+                >Edit</Button>
+            </div>
+            {/* Payment Section */}
+            <div className="w-full max-w-2xl bg-white rounded-2xl p-4 sm:p-6 shadow flex flex-col gap-4 mb-10">
+                <div className="font-bold text-base sm:text-lg mb-2">Payment</div>
+                <div className="flex flex-col gap-4">
+                    {/* GCash Option */}
+                    <div className={`flex items-center gap-4 p-3 rounded-lg border ${paymentMethod === 'gcash' ? 'border-[#FFC107] bg-[#FFFBEA]' : 'border-gray-200'}`}
+                        onClick={() => setPaymentMethod('gcash')}
+                        style={{ cursor: 'pointer' }}
+                    >
+                        <img src={gcashLogo} alt="GCash" className="w-12 h-12 object-contain rounded-lg" />
+                        <div className="flex-1">
+                            <div className="text-xs text-gray-500">GCash number</div>
+                            <div className="font-bold text-base">09615460980</div>
+                            <div className="text-xs text-gray-500 mt-1">Name</div>
+                            <div className="font-semibold text-sm">Diether Monsanto</div>
+                        </div>
+                        <input type="radio" checked={paymentMethod === 'gcash'} readOnly className="w-5 h-5 accent-[#FFC107]" />
+                    </div>
+                    {/* Cash On Delivery Option */}
+                    <div className={`flex items-center gap-4 p-3 rounded-lg border ${paymentMethod === 'cod' ? 'border-[#FFC107] bg-[#FFFBEA]' : 'border-gray-200'}`}
+                        onClick={() => setPaymentMethod('cod')}
+                        style={{ cursor: 'pointer' }}
+                    >
+                        <img src={codLogo} alt="Cash On Delivery" className="w-10 h-10 rounded bg-white" />
+                        <div className="flex-1">
+                            <div className="font-bold text-base">Cash On Delivery</div>
+                        </div>
+                        <input type="radio" checked={paymentMethod === 'cod'} readOnly className="w-5 h-5 accent-[#FFC107]" />
+                    </div>
+                </div>
+            </div>
+            {/* Reference Number and Image Upload for GCash */}
+            {paymentMethod === 'gcash' && (
+                <div className="w-full max-w-2xl bg-white rounded-2xl p-4 sm:p-6 shadow flex flex-col gap-4 mb-10">
+                    <FormInput
+                        label="Reference Number"
+                        name="referenceNumber"
+                        value={referenceNumber}
+                        onChange={e => setReferenceNumber(e.target.value)}
+                        placeholder="Enter reference number"
+                        variant="white"
+                    />
+                    <ImageUpload
+                        label="Upload proof here"
+                        value={proofImage}
+                        onChange={setProofImage}
+                        variant="white"
+                    />
+                </div>
+            )}
+            <div className="w-full max-w-2xl bg-white rounded-2xl p-4 sm:p-8 shadow flex flex-col gap-4 mb-8 overflow-x-auto">
+                {selectedCart.map((item, idx) => (
+                    <div key={idx} className="flex flex-col sm:flex-row items-center gap-4 border-b pb-4 mb-4 last:border-b-0 last:pb-0 last:mb-0 min-w-0">
+                        <img src={item.image || '/placeholder.png'} alt={item.productName} className="w-16 h-16 object-cover rounded mb-2 sm:mb-0" />
+                        <div className="flex-1 min-w-0 w-full">
+                            <div className="font-bold text-base sm:text-lg text-[#232323] truncate">{item.productName}</div>
+                            {item.size && <div className="text-xs text-gray-500 font-semibold">{item.size}</div>}
+                            {item.addOns && item.addOns.length > 0 && (
+                                <div className="text-xs text-[#FFC107] font-bold truncate">Add-ons: {item.addOns.map(a => a.name).join(', ')}</div>
+                            )}
+                            <div className="text-[#232323] text-sm sm:text-base font-bold">Qty: {item.quantity}</div>
+                        </div>
+                        <div className="text-base sm:text-lg font-bold text-[#232323] mt-2 sm:mt-0">
+                            ₱ {(Number(item.price) + (item.addOns ? item.addOns.reduce((sum, a) => sum + (Number(a.price) || 0), 0) : 0)) * item.quantity}
+                        </div>
+                    </div>
+                ))}
+            </div>
+            <Button
+                variant="yellow"
+                className="w-full max-w-2xl text-xl font-bold py-4 mb-10"
+                disabled={!canPlaceOrder}
+            >
+                Place Order
+            </Button>
+        </div>
+    );
+}

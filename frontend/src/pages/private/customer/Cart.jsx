@@ -285,6 +285,10 @@ export default function Cart() {
                     variant="yellow"
                     className="w-full max-w-md text-xl font-bold py-4"
                     disabled={selectedCart.length === 0}
+                    onClick={() => {
+                        localStorage.setItem('selectedCart', JSON.stringify(selectedCart));
+                        navigate(`/checkout/${userId}`, { state: { selectedCart } });
+                    }}
                 >
                     Checkout
                 </Button>

@@ -9,6 +9,7 @@ import addonsRoutes from './src/routes/aaddons.route.js';
 import inventoryRoutes from './src/routes/inventory.route.js';
 import productRoutes from './src/routes/product.route.js';
 import cartRoutes from './src/routes/cart.route.js';
+import userRoutes from './src/routes/user.route.js';
 
 const app = express();
 
@@ -34,6 +35,7 @@ app.use('/api/addons', addonsRoutes);
 app.use('/api/inventory', inventoryRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/cart', cartRoutes);
+app.use('/api/user', userRoutes);
 
 app.listen(ENV.PORT, () => {
     console.log(`Server is running on port ${ENV.PORT}`);
