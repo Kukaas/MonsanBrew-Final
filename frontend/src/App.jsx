@@ -152,7 +152,7 @@ function App() {
             <Address />
           </RequireAuth>
         } />
-        <Route path="/order/user:userId" element={
+        <Route path="/order/user/:userId" element={
           <RequireAuth allowedRoles={["customer"]}>
             <Orders />
           </RequireAuth>

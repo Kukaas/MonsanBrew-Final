@@ -107,7 +107,7 @@ export default function Checkout() {
             localStorage.removeItem('selectedCart');
             toast.success('Order placed successfully!');
             setTimeout(() => {
-                navigate(`/order/user${user?._id || userId}`);
+                navigate(`/order/user/${user?._id || userId}`);
             }, 1000);
         } catch (err) {
             toast.error('Failed to place order.');
