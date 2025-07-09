@@ -35,6 +35,7 @@ const OrderSchema = new mongoose.Schema({
     proofImage: { type: String }, // base64 for GCash
     isReviewed: { type: Boolean, default: false },
     status: { type: String, enum: ['pending', 'approved', 'preparing', 'out_for_delivery', 'completed', 'cancelled'], default: 'pending' },
+    cancellationReason: { type: String }, // reason for cancellation
     total: { type: Number, required: true },
 }, { timestamps: true });
 

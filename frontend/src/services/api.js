@@ -183,4 +183,13 @@ export const orderAPI = {
     placeOrder: async (orderData) => {
         return await api.post('/orders', orderData);
     },
+    getOrdersByUser: async (userId) => {
+        return await api.get(`/orders/user/${userId}`);
+    },
+    getOrderById: async (orderId) => {
+        return await api.get(`/orders/${orderId}`);
+    },
+    cancelOrder: async (orderId, reason) => {
+        return await api.patch(`/orders/${orderId}/cancel`, { reason });
+    },
 };
