@@ -183,11 +183,17 @@ export const orderAPI = {
     placeOrder: async (orderData) => {
         return await api.post('/orders', orderData);
     },
+    getAllOrders: async () => {
+        return await api.get('/orders');
+    },
     getOrdersByUser: async (userId) => {
         return await api.get(`/orders/user/${userId}`);
     },
     getOrderById: async (orderId) => {
         return await api.get(`/orders/${orderId}`);
+    },
+    updateOrderStatus: async (orderId, status) => {
+        return await api.patch(`/orders/${orderId}/status`, { status });
     },
     cancelOrder: async (orderId, reason) => {
         return await api.patch(`/orders/${orderId}/cancel`, { reason });

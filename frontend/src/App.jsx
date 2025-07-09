@@ -17,6 +17,8 @@ import ProductCategory from './pages/private/admin/category/ProductCategory';
 import CreateProduct from './pages/private/admin/products/CreateProduct.jsx';
 import EditProduct from './pages/private/admin/products/EditProduct.jsx';
 import ViewProduct from './pages/private/admin/products/ViewProduct.jsx';
+import AdminOrders from './pages/private/admin/orders/Orders.jsx';
+import OrderDetails from './pages/private/admin/orders/OrderDetails.jsx';
 import ProductDetail from './pages/private/customer/ProductDetail';
 import Cart from './pages/private/customer/Cart';
 import Favorites from './pages/private/customer/Favorites.jsx';
@@ -80,6 +82,16 @@ function App() {
         <Route path="/admin/dashboard" element={
           <RequireAuth allowedRoles={["admin"]}>
             <AdminDashboard />
+          </RequireAuth>
+        } />
+        <Route path="/admin/orders" element={
+          <RequireAuth allowedRoles={["admin"]}>
+            <AdminOrders />
+          </RequireAuth>
+        } />
+        <Route path="/admin/orders/:orderId" element={
+          <RequireAuth allowedRoles={["admin"]}>
+            <OrderDetails />
           </RequireAuth>
         } />
         <Route path="/admin/products" element={

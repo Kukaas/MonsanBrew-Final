@@ -9,7 +9,7 @@ import { Button } from "./ui/button";
 
 const navMain = [
     { title: "Dashboard", icon: <BarChart2 size={20} />, url: "/admin/dashboard" },
-    { title: "Team", icon: <Users size={20} />, url: "#" },
+    { title: "Orders", icon: <FileText size={20} />, url: "/admin/orders" },
 ];
 const navMaintenance = [
     { title: "Product Category", icon: <Database size={18} />, url: "/admin/categories" },

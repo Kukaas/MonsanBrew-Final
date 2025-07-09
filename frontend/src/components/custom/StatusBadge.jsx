@@ -1,6 +1,6 @@
 import React from 'react';
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle2, Loader2, AlertTriangle, Clock } from 'lucide-react';
+import { CheckCircle2, Loader2, AlertTriangle, Clock, CreditCard, Banknote } from 'lucide-react';
 
 export default function StatusBadge({ stock, status }) {
     let icon, text, textClass;
@@ -20,6 +20,14 @@ export default function StatusBadge({ stock, status }) {
         icon = <AlertTriangle className="text-yellow-400" />;
         text = 'Low Stock';
         textClass = 'text-yellow-400';
+    } else if (status === 'gcash') {
+        icon = <CreditCard className="text-blue-500" />;
+        text = 'GCash';
+        textClass = 'text-blue-500';
+    } else if (status === 'cod') {
+        icon = <Banknote className="text-orange-500" />;
+        text = 'COD';
+        textClass = 'text-orange-500';
     } else {
         icon = <Loader2 className="text-gray-400" />;
         text = status || 'Unknown';
