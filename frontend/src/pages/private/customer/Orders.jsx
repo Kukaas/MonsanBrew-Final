@@ -44,10 +44,10 @@ export default function Orders() {
     if (!userId || isLoading) {
         return (
             <CustomerLayout>
-                <div className="min-h-screen bg-[#232323] flex flex-col items-center py-10 px-2">
+                <div className="min-h-screen bg-[#232323] flex flex-col items-center py-4 sm:py-10 px-2">
                     {/* Sticky Header */}
-                    <div className="sticky top-0 z-20 bg-[#232323] w-full flex justify-center pb-4">
-                        <h1 className="text-4xl font-extrabold text-center text-white">My Purchases</h1>
+                    <div className="sticky top-0 z-30 bg-[#232323] w-full flex justify-center pb-4 pt-2 sm:pt-0">
+                        <h1 className="text-2xl sm:text-4xl font-extrabold text-center text-white">My Purchases</h1>
                     </div>
 
                     <OrderLoadingState />
@@ -58,10 +58,10 @@ export default function Orders() {
 
     return (
         <CustomerLayout>
-            <div className="min-h-screen bg-[#232323] flex flex-col items-center py-10 px-2">
+            <div className="min-h-screen bg-[#232323] flex flex-col items-center py-4 sm:py-10 px-2">
                 {/* Sticky Header */}
-                <div className="sticky top-0 z-20 bg-[#232323] w-full flex justify-center pb-4">
-                    <h1 className="text-4xl font-extrabold text-center text-white">My Purchases</h1>
+                <div className="sticky top-0 z-30 bg-[#232323] w-full flex justify-center pb-4 pt-2 sm:pt-0">
+                    <h1 className="text-2xl sm:text-4xl font-extrabold text-center text-white">My Purchases</h1>
                 </div>
 
                 <div className="w-full max-w-5xl">

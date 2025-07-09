@@ -17,7 +17,7 @@ const OrderTabs = ({ orders, activeTab, setActiveTab, onOrderUpdate }) => {
     return (
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             {/* Sticky Tabs */}
-            <div className="sticky top-16 z-10 bg-[#232323] pb-4">
+            <div className="sticky top-18 z-10 bg-[#232323] pb-4">
                 <div className="bg-white rounded-2xl p-2 shadow">
                     <TabsList className="grid w-full grid-cols-3 sm:grid-cols-6 bg-transparent h-auto p-0 gap-1">
                         <TabsTrigger
