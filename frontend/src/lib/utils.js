@@ -24,6 +24,10 @@ export const getStatusColor = (status) => {
       return 'bg-green-500/20 text-green-500 border-green-500/30';
     case 'cancelled':
       return 'bg-red-500/20 text-red-500 border-red-500/30';
+    case 'out_of_stock':
+      return 'bg-red-500/20 text-red-500 border-red-500/30';
+    case 'low_stock':
+      return 'bg-yellow-500/20 text-yellow-500 border-yellow-500/30';
     default:
       return 'bg-gray-500/20 text-gray-500 border-gray-500/30';
   }
@@ -45,8 +49,12 @@ export const getStatusLabel = (status) => {
       return 'Completed';
     case 'cancelled':
       return 'Cancelled';
+    case 'out_of_stock':
+      return 'Out of Stock';
+    case 'low_stock':
+      return 'Low Stock';
     default:
-      return status;
+      return status?.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
   }
 };
 

@@ -18,8 +18,9 @@ import {
     TableRow,
 } from "@/components/ui/table"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { useEffect, useRef } from 'react';
 
-export default function DataTable({ columns, data, loading }) {
+export default function DataTable({ columns, data, loading, rowProps, highlightedId }) {
     const [pagination, setPagination] = React.useState({ pageIndex: 0, pageSize: 10 })
     const [globalFilter, setGlobalFilter] = React.useState("");
     const [columnFilters, setColumnFilters] = React.useState([]);
@@ -41,6 +42,13 @@ export default function DataTable({ columns, data, loading }) {
         onColumnFiltersChange: setColumnFilters,
         globalFilterFn: 'includesString',
     })
+
+    const rowRefs = useRef({});
+    useEffect(() => {
+        if (highlightedId && rowRefs.current[highlightedId]) {
+            rowRefs.current[highlightedId].scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    }, [highlightedId]);
 
     return (
         <div className="w-full bg-[#181818] rounded-2xl shadow-lg p-4 border border-[#232323]">
@@ -114,22 +122,30 @@ export default function DataTable({ columns, data, loading }) {
                                 </TableCell>
                             </TableRow>
                         ) : table.getRowModel().rows?.length ? (
-                            table.getRowModel().rows.map(row => (
-                                <TableRow
-                                    key={row.id}
-                                    className="transition-colors hover:bg-[#232323]/70 border-b border-[#232323] last:border-0"
-                                >
-                                    {row.getVisibleCells().map(cell => {
-                                        return (
-                                            <TableCell key={cell.id} className="py-3 px-3 text-base text-[#E0E0E0] text-center" style={{ pointerEvents: 'auto' }}>
-                                                {cell.column.columnDef.render
-                                                    ? cell.column.columnDef.render(row.original)
-                                                    : flexRender(cell.column.columnDef.cell, cell.getContext())}
-                                            </TableCell>
-                                        );
-                                    })}
-                                </TableRow>
-                            ))
+                            table.getRowModel().rows.map(row => {
+                                const isHighlighted = highlightedId && (row.original.id === highlightedId || row.original._id === highlightedId);
+                                return (
+                                    <TableRow
+                                        key={row.id}
+                                        ref={isHighlighted ? el => { rowRefs.current[row.original.id || row.original._id] = el } : undefined}
+                                        className={
+                                            "transition-colors hover:bg-[#232323]/70 border-b border-[#232323] last:border-0" +
+                                            (isHighlighted ? " bg-yellow-200/30 !border-yellow-400" : "")
+                                        }
+                                        {...(rowProps ? rowProps(row) : {})}
+                                    >
+                                        {row.getVisibleCells().map(cell => {
+                                            return (
+                                                <TableCell key={cell.id} className="py-3 px-3 text-base text-[#E0E0E0] text-center" style={{ pointerEvents: 'auto' }}>
+                                                    {cell.column.columnDef.render
+                                                        ? cell.column.columnDef.render(row.original)
+                                                        : flexRender(cell.column.columnDef.cell, cell.getContext())}
+                                                </TableCell>
+                                            );
+                                        })}
+                                    </TableRow>
+                                );
+                            })
                         ) : (
                             <TableRow>
                                 <TableCell colSpan={columns.length} className="h-24 text-center text-[#BDBDBD]">

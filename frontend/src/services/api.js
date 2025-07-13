@@ -256,3 +256,51 @@ export const reviewAPI = {
         return await api.get(`/reviews/order/${orderId}`);
     },
 };
+
+// Dashboard API functions
+export const dashboardAPI = {
+    // Get dashboard summary statistics
+    getSummary: async (filters = {}) => {
+        const params = new URLSearchParams();
+        if (filters.startDate) params.append('startDate', filters.startDate);
+        if (filters.endDate) params.append('endDate', filters.endDate);
+        if (filters.status) params.append('status', filters.status);
+        
+        return await api.get(`/dashboard/summary?${params.toString()}`);
+    },
+    
+    // Get sales data for charts
+    getSalesData: async (startDate, endDate, groupBy = 'day') => {
+        const params = new URLSearchParams({
+            startDate,
+            endDate,
+            groupBy
+        });
+        
+        return await api.get(`/dashboard/sales?${params.toString()}`);
+    },
+    // New: Get sales data by week
+    getSalesDataWeekly: async (startDate, endDate) => {
+        const params = new URLSearchParams({
+            startDate,
+            endDate
+        });
+        return await api.get(`/dashboard/sales/weekly?${params.toString()}`);
+    },
+    // New: Get sales data by month
+    getSalesDataMonthly: async (year) => {
+        const params = new URLSearchParams();
+        if (year) params.append('year', year);
+        return await api.get(`/dashboard/sales/monthly?${params.toString()}`);
+    },
+    
+    // Get recent orders
+    getRecentOrders: async (limit = 10) => {
+        return await api.get(`/dashboard/recent-orders?limit=${limit}`);
+    },
+    
+    // Get low stock items
+    getLowStockItems: async () => {
+        return await api.get('/dashboard/low-stock');
+    },
+};

@@ -24,6 +24,11 @@ import ImageUpload from '@/components/custom/ImageUpload';
 import CustomSelect from '@/components/custom/CustomSelect';
 import CustomDatePicker from '@/components/custom/CustomDatePicker';
 import StatusBadge from '@/components/custom/StatusBadge';
+import { useLocation } from 'react-router-dom';
+
+function useRawMaterialsQuery() {
+  return new URLSearchParams(useLocation().search);
+}
 
 const statusOptions = [
     { value: 'in_stock', label: 'In Stock' },
@@ -71,6 +76,8 @@ export default function RawMaterials() {
     const [adding, setAdding] = useState(false);
     const [updating, setUpdating] = useState(false);
     const [deleting, setDeleting] = useState(false);
+    const query = useRawMaterialsQuery();
+    const highlightedId = query.get('highlight');
 
     const { data, isLoading } = useQuery({
         queryKey: ['raw-materials'],
@@ -273,7 +280,7 @@ export default function RawMaterials() {
                     </Button>
                 }
             >
-                <DataTable columns={columns} data={mappedData} loading={isLoading} rowKey="id" />
+                <DataTable columns={columns} data={mappedData} loading={isLoading} rowKey="id" highlightedId={highlightedId} />
 
                 {/* ADD DIALOG */}
                 <CustomAlertDialog
