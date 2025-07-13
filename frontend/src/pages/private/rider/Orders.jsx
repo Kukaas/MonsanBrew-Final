@@ -169,12 +169,13 @@ export default function Orders() {
                 </div>
 
                 {/* Total */}
-                <div className="flex justify-between items-center pt-2 border-t border-[#444]">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pt-2 border-t border-[#444]">
                     <span className="text-white font-bold">Total: ₱{order.total?.toFixed(2)}</span>
                     {isActive ? (
                         <Button
                             variant="yellow"
                             size="sm"
+                            className="w-full sm:w-auto text-sm sm:text-base"
                             onClick={() => {
                                 setCompletingOrder(order);
                                 setCompleteDialogOpen(true);
@@ -182,10 +183,11 @@ export default function Orders() {
                             disabled={completeLoading}
                         >
                             <CheckCircle className="w-4 h-4 mr-2" />
-                            Complete Delivery
+                            <span className="hidden sm:inline">Complete Delivery</span>
+                            <span className="sm:hidden">Complete</span>
                         </Button>
                     ) : (
-                        <Badge className="bg-green-500/20 text-green-500 border-green-500/30 rounded-full px-3 py-1 text-xs font-medium">
+                        <Badge className="bg-green-500/20 text-green-500 border-green-500/30 rounded-full px-3 py-1 text-xs font-medium w-full sm:w-auto text-center">
                             <CheckCircle className="w-3 h-3 mr-1" />
                             Delivered
                         </Badge>
@@ -216,7 +218,7 @@ export default function Orders() {
                 <div className="min-h-screen bg-[#232323] p-4">
                     <div className="max-w-4xl mx-auto">
                         <div className="mb-6">
-                            <h1 className="text-2xl font-bold text-white mb-2">My Orders</h1>
+                            <h1 className="text-2xl font-bold text-white mb-2">Orders</h1>
                             <p className="text-gray-400">Manage your deliveries</p>
                         </div>
                         <div className="grid gap-4">

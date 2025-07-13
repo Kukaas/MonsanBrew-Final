@@ -28,8 +28,8 @@ export default function MobileNavBar() {
                 <span className={isOrdersActive ? 'text-[#FFC107] font-bold' : 'text-white'}>My Purchases</span>
             </Link>
             <Link to={user ? `/profile/${user._id}` : '/profile'} className="flex flex-col items-center justify-center text-xs gap-1 px-2 py-1 focus:outline-none group">
-                <User size={24} className={isActive('/profile', true) ? 'text-[#FFC107] font-bold' : 'text-white'} />
-                <span className={isActive('/profile', true) ? 'text-[#FFC107] font-bold' : 'text-white'}>Me</span>
+                <User size={24} className={isActive('/profile', false) ? 'text-[#FFC107] font-bold' : 'text-white'} />
+                <span className={isActive('/profile', false) ? 'text-[#FFC107] font-bold' : 'text-white'}>Me</span>
             </Link>
         </nav>
     );

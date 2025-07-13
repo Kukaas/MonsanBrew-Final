@@ -111,10 +111,10 @@ export default function AdminSidebar() {
                     </nav>
                     <div className="flex items-center gap-3 px-3 py-3 mt-4">
                         <Avatar className="h-8 w-8 text-black">
-                            {user?.avatar ? (
-                                <AvatarImage src={user.avatar} alt={user?.name} />
+                            {user?.photo ? (
+                                <AvatarImage src={user.photo} alt={user?.name} className="object-cover" />
                             ) : null}
-                            <AvatarFallback className="rounded-lg">
+                            <AvatarFallback className="rounded-lg bg-[#FFC107] text-black font-bold">
                                 {getInitials(user?.name)}
                             </AvatarFallback>
                         </Avatar>

@@ -2,31 +2,120 @@ import React, { useRef, useState } from 'react';
 import { Camera, Upload, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
+// Image compression utility
+const compressImage = (file, maxSizeMB = 5, quality = 0.8) => {
+    return new Promise((resolve) => {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        const img = new Image();
+        
+        img.onload = () => {
+            // Calculate new dimensions while maintaining aspect ratio
+            let { width, height } = img;
+            const maxDimension = 1920; // Max width/height
+            
+            if (width > height && width > maxDimension) {
+                height = (height * maxDimension) / width;
+                width = maxDimension;
+            } else if (height > maxDimension) {
+                width = (width * maxDimension) / height;
+                height = maxDimension;
+            }
+            
+            canvas.width = width;
+            canvas.height = height;
+            
+            // Draw and compress
+            ctx.drawImage(img, 0, 0, width, height);
+            
+            // Convert to blob with compression
+            canvas.toBlob((blob) => {
+                // If still too large, compress more
+                if (blob.size > maxSizeMB * 1024 * 1024) {
+                    canvas.toBlob((compressedBlob) => {
+                        resolve(compressedBlob);
+                    }, 'image/jpeg', quality * 0.5); // Further reduce quality
+                } else {
+                    resolve(blob);
+                }
+            }, 'image/jpeg', quality);
+        };
+        
+        img.src = URL.createObjectURL(file);
+    });
+};
+
 export default function ImageUpload({ label = 'Image', value, onChange, disabled, error, variant = 'dark' }) {
     const inputRef = useRef();
     const cameraInputRef = useRef();
     const [showCamera, setShowCamera] = useState(false);
 
-    const handleFileChange = (e) => {
+    const handleFileChange = async (e) => {
         const file = e.target.files[0];
         if (file) {
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                onChange(reader.result);
-            };
-            reader.readAsDataURL(file);
+            try {
+                // Check file size first
+                if (file.size > 5 * 1024 * 1024) {
+                    // Compress the image
+                    const compressedBlob = await compressImage(file, 5, 0.8);
+                    const reader = new FileReader();
+                    reader.onloadend = () => {
+                        onChange(reader.result);
+                    };
+                    reader.readAsDataURL(compressedBlob);
+                } else {
+                    // File is small enough, use as is
+                    const reader = new FileReader();
+                    reader.onloadend = () => {
+                        onChange(reader.result);
+                    };
+                    reader.readAsDataURL(file);
+                }
+            } catch (error) {
+                console.error('Error processing image:', error);
+                // Fallback to original file
+                const reader = new FileReader();
+                reader.onloadend = () => {
+                    onChange(reader.result);
+                };
+                reader.readAsDataURL(file);
+            }
         }
     };
 
-    const handleCameraCapture = (e) => {
+    const handleCameraCapture = async (e) => {
         const file = e.target.files[0];
         if (file) {
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                onChange(reader.result);
-                setShowCamera(false);
-            };
-            reader.readAsDataURL(file);
+            try {
+                // Check file size first
+                if (file.size > 5 * 1024 * 1024) {
+                    // Compress the image
+                    const compressedBlob = await compressImage(file, 5, 0.8);
+                    const reader = new FileReader();
+                    reader.onloadend = () => {
+                        onChange(reader.result);
+                        setShowCamera(false);
+                    };
+                    reader.readAsDataURL(compressedBlob);
+                } else {
+                    // File is small enough, use as is
+                    const reader = new FileReader();
+                    reader.onloadend = () => {
+                        onChange(reader.result);
+                        setShowCamera(false);
+                    };
+                    reader.readAsDataURL(file);
+                }
+            } catch (error) {
+                console.error('Error processing camera image:', error);
+                // Fallback to original file
+                const reader = new FileReader();
+                reader.onloadend = () => {
+                    onChange(reader.result);
+                    setShowCamera(false);
+                };
+                reader.readAsDataURL(file);
+            }
         }
     };
 

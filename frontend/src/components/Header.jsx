@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { ShoppingCart, Bell, User, LogOut } from 'lucide-react';
+import { Avatar, AvatarImage, AvatarFallback } from '../components/ui/avatar';
 import {
     DropdownMenu,
     DropdownMenuTrigger,
@@ -58,10 +59,17 @@ export default function Header() {
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                             <button
-                                className="rounded-full bg-yellow-400 w-10 h-10 flex items-center justify-center text-xl font-bold text-black focus:outline-none"
+                                className="rounded-full w-10 h-10 flex items-center justify-center focus:outline-none overflow-hidden"
                                 aria-label="Account menu"
                             >
-                                {user ? user.name?.[0]?.toUpperCase() || 'A' : 'A'}
+                                <Avatar className="w-10 h-10">
+                                    {user?.photo ? (
+                                        <AvatarImage src={user.photo} alt={user?.name} className="object-cover" />
+                                    ) : null}
+                                    <AvatarFallback className="bg-[#FFC107] text-black text-xl font-bold">
+                                        {user ? user.name?.[0]?.toUpperCase() || 'A' : 'A'}
+                                    </AvatarFallback>
+                                </Avatar>
                             </button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="w-40 bg-[#232323] text-white rounded shadow-lg z-50">

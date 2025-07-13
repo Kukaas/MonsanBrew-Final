@@ -6,6 +6,7 @@ import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuIte
 import { Separator } from './ui/separator';
 import CustomAlertDialog from "./custom/CustomAlertDialog";
 import { Button } from "./ui/button";
+import { Avatar, AvatarImage, AvatarFallback } from './ui/avatar';
 
 export default function RiderHeader() {
     const { user, isAuthenticated, logout } = useAuth();
@@ -39,14 +40,21 @@ export default function RiderHeader() {
             {isAuthenticated ? (
                 <nav className="flex items-center gap-8 text-lg font-semibold">
                     <Link to="/rider/dashboard" className={isActive('/rider/dashboard', true) ? 'text-[#FFC107] font-bold' : 'hover:text-[#FFC107]'}>Dashboard</Link>
-                    <Link to="/rider/orders" className={isActive('/rider/orders', true) ? 'text-[#FFC107] font-bold' : 'hover:text-[#FFC107]'}>My Orders</Link>
+                    <Link to="/rider/orders" className={isActive('/rider/orders', true) ? 'text-[#FFC107] font-bold' : 'hover:text-[#FFC107]'}>Orders</Link>
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                             <button
-                                className="rounded-full bg-yellow-400 w-10 h-10 flex items-center justify-center text-xl font-bold text-black focus:outline-none"
+                                className="rounded-full w-10 h-10 flex items-center justify-center focus:outline-none overflow-hidden"
                                 aria-label="Account menu"
                             >
-                                {user ? user.name?.[0]?.toUpperCase() || 'R' : 'R'}
+                                <Avatar className="w-10 h-10">
+                                    {user?.photo ? (
+                                        <AvatarImage src={user.photo} alt={user?.name} className="object-cover" />
+                                    ) : null}
+                                    <AvatarFallback className="bg-[#FFC107] text-black text-xl font-bold">
+                                        {user ? user.name?.[0]?.toUpperCase() || 'R' : 'R'}
+                                    </AvatarFallback>
+                                </Avatar>
                             </button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="w-40 bg-[#232323] text-white rounded shadow-lg z-50">

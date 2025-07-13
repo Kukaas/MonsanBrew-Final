@@ -5,13 +5,14 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { User, Mail, Shield, Calendar, Phone, MapPin, Key, Bell, Camera } from 'lucide-react';
+import { User, Mail, Shield, Calendar, Phone, MapPin, Key, Bell, Camera, LogOut } from 'lucide-react';
 import { userAPI } from '@/services/api';
 import { toast } from 'sonner';
 import AdminLayout from '@/layouts/AdminLayout';
 import CustomerLayout from '@/layouts/CustomerLayout';
 import RiderLayout from '@/layouts/RiderLayout';
 import PageLayout from '@/layouts/PageLayout';
+import CustomAlertDialog from '@/components/custom/CustomAlertDialog';
 
 export default function Profile() {
     const { user, updateUser } = useAuth();
@@ -30,6 +31,8 @@ export default function Profile() {
     });
     const [localPhoto, setLocalPhoto] = useState(user?.photo || '');
     const fileInputRef = useRef();
+    const [logoutOpen, setLogoutOpen] = useState(false);
+    const [logoutLoading, setLogoutLoading] = useState(false);
 
     useEffect(() => {
         if (!isEditing) {
@@ -143,6 +146,14 @@ export default function Profile() {
             });
         }
 
+        // Add logout action
+        baseActions.push({
+            icon: LogOut,
+            title: 'Logout',
+            description: 'Sign out of your account',
+            action: () => setLogoutOpen(true)
+        });
+
         return baseActions;
     };
 
@@ -150,44 +161,96 @@ export default function Profile() {
         setIsEditing((prev) => !prev);
     };
 
+    // Image compression utility
+    const compressImage = (file, maxSizeMB = 5, quality = 0.8) => {
+        return new Promise((resolve) => {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            const img = new Image();
+            
+            img.onload = () => {
+                // Calculate new dimensions while maintaining aspect ratio
+                let { width, height } = img;
+                const maxDimension = 1920; // Max width/height
+                
+                if (width > height && width > maxDimension) {
+                    height = (height * maxDimension) / width;
+                    width = maxDimension;
+                } else if (height > maxDimension) {
+                    width = (width * maxDimension) / height;
+                    height = maxDimension;
+                }
+                
+                canvas.width = width;
+                canvas.height = height;
+                
+                // Draw and compress
+                ctx.drawImage(img, 0, 0, width, height);
+                
+                // Convert to blob with compression
+                canvas.toBlob((blob) => {
+                    // If still too large, compress more
+                    if (blob.size > maxSizeMB * 1024 * 1024) {
+                        canvas.toBlob((compressedBlob) => {
+                            resolve(compressedBlob);
+                        }, 'image/jpeg', quality * 0.5); // Further reduce quality
+                    } else {
+                        resolve(blob);
+                    }
+                }, 'image/jpeg', quality);
+            };
+            
+            img.src = URL.createObjectURL(file);
+        });
+    };
+
     const handleFileChange = async (e) => {
         const file = e.target.files[0];
         if (file) {
-            if (file.size > 5 * 1024 * 1024) {
-                toast.error('File size must be less than 5MB');
-                return;
-            }
             if (!file.type.startsWith('image/')) {
                 toast.error('Please select a valid image file');
                 return;
             }
             
             setIsLoading(true);
-            const reader = new FileReader();
-            reader.onloadend = async () => {
-                const photoData = reader.result;
-                setLocalPhoto(photoData);
-                setEditData((prev) => ({ ...prev, photo: photoData }));
+            try {
+                let processedFile = file;
                 
-                try {
-                    const response = await userAPI.updateProfile({ photo: photoData });
-                    if (response && (response.user || response.message)) {
-                        updateUser(response.user);
-                        toast.success('Profile photo updated successfully!');
-                    } else {
-                        toast.error('Failed to update profile photo.');
-                    }
-                } catch (err) {
-                    toast.error(err?.message || 'Failed to update profile photo.');
-                } finally {
-                    setIsLoading(false);
+                // Check file size and compress if needed
+                if (file.size > 5 * 1024 * 1024) {
+                    processedFile = await compressImage(file, 5, 0.8);
                 }
-            };
-            reader.onerror = () => {
-                toast.error('Failed to read the selected file');
+                
+                const reader = new FileReader();
+                reader.onloadend = async () => {
+                    const photoData = reader.result;
+                    setLocalPhoto(photoData);
+                    setEditData((prev) => ({ ...prev, photo: photoData }));
+                    
+                    try {
+                        const response = await userAPI.updateProfile({ photo: photoData });
+                        if (response && (response.user || response.message)) {
+                            updateUser(response.user);
+                            toast.success('Profile photo updated successfully!');
+                        } else {
+                            toast.error('Failed to update profile photo.');
+                        }
+                    } catch (err) {
+                        toast.error(err?.message || 'Failed to update profile photo.');
+                    } finally {
+                        setIsLoading(false);
+                    }
+                };
+                reader.onerror = () => {
+                    toast.error('Failed to read the selected file');
+                    setIsLoading(false);
+                };
+                reader.readAsDataURL(processedFile);
+            } catch (error) {
+                console.error('Error processing image:', error);
+                toast.error('Failed to process the image. Please try again.');
                 setIsLoading(false);
-            };
-            reader.readAsDataURL(file);
+            }
         }
     };
 
@@ -226,6 +289,20 @@ export default function Profile() {
         });
         setLocalPhoto(user?.photo || '');
         setIsEditing(false);
+    };
+
+    const handleLogout = async () => {
+        setLogoutLoading(true);
+        try {
+            await userAPI.logout();
+            updateUser(null);
+            toast.success('Logged out successfully!');
+            setLogoutOpen(false);
+        } catch (err) {
+            toast.error(err?.message || 'Failed to logout.');
+        } finally {
+            setLogoutLoading(false);
+        }
     };
 
     // Render the appropriate layout based on user role
@@ -559,21 +636,29 @@ export default function Profile() {
                             <h3 className="text-white font-semibold text-lg">Quick Actions</h3>
                             
                             <div className="grid gap-2">
-                                {quickActions.map((action, index) => (
-                                    <button 
-                                        key={index}
-                                        onClick={action.action}
-                                        className="w-full p-3 bg-[#333] hover:bg-[#444] rounded-lg text-left transition-colors"
-                                    >
-                                        <div className="flex items-center gap-3">
-                                            <action.icon className="w-4 h-4 text-[#FFC107] flex-shrink-0" />
-                                            <div>
-                                                <p className="text-white text-sm font-medium">{action.title}</p>
-                                                <p className="text-gray-400 text-xs">{action.description}</p>
+                                {quickActions.map((action, index) => {
+                                    const isLogout = action.title === 'Logout';
+                                    return (
+                                        <button
+                                            key={index}
+                                            onClick={action.action}
+                                            className={
+                                                "w-full p-3 rounded-lg text-left transition-colors flex items-center " +
+                                                (isLogout
+                                                    ? "bg-red-600 hover:bg-red-700 text-white"
+                                                    : "bg-[#333] hover:bg-[#444] text-white")
+                                            }
+                                        >
+                                            <div className="flex items-center gap-3">
+                                                <action.icon className={isLogout ? "w-4 h-4 text-white flex-shrink-0" : "w-4 h-4 text-[#FFC107] flex-shrink-0"} />
+                                                <div>
+                                                    <p className="text-white text-sm font-medium">{action.title}</p>
+                                                    <p className={isLogout ? "text-red-200 text-xs" : "text-gray-400 text-xs"}>{action.description}</p>
+                                                </div>
                                             </div>
-                                        </div>
-                                    </button>
-                                ))}
+                                        </button>
+                                    );
+                                })}
                             </div>
                         </div>
                     </CardContent>
@@ -600,6 +685,37 @@ export default function Profile() {
                         </CardContent>
                     </Card>
                 )}
+
+                {/* Logout Confirmation Dialog */}
+                <CustomAlertDialog
+                    open={logoutOpen}
+                    onOpenChange={logoutLoading ? undefined : setLogoutOpen}
+                    title="Logout"
+                    description="Are you sure you want to logout?"
+                    actions={
+                        <>
+                            <Button
+                                type="button"
+                                variant="yellow-outline"
+                                size="lg"
+                                onClick={() => setLogoutOpen(false)}
+                                disabled={logoutLoading}
+                            >
+                                Cancel
+                            </Button>
+                            <Button
+                                type="button"
+                                variant="yellow"
+                                size="lg"
+                                onClick={handleLogout}
+                                disabled={logoutLoading}
+                                loading={logoutLoading}
+                            >
+                                Logout
+                            </Button>
+                        </>
+                    }
+                />
             </div>
         </div>
     );
