@@ -38,7 +38,7 @@ export default function RiderHeader() {
             </div>
             {isAuthenticated ? (
                 <nav className="flex items-center gap-8 text-lg font-semibold">
-                    <Link to="/rider/dashboard" className={isActive('/rider/dashboard', true) ? 'text-[#FFC107] font-bold' : 'hover:text-[#FFC107]'}>Available</Link>
+                    <Link to="/rider/dashboard" className={isActive('/rider/dashboard', true) ? 'text-[#FFC107] font-bold' : 'hover:text-[#FFC107]'}>Dashboard</Link>
                     <Link to="/rider/orders" className={isActive('/rider/orders', true) ? 'text-[#FFC107] font-bold' : 'hover:text-[#FFC107]'}>My Orders</Link>
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
@@ -51,7 +51,7 @@ export default function RiderHeader() {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="w-40 bg-[#232323] text-white rounded shadow-lg z-50">
                             <DropdownMenuItem asChild className="hover:bg-[#333]">
-                                <Link to="/rider/profile" className="flex items-center gap-2">
+                                <Link to={user ? `/profile/${user._id}` : '/profile'} className="flex items-center gap-2">
                                     <User size={16} /> Profile
                                 </Link>
                             </DropdownMenuItem>

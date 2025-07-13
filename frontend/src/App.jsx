@@ -7,7 +7,7 @@ import ResetPassword from './pages/public/ResetPassword.jsx';
 import AdminDashboard from './pages/private/admin/Dashboard.jsx';
 import Home from './pages/private/rider/Home.jsx';
 import RiderOrders from './pages/private/rider/Orders.jsx';
-import Profile from './pages/private/rider/Profile.jsx';
+import Profile from './pages/private/Profile.jsx';
 import FrontdeskDashboard from './pages/private/frontdesk/Dashboard.jsx';
 import { useAuth } from './context/AuthContext';
 import React from 'react';
@@ -176,8 +176,14 @@ function App() {
             <RiderOrders />
           </RequireAuth>
         } />
-        <Route path="/rider/profile" element={
-          <RequireAuth allowedRoles={["rider"]}>
+
+        <Route path="/profile" element={
+          <RequireAuth allowedRoles={["admin", "customer", "frontdesk", "rider"]}>
+            <Profile />
+          </RequireAuth>
+        } />
+        <Route path="/profile/:userId" element={
+          <RequireAuth allowedRoles={["admin", "customer", "frontdesk", "rider"]}>
             <Profile />
           </RequireAuth>
         } />

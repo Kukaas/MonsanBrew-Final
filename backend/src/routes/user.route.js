@@ -1,5 +1,5 @@
 import express from 'express';
-import { getAddress, updateAddress, getAllUsers, getUserById, createUser, updateUser, deleteUser } from '../controllers/user.controller.js';
+import { getAddress, updateAddress, updateProfile, getAllUsers, getUserById, createUser, updateUser, deleteUser } from '../controllers/user.controller.js';
 import { protect } from '../middleware/auth.middleware.js';
 import { adminOnly } from '../middleware/admin.middleware.js';
 
@@ -9,6 +9,8 @@ const router = express.Router();
 router.get('/address', protect, getAddress);
 // Update current user's address
 router.put('/address', protect, updateAddress);
+// Update current user's profile
+router.put('/profile', protect, updateProfile);
 
 // Admin user management routes
 router.get('/', protect, adminOnly, getAllUsers);

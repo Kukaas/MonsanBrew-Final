@@ -75,7 +75,9 @@ const OrderCard = ({ order, onOrderUpdate }) => {
     return (
         <Card
             className="mb-4 bg-white border border-gray-200 shadow-sm rounded-2xl cursor-pointer hover:shadow-md transition-shadow duration-200"
-            onClick={handleCardClick}
+            onClick={() => {
+                if (!showCancelModal && !showReviewModal) handleCardClick();
+            }}
         >
             <CardContent className="p-4">
                 <div className="flex justify-between items-start mb-3">
@@ -205,7 +207,8 @@ const OrderCard = ({ order, onOrderUpdate }) => {
                         <>
                             <Button
                                 variant="yellow-outline"
-                                onClick={() => {
+                                onClick={(e) => {
+                                    handleButtonClick(e);
                                     setShowCancelModal(false);
                                     setCancellationReason('');
                                 }}

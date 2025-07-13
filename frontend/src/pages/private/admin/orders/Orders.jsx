@@ -171,21 +171,20 @@ export default function Orders() {
                                 </span>
                             </SelectTrigger>
                             <SelectContent className="bg-[#232323] border border-[#444] text-white rounded-md shadow-lg">
-                                <SelectItem value="preparing">
-                                    <span className={`flex items-center gap-1 ${getStatusTextColor('preparing')}`}>
-                                        {getStatusIcon('preparing')} Preparing
-                                    </span>
-                                </SelectItem>
-                                <SelectItem value="waiting_for_rider">
-                                    <span className={`flex items-center gap-1 ${getStatusTextColor('waiting_for_rider')}`}>
-                                        {getStatusIcon('waiting_for_rider')} Waiting for Rider
-                                    </span>
-                                </SelectItem>
-                                <SelectItem value="out_for_delivery">
-                                    <span className={`flex items-center gap-1 ${getStatusTextColor('out_for_delivery')}`}>
-                                        {getStatusIcon('out_for_delivery')} Out for Delivery
-                                    </span>
-                                </SelectItem>
+                                {row.status === 'pending' && (
+                                    <SelectItem value="preparing">
+                                        <span className={`flex items-center gap-1 ${getStatusTextColor('preparing')}`}>
+                                            {getStatusIcon('preparing')} Preparing
+                                        </span>
+                                    </SelectItem>
+                                )}
+                                {row.status === 'preparing' && (
+                                    <SelectItem value="waiting_for_rider">
+                                        <span className={`flex items-center gap-1 ${getStatusTextColor('waiting_for_rider')}`}>
+                                            {getStatusIcon('waiting_for_rider')} Waiting for Rider
+                                        </span>
+                                    </SelectItem>
+                                )}
                             </SelectContent>
                         </Select>
                     </div>

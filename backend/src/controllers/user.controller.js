@@ -30,6 +30,37 @@ export const updateAddress = async (req, res) => {
     }
 };
 
+// Update current user's profile
+export const updateProfile = async (req, res) => {
+    try {
+        const { name, contactNumber, photo } = req.body;
+        
+        const updateData = {};
+        if (name) updateData.name = name;
+        if (contactNumber) updateData.contactNumber = contactNumber;
+        if (photo) updateData.photo = photo;
+
+        const user = await User.findByIdAndUpdate(
+            req.user._id,
+            updateData,
+            { new: true, runValidators: true }
+        ).select('-password -verificationString -verificationStringExpires -resetPasswordToken -resetPasswordExpires');
+
+        if (!user) return res.status(404).json({ message: 'User not found' });
+        
+        res.status(200).json({ 
+            message: 'Profile updated successfully',
+            user 
+        });
+    } catch (error) {
+        console.error('Update profile error:', error);
+        if (error.name === 'ValidationError') {
+            return res.status(400).json({ message: error.message });
+        }
+        res.status(500).json({ message: 'Failed to update profile' });
+    }
+};
+
 // Get all users (admin only)
 export const getAllUsers = async (req, res) => {
     try {

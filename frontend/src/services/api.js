@@ -182,6 +182,9 @@ export const userAPI = {
     updateAddress: async (address) => {
         return await api.put('/user/address', address);
     },
+    updateProfile: async (profileData) => {
+        return await api.put('/user/profile', profileData);
+    },
     // Admin user management
     getAllUsers: async () => {
         return await api.get('/user');

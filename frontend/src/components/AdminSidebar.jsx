@@ -18,11 +18,6 @@ const navMaintenance = [
     { title: "Products", icon: <Folder size={20} />, url: "/admin/products" },
     { title: "User Management", icon: <Users size={18} />, url: "/admin/users" },
 ];
-const navSecondary = [
-    { title: "Settings", icon: <Settings size={18} />, url: "#" },
-    { title: "Get Help", icon: <HelpCircle size={18} />, url: "#" },
-    { title: "Search", icon: <Search size={18} />, url: "#" },
-];
 
 function getInitials(name) {
     if (!name) return "?";
@@ -39,6 +34,13 @@ export default function AdminSidebar() {
     const navigate = useNavigate();
     const [logoutOpen, setLogoutOpen] = useState(false);
     const [logoutLoading, setLogoutLoading] = useState(false);
+
+    const navSecondary = [
+        { title: "Profile", icon: <User size={18} />, url: `/profile/${user?._id}` },
+        { title: "Settings", icon: <Settings size={18} />, url: "#" },
+        { title: "Get Help", icon: <HelpCircle size={18} />, url: "#" },
+        { title: "Search", icon: <Search size={18} />, url: "#" },
+    ];
 
     const handleLogout = async () => {
         setLogoutLoading(true);
