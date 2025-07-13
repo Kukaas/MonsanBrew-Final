@@ -102,7 +102,7 @@ export default function AdminSidebar() {
                             <Link
                                 key={item.title}
                                 to={item.url}
-                                className="flex items-center gap-3 px-3 py-2 rounded-lg transition-colors font-medium text-sm mb-1 hover:bg-[#232323] hover:text-[#FFC107] text-[#BDBDBD]"
+                                className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors font-medium text-sm mb-1 ${item.title === 'Profile' && location.pathname.startsWith('/profile') ? 'bg-[#232323] text-[#FFC107]' : 'hover:bg-[#232323] hover:text-[#FFC107] text-[#BDBDBD]'}`}
                             >
                                 {item.icon}
                                 {item.title}
