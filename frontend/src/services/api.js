@@ -219,4 +219,17 @@ export const orderAPI = {
     cancelOrder: async (orderId, reason) => {
         return await api.patch(`/orders/${orderId}/cancel`, { reason });
     },
+    // New rider-specific endpoints
+    getOrdersWaitingForRider: async () => {
+        return await api.get('/orders/waiting-for-rider');
+    },
+    getOrdersByRider: async (riderId) => {
+        return await api.get(`/orders/rider/${riderId}`);
+    },
+    acceptOrder: async (orderId, riderId) => {
+        return await api.patch(`/orders/${orderId}/accept`, { riderId });
+    },
+    completeOrder: async (orderId, riderId, deliveryProofImage) => {
+        return await api.patch(`/orders/${orderId}/complete`, { riderId, deliveryProofImage });
+    },
 };

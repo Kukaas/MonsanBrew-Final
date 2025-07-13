@@ -75,7 +75,8 @@ export const getOrderById = async (req, res) => {
 
         const order = await Order.findById(orderId)
             .populate('userId', 'name email')
-            .populate('items.productId', 'name image');
+            .populate('items.productId', 'name image')
+            .populate('riderId', 'name email contactNumber');
 
         if (!order) {
             return res.status(404).json({ error: 'Order not found.' });
@@ -134,12 +135,143 @@ export const getAllOrders = async (req, res) => {
         const orders = await Order.find({})
             .populate('userId', 'name email')
             .populate('items.productId', 'name image')
+            .populate('riderId', 'name email contactNumber')
             .sort({ createdAt: -1 });
 
         res.status(200).json({ orders });
     } catch (err) {
         console.error('Get all orders error:', err);
         res.status(500).json({ error: 'Failed to fetch orders.' });
+    }
+};
+
+// Get orders waiting for rider
+export const getOrdersWaitingForRider = async (req, res) => {
+    try {
+        const orders = await Order.find({ 
+            status: 'waiting_for_rider',
+            riderId: { $exists: false } // Not assigned to any rider yet
+        })
+            .populate('userId', 'name email contactNumber')
+            .populate('items.productId', 'name image')
+            .sort({ createdAt: -1 });
+
+        res.status(200).json({ orders });
+    } catch (err) {
+        console.error('Get orders waiting for rider error:', err);
+        res.status(500).json({ error: 'Failed to fetch orders waiting for rider.' });
+    }
+};
+
+// Get orders assigned to a specific rider
+export const getOrdersByRider = async (req, res) => {
+    try {
+        const { riderId } = req.params;
+
+        if (!riderId) {
+            return res.status(400).json({ error: 'Rider ID is required.' });
+        }
+
+        const orders = await Order.find({ 
+            riderId: riderId,
+            status: { $in: ['out_for_delivery', 'completed'] }
+        })
+            .populate('userId', 'name email contactNumber')
+            .populate('items.productId', 'name image')
+            .sort({ createdAt: -1 });
+
+        res.status(200).json({ orders });
+    } catch (err) {
+        console.error('Get orders by rider error:', err);
+        res.status(500).json({ error: 'Failed to fetch rider orders.' });
+    }
+};
+
+// Accept order by rider
+export const acceptOrder = async (req, res) => {
+    try {
+        const { orderId } = req.params;
+        const { riderId } = req.body;
+
+        if (!orderId) {
+            return res.status(400).json({ error: 'Order ID is required.' });
+        }
+
+        if (!riderId) {
+            return res.status(400).json({ error: 'Rider ID is required.' });
+        }
+
+        const order = await Order.findById(orderId);
+
+        if (!order) {
+            return res.status(404).json({ error: 'Order not found.' });
+        }
+
+        // Check if order is waiting for rider
+        if (order.status !== 'waiting_for_rider') {
+            return res.status(400).json({ error: 'Order is not available for acceptance.' });
+        }
+
+        // Check if order is already assigned to a rider
+        if (order.riderId) {
+            return res.status(400).json({ error: 'Order is already assigned to a rider.' });
+        }
+
+        // Assign rider and update status
+        order.riderId = riderId;
+        order.status = 'out_for_delivery';
+        await order.save();
+
+        res.status(200).json({ message: 'Order accepted successfully.', order });
+    } catch (err) {
+        console.error('Accept order error:', err);
+        res.status(500).json({ error: 'Failed to accept order.' });
+    }
+};
+
+// Complete order by rider with delivery proof
+export const completeOrder = async (req, res) => {
+    try {
+        const { orderId } = req.params;
+        const { riderId, deliveryProofImage } = req.body;
+
+        if (!orderId) {
+            return res.status(400).json({ error: 'Order ID is required.' });
+        }
+
+        if (!riderId) {
+            return res.status(400).json({ error: 'Rider ID is required.' });
+        }
+
+        if (!deliveryProofImage) {
+            return res.status(400).json({ error: 'Delivery proof image is required.' });
+        }
+
+        const order = await Order.findById(orderId);
+
+        if (!order) {
+            return res.status(404).json({ error: 'Order not found.' });
+        }
+
+        // Check if order is assigned to this rider
+        if (order.riderId?.toString() !== riderId) {
+            return res.status(403).json({ error: 'You can only complete orders assigned to you.' });
+        }
+
+        // Check if order is out for delivery
+        if (order.status !== 'out_for_delivery') {
+            return res.status(400).json({ error: 'Order must be out for delivery to be completed.' });
+        }
+
+        // Update order status and add delivery proof
+        order.status = 'completed';
+        order.deliveryProofImage = deliveryProofImage;
+        await order.save();
+
+        res.status(200).json({ message: 'Order completed successfully.', order });
+    } catch (err) {
+        console.error('Complete order error:', err);
+        res.status(500).json({ error: 'Failed to complete order.' });
     }
 };
 
@@ -157,7 +289,7 @@ export const updateOrderStatus = async (req, res) => {
         }
 
         // Validate status values
-        const validStatuses = ['pending', 'approved', 'preparing', 'out_for_delivery', 'completed', 'cancelled'];
+        const validStatuses = ['pending', 'approved', 'preparing', 'waiting_for_rider', 'out_for_delivery', 'completed', 'cancelled'];
         if (!validStatuses.includes(status)) {
             return res.status(400).json({ error: 'Invalid status value.' });
         }
@@ -173,8 +305,8 @@ export const updateOrderStatus = async (req, res) => {
             return res.status(400).json({ error: 'Cannot update completed or cancelled orders.' });
         }
 
-        // Check if status is changing to "out_for_delivery" and deduct inventory
-        if (status === 'out_for_delivery' && order.status !== 'out_for_delivery') {
+        // Check if status is changing to "waiting_for_rider" and deduct inventory
+        if (status === 'waiting_for_rider' && order.status !== 'waiting_for_rider') {
             try {
                 // Get all product details for the order items
                 const productIds = order.items.map(item => item.productId);

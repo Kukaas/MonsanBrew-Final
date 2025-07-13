@@ -6,7 +6,7 @@ import VerifyEmail from './pages/public/VerifyEmail.jsx';
 import ResetPassword from './pages/public/ResetPassword.jsx';
 import AdminDashboard from './pages/private/admin/Dashboard.jsx';
 import Home from './pages/private/rider/Home.jsx';
-import OrdersCompleted from './pages/private/rider/OrdersCompleted.jsx';
+import RiderOrders from './pages/private/rider/Orders.jsx';
 import Profile from './pages/private/rider/Profile.jsx';
 import FrontdeskDashboard from './pages/private/frontdesk/Dashboard.jsx';
 import { useAuth } from './context/AuthContext';
@@ -171,9 +171,9 @@ function App() {
             <Home />
           </RequireAuth>
         } />
-        <Route path="/rider/orders-completed" element={
+        <Route path="/rider/orders" element={
           <RequireAuth allowedRoles={["rider"]}>
-            <OrdersCompleted />
+            <RiderOrders />
           </RequireAuth>
         } />
         <Route path="/rider/profile" element={

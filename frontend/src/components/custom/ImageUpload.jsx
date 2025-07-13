@@ -1,7 +1,11 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
+import { Camera, Upload, X } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 export default function ImageUpload({ label = 'Image', value, onChange, disabled, error, variant = 'dark' }) {
     const inputRef = useRef();
+    const cameraInputRef = useRef();
+    const [showCamera, setShowCamera] = useState(false);
 
     const handleFileChange = (e) => {
         const file = e.target.files[0];
@@ -14,9 +18,22 @@ export default function ImageUpload({ label = 'Image', value, onChange, disabled
         }
     };
 
+    const handleCameraCapture = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                onChange(reader.result);
+                setShowCamera(false);
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
     const handleRemove = () => {
         onChange("");
         if (inputRef.current) inputRef.current.value = "";
+        if (cameraInputRef.current) cameraInputRef.current.value = "";
     };
 
     // Style for dark variant
@@ -27,30 +44,81 @@ export default function ImageUpload({ label = 'Image', value, onChange, disabled
     return (
         <div className="flex flex-col gap-2">
             <label className={`block text-base font-bold ${variant === 'dark' ? 'text-[#FFC107]' : 'text-yellow-400'} mb-1`}>{label}</label>
-            <div className={`flex items-center gap-4 border-2 rounded-lg px-4 py-3 transition-all ${variant === 'dark' ? darkClass : whiteClass} ${error ? 'border-red-500' : ''}`}>
-                <input
-                    ref={inputRef}
-                    type="file"
-                    accept="image/*"
-                    className={`block w-full text-sm ${variant === 'dark' ? 'text-[#BDBDBD] bg-transparent' : 'text-black bg-white'} border-none focus:ring-0 focus:outline-none file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold ${variant === 'dark' ? 'file:bg-[#FFC107]/10 file:text-[#FFC107]' : 'file:bg-[#FFC107]/10 file:text-[#FFC107]'} file:cursor-pointer`}
-                    onChange={handleFileChange}
-                    disabled={disabled}
-                />
-                {value && (
+            
+            {!value ? (
+                <div className={`border-2 border-dashed rounded-lg p-6 transition-all ${variant === 'dark' ? 'border-[#444] bg-[#2A2A2A]' : 'border-gray-300 bg-gray-50'} ${error ? 'border-red-500' : ''} ${variant === 'dark' ? 'hover:border-[#FFC107]' : 'hover:border-yellow-400'}`}>
+                    <div className="flex flex-col sm:flex-row gap-4">
+                        {/* Camera Option */}
+                        <div className="flex-1">
+                            <input
+                                ref={cameraInputRef}
+                                type="file"
+                                accept="image/*"
+                                capture="environment"
+                                className="hidden"
+                                onChange={handleCameraCapture}
+                                disabled={disabled}
+                            />
+                            <Button
+                                type="button"
+                                variant="outline"
+                                className={`w-full h-14 border-2 ${variant === 'dark' ? 'border-[#FFC107] text-[#FFC107] hover:bg-[#FFC107] hover:text-[#232323]' : 'border-yellow-400 text-yellow-400 hover:bg-yellow-400 hover:text-white'} transition-all duration-200 font-medium text-base`}
+                                onClick={() => cameraInputRef.current?.click()}
+                                disabled={disabled}
+                            >
+                                <Camera className="w-5 h-5 mr-3" />
+                                Use Camera
+                            </Button>
+                        </div>
+
+                        {/* File Upload Option */}
+                        <div className="flex-1">
+                            <input
+                                ref={inputRef}
+                                type="file"
+                                accept="image/*"
+                                className="hidden"
+                                onChange={handleFileChange}
+                                disabled={disabled}
+                            />
+                            <Button
+                                type="button"
+                                variant="outline"
+                                className={`w-full h-14 border-2 ${variant === 'dark' ? 'border-[#FFC107] text-[#FFC107] hover:bg-[#FFC107] hover:text-[#232323]' : 'border-yellow-400 text-yellow-400 hover:bg-yellow-400 hover:text-white'} transition-all duration-200 font-medium text-base`}
+                                onClick={() => inputRef.current?.click()}
+                                disabled={disabled}
+                            >
+                                <Upload className="w-5 h-5 mr-3" />
+                                Choose File
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+            ) : (
+                <div className={`flex items-center gap-4 border-2 rounded-lg px-6 py-4 transition-all ${variant === 'dark' ? 'border-[#444] bg-[#2A2A2A]' : 'border-gray-300 bg-gray-50'} ${error ? 'border-red-500' : ''}`}>
+                    <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                            <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                            <span className={`text-sm font-medium ${variant === 'dark' ? 'text-[#BDBDBD]' : 'text-gray-600'}`}>
+                                Image uploaded successfully
+                            </span>
+                        </div>
+                    </div>
                     <div className="relative group">
-                        <img src={value} alt="Preview" className="h-16 w-16 object-cover rounded border border-[#FFC107] shadow-md" />
+                        <img src={value} alt="Preview" className="h-20 w-20 object-cover rounded-lg border-2 border-[#FFC107] shadow-lg" />
                         <button
                             type="button"
-                            className={`absolute -top-2 -right-2 ${variant === 'dark' ? 'bg-[#232323] border-[#FFC107] text-[#FFC107]' : 'bg-white border-[#FFC107] text-[#FFC107]'} rounded-full p-1 w-7 h-7 flex items-center justify-center shadow hover:bg-[#FFC107] hover:text-[#232323] transition`}
+                            className={`absolute -top-2 -right-2 ${variant === 'dark' ? 'bg-[#232323] border-[#FFC107] text-[#FFC107]' : 'bg-white border-[#FFC107] text-[#FFC107]'} rounded-full p-1.5 w-8 h-8 flex items-center justify-center shadow-lg hover:bg-[#FFC107] hover:text-[#232323] transition-all duration-200`}
                             onClick={handleRemove}
                             tabIndex={-1}
                             aria-label="Remove image preview"
                         >
-                            <span className="text-lg font-bold">&times;</span>
+                            <X className="w-4 h-4" />
                         </button>
                     </div>
-                )}
-            </div>
+                </div>
+            )}
+            
             {error && <span className="text-red-500 text-xs mt-1">{error}</span>}
         </div>
     );

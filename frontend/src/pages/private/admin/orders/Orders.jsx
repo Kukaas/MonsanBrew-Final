@@ -23,7 +23,7 @@ import { AlertDialogCancel } from "@/components/ui/alert-dialog";
 import StatusBadge from '@/components/custom/StatusBadge';
 import { getStatusColor, getStatusLabel, getStatusIcon, getStatusTextColor } from "@/lib/utils";
 
-const statusOptions = ["Pending", "Approved", "Preparing", "Out for Delivery", "Completed", "Cancelled"];
+const statusOptions = ["Pending", "Approved", "Preparing", "Waiting for Rider", "Out for Delivery", "Completed", "Cancelled"];
 const paymentMethodOptions = ["COD", "GCash"];
 
 
@@ -76,6 +76,8 @@ export default function Orders() {
         id: item._id,
         customerName: item.userId?.name || 'Unknown',
         customerEmail: item.userId?.email || 'Unknown',
+        riderName: item.riderId?.name || 'Unassigned',
+        riderContact: item.riderId?.contactNumber || '',
         statusLabel: getStatusLabel(item.status),
         paymentMethodLabel: item.paymentMethod?.toUpperCase() || 'Unknown',
         totalFormatted: `₱${item.total?.toFixed(2) || '0.00'}`,
@@ -126,7 +128,19 @@ export default function Orders() {
                 </div>
             )
         },
-                {
+        {
+            accessorKey: "riderName",
+            header: "Rider",
+            render: (row) => (
+                <div>
+                    <div className="font-medium">{row.riderName}</div>
+                    {row.riderContact && (
+                        <div className="text-sm text-gray-500">{row.riderContact}</div>
+                    )}
+                </div>
+            )
+        },
+        {
             id: "status",
             header: "Status",
             render: (row) => {
@@ -157,14 +171,14 @@ export default function Orders() {
                                 </span>
                             </SelectTrigger>
                             <SelectContent className="bg-[#232323] border border-[#444] text-white rounded-md shadow-lg">
-                                <SelectItem value="approved">
-                                    <span className={`flex items-center gap-1 ${getStatusTextColor('approved')}`}>
-                                        {getStatusIcon('approved')} Approved
-                                    </span>
-                                </SelectItem>
                                 <SelectItem value="preparing">
                                     <span className={`flex items-center gap-1 ${getStatusTextColor('preparing')}`}>
                                         {getStatusIcon('preparing')} Preparing
+                                    </span>
+                                </SelectItem>
+                                <SelectItem value="waiting_for_rider">
+                                    <span className={`flex items-center gap-1 ${getStatusTextColor('waiting_for_rider')}`}>
+                                        {getStatusIcon('waiting_for_rider')} Waiting for Rider
                                     </span>
                                 </SelectItem>
                                 <SelectItem value="out_for_delivery">

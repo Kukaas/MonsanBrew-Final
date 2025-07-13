@@ -5,7 +5,7 @@ import { orderAPI } from "@/services/api";
 import AdminLayout from "@/layouts/AdminLayout";
 import PageLayout from "@/layouts/PageLayout";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, User, MapPin, CreditCard, Clock, Package } from 'lucide-react';
+import { ArrowLeft, User, MapPin, CreditCard, Clock, Package, Truck, Camera } from 'lucide-react';
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getStatusColor, getStatusLabel, getStatusIcon, getStatusTextColor } from "@/lib/utils";
@@ -180,6 +180,31 @@ export default function OrderDetails() {
                                             <span className="text-[#FFC107] font-extrabold text-3xl">₱{order.total?.toFixed(2)}</span>
                                         </div>
                                     </div>
+
+                                    {/* Delivery Proof Image */}
+                                    {order.deliveryProofImage && order.status === 'completed' && (
+                                        <div className="border-t-2 border-[#FFC107]/30 pt-6 mt-8">
+                                            <div className="flex items-center gap-4 mb-6">
+                                                <div className="bg-[#FFC107] p-3 rounded-full">
+                                                    <Camera className="w-8 h-8 text-black" />
+                                                </div>
+                                                <h3 className="text-[#FFC107] text-3xl font-extrabold tracking-widest uppercase drop-shadow-lg">Delivery Proof</h3>
+                                                <div className="flex-1 h-px bg-gradient-to-r from-[#FFC107] to-transparent"></div>
+                                            </div>
+                                            <div className="bg-[#1a1a1a]/80 rounded-2xl p-8 border-2 border-[#333] hover:border-[#FFC107]/50 transition-all duration-300 shadow-xl backdrop-blur-sm">
+                                                <div className="bg-[#232323] rounded-xl p-4 border border-[#444]">
+                                                    <img
+                                                        src={order.deliveryProofImage}
+                                                        alt="Delivery Proof"
+                                                        className="w-full h-64 object-cover rounded-lg border border-[#444]"
+                                                    />
+                                                </div>
+                                                <div className="text-center mt-4">
+                                                    <span className="text-gray-400 text-sm">Proof of delivery uploaded by rider</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             ) : (
                                 <div className="text-center py-12">
@@ -272,6 +297,43 @@ export default function OrderDetails() {
                                 )}
                             </div>
                         </div>
+
+                        {/* Rider Information */}
+                        {(order.riderId || order.status === 'waiting_for_rider' || order.status === 'out_for_delivery' || order.status === 'completed') && (
+                            <div>
+                                <div className="flex items-center gap-3 mb-6">
+                                    <Truck className="w-7 h-7 text-[#FFC107]" />
+                                    <h3 className="text-[#FFC107] text-2xl font-extrabold tracking-widest uppercase">Rider Information</h3>
+                                </div>
+                                <div className="space-y-5 text-lg">
+                                    {order.riderId ? (
+                                        <>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-16 gap-y-5">
+                                                <div>
+                                                    <span className="font-bold text-[#FFC107] block mb-1">Name:</span>
+                                                    <span className="text-white font-medium">{order.riderId.name || 'Unknown'}</span>
+                                                </div>
+                                                <div>
+                                                    <span className="font-bold text-[#FFC107] block mb-1">Contact:</span>
+                                                    <span className="text-white font-medium">{order.riderId.contactNumber || 'N/A'}</span>
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <span className="font-bold text-[#FFC107] block mb-1">Email:</span>
+                                                <span className="text-white font-medium break-all">{order.riderId.email || 'Unknown'}</span>
+                                            </div>
+                                        </>
+                                    ) : (
+                                        <div className="text-center py-4">
+                                            <span className="text-gray-400 font-medium">No rider assigned yet</span>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        )}
+
+
+
                         <div className="border-t border-[#232323] my-4" />
                         {/* Delivery Address */}
                         <div>

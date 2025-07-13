@@ -6,7 +6,7 @@ import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { ArrowLeft, MapPin, Phone, Clock, CreditCard, Package } from 'lucide-react';
+import { ArrowLeft, MapPin, Phone, Clock, CreditCard, Package, Camera } from 'lucide-react';
 import CustomerLayout from '@/layouts/CustomerLayout';
 import OrderStatusBadge from '@/components/orders/OrderStatusBadge';
 import { toast } from 'sonner';
@@ -171,6 +171,26 @@ export default function OrderDetail() {
                         </div>
                     ))}
                 </div>
+
+                {/* Delivery Proof Image */}
+                {order.deliveryProofImage && (
+                    <div className="pt-4 border-t border-gray-200">
+                        <div className="flex items-center gap-2 mb-3">
+                            <Camera className="w-5 h-5 text-[#FFC107]" />
+                            <span className="font-bold text-base sm:text-lg text-[#232323]">Delivery Proof</span>
+                        </div>
+                        <div className="bg-gray-50 rounded-lg p-3">
+                            <img
+                                src={order.deliveryProofImage}
+                                alt="Delivery Proof"
+                                className="w-full h-48 object-cover rounded-lg border border-gray-200 shadow-sm"
+                            />
+                            <p className="text-xs text-gray-500 mt-2 text-center">
+                                Photo taken by rider upon delivery completion
+                            </p>
+                        </div>
+                    </div>
+                )}
             </div>
 
             {/* Payment Method */}

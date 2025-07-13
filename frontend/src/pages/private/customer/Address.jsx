@@ -21,14 +21,14 @@ export default function Address() {
             .then(res => {
                 const address = res.address || {};
                 setForm({
-                    contactNumber: address.contactNumber || 'N/A',
-                    lotNo: address.lotNo || 'N/A',
-                    purok: address.purok || 'N/A',
-                    street: address.street || 'N/A',
-                    landmark: address.landmark || 'N/A',
-                    barangay: address.barangay || 'N/A',
-                    municipality: address.municipality || 'N/A',
-                    province: address.province || 'N/A',
+                    contactNumber: address.contactNumber,
+                    lotNo: address.lotNo,
+                    purok: address.purok,
+                    street: address.street,
+                    landmark: address.landmark,
+                    barangay: address.barangay,
+                    municipality: address.municipality,
+                    province: address.province,
                 });
             })
             .catch(() => {

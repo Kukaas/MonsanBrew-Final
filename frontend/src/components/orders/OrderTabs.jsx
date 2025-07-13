@@ -6,7 +6,6 @@ import OrderEmptyState from './OrderEmptyState';
 const OrderTabs = ({ orders, activeTab, setActiveTab, onOrderUpdate }) => {
     const filterOrders = (status) => {
         if (status === 'all') return orders;
-        if (status === 'to_ship') return orders.filter(order => ['approved', 'preparing'].includes(order.status));
         if (status === 'to_receive') return orders.filter(order => order.status === 'out_for_delivery');
         if (status === 'completed') return orders.filter(order => order.status === 'completed');
         if (status === 'cancelled') return orders.filter(order => order.status === 'cancelled');
@@ -30,8 +29,8 @@ const OrderTabs = ({ orders, activeTab, setActiveTab, onOrderUpdate }) => {
                             value="to_ship"
                             className="data-[state=active]:bg-[#FFC107] data-[state=active]:text-black py-2 px-3 text-xs sm:text-sm font-medium rounded-xl transition-all hover:bg-gray-100"
                         >
-                            <span className="hidden sm:inline">To Ship</span>
-                            <span className="sm:hidden">To Ship</span>
+                            <span className="hidden sm:inline">Preparing</span>
+                            <span className="sm:hidden">Preparing</span>
                         </TabsTrigger>
                         <TabsTrigger
                             value="to_receive"
@@ -82,7 +81,7 @@ const OrderTabs = ({ orders, activeTab, setActiveTab, onOrderUpdate }) => {
                             <OrderCard key={order._id} order={order} onOrderUpdate={onOrderUpdate} />
                         ))
                     ) : (
-                        <OrderEmptyState message="No orders are being prepared for shipping." />
+                        <OrderEmptyState message="No orders are being prepared." />
                     )}
                 </TabsContent>
 

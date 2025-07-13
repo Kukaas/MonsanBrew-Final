@@ -38,8 +38,8 @@ export default function RiderHeader() {
             </div>
             {isAuthenticated ? (
                 <nav className="flex items-center gap-8 text-lg font-semibold">
-                    <Link to="/rider/dashboard" className={isActive('/rider/dashboard', true) ? 'text-[#FFC107] font-bold' : 'hover:text-[#FFC107]'}>Home</Link>
-                    <Link to="/rider/orders-completed" className={isActive('/rider/orders-completed', true) ? 'text-[#FFC107] font-bold' : 'hover:text-[#FFC107]'}>Orders Completed</Link>
+                    <Link to="/rider/dashboard" className={isActive('/rider/dashboard', true) ? 'text-[#FFC107] font-bold' : 'hover:text-[#FFC107]'}>Available</Link>
+                    <Link to="/rider/orders" className={isActive('/rider/orders', true) ? 'text-[#FFC107] font-bold' : 'hover:text-[#FFC107]'}>My Orders</Link>
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                             <button

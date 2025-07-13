@@ -51,7 +51,7 @@ export default function Checkout() {
     }, []);
 
     useEffect(() => {
-        if (!selectedCart) {
+        if (!selectedCart || !Array.isArray(selectedCart) || selectedCart.length === 0) {
             navigate(`/cart?user=${userId}`);
         }
     }, [selectedCart, userId, navigate]);
@@ -62,21 +62,62 @@ export default function Checkout() {
         }
     }, [address]);
 
+    // Early return if no valid cart data
+    if (!selectedCart || !Array.isArray(selectedCart) || selectedCart.length === 0) {
+        return null;
+    }
+
     // Delivery fee
     const deliveryFee = 15;
 
-    // Calculate total
-    const subtotal = selectedCart.reduce((sum, item) => sum + ((Number(item.price) + (item.addOns ? item.addOns.reduce((s, a) => s + (Number(a.price) || 0), 0) : 0)) * item.quantity), 0);
+    // Calculate total with proper validation
+    const subtotal = selectedCart.reduce((sum, item) => {
+        if (!item || typeof item.price !== 'number') return sum;
+        const itemPrice = Number(item.price) || 0;
+        const addOnsPrice = (item.addOns && Array.isArray(item.addOns)) 
+            ? item.addOns.reduce((s, a) => s + (Number(a.price) || 0), 0) 
+            : 0;
+        const quantity = Number(item.quantity) || 1;
+        return sum + ((itemPrice + addOnsPrice) * quantity);
+    }, 0);
     const total = subtotal + deliveryFee;
 
     // Place order handler
     const handlePlaceOrder = async () => {
+        // Validate cart data before proceeding
+        if (!selectedCart || !Array.isArray(selectedCart) || selectedCart.length === 0) {
+            toast.error('No items in cart. Please add items to your cart first.');
+            navigate(`/cart?user=${userId}`);
+            return;
+        }
+
+        // Validate address before placing order
+        if (!address || !address.contactNumber || !address.lotNo || !address.street || !address.barangay || !address.municipality || !address.province) {
+            toast.error('Please complete your delivery address before placing the order.');
+            return;
+        }
+
         setPlacingOrder(true);
         try {
+            // Validate each cart item before creating order
+            const validItems = selectedCart.filter(item => 
+                item && 
+                item.product && 
+                item.productName && 
+                typeof item.price === 'number' && 
+                typeof item.quantity === 'number' && 
+                item.quantity > 0
+            );
+
+            if (validItems.length === 0) {
+                toast.error('No valid items found in cart. Please refresh and try again.');
+                return;
+            }
+
             // Prepare order data
             const orderData = {
                 userId: user?._id || userId,
-                items: selectedCart.map(item => ({
+                items: validItems.map(item => ({
                     productId: item.product,
                     productName: item.productName,
                     image: item.image,
@@ -110,20 +151,33 @@ export default function Checkout() {
                 navigate(`/order/user/${user?._id || userId}`);
             }, 1000);
         } catch (err) {
-            toast.error('Failed to place order.');
+            console.error('Order placement error:', err);
+            toast.error(err.response?.data?.error || 'Failed to place order.');
         } finally {
             setPlacingOrder(false);
         }
     };
 
     // Only return early after all hooks
-    if (!selectedCart) return null;
+    // The early return for selectedCart is now handled at the beginning of useEffect
 
     // Delivery Instructions state
     // Update deliveryInstructions when address changes
     // Payment method state
     // Place order button enabled logic
     const canPlaceOrder = (paymentMethod === 'cod') || (paymentMethod === 'gcash' && referenceNumber.trim() && proofImage);
+    
+    // Address validation for order placement
+    const isAddressComplete = address && 
+        address.contactNumber && 
+        address.lotNo && 
+        address.street && 
+        address.barangay && 
+        address.municipality && 
+        address.province;
+
+    // Final order placement validation
+    const canPlaceOrderWithAddress = canPlaceOrder && isAddressComplete;
 
     // Helper to render info row
     const InfoRow = ({ label, value }) => (
@@ -167,6 +221,13 @@ export default function Checkout() {
                 {/* Delivery Information */}
                 <div>
                     <div className="font-bold text-base sm:text-lg mb-2 mt-4">Delivery Information</div>
+                    {!isAddressComplete && !addressLoading && (
+                        <div className="mb-3 p-3 bg-red-50 border border-red-200 rounded-lg">
+                            <div className="text-red-600 text-sm font-medium">
+                                ⚠️ Please complete your delivery address to place an order
+                            </div>
+                        </div>
+                    )}
                     {addressLoading ? (
                         <div className="animate-pulse flex flex-col gap-2">
                             <div className="h-4 bg-gray-200 rounded w-1/4" />
@@ -292,7 +353,7 @@ export default function Checkout() {
             <Button
                 variant="yellow"
                 className="w-full max-w-2xl text-xl font-bold py-4 mb-10"
-                disabled={!canPlaceOrder || placingOrder}
+                disabled={!canPlaceOrderWithAddress || placingOrder}
                 onClick={handlePlaceOrder}
             >
                 {placingOrder ? 'Placing Order...' : 'Place Order'}

@@ -1,7 +1,7 @@
 import { clsx } from "clsx";
 import { twMerge } from "tailwind-merge"
 import React from "react";
-import { CheckCircle2, Clock, Settings, Truck, XCircle, Shield, Monitor, ShoppingCart, User as UserIcon } from 'lucide-react';
+import { CheckCircle2, Clock, Settings, Truck, XCircle, Shield, Monitor, ShoppingCart, User as UserIcon, UserCheck } from 'lucide-react';
 
 export function cn(...inputs) {
   return twMerge(clsx(inputs));
@@ -16,6 +16,8 @@ export const getStatusColor = (status) => {
       return 'bg-blue-500/20 text-blue-500 border-blue-500/30';
     case 'preparing':
       return 'bg-orange-500/20 text-orange-500 border-orange-500/30';
+    case 'waiting_for_rider':
+      return 'bg-indigo-500/20 text-indigo-500 border-indigo-500/30';
     case 'out_for_delivery':
       return 'bg-purple-500/20 text-purple-500 border-purple-500/30';
     case 'completed':
@@ -35,6 +37,8 @@ export const getStatusLabel = (status) => {
       return 'Approved';
     case 'preparing':
       return 'Preparing';
+    case 'waiting_for_rider':
+      return 'Waiting for Rider';
     case 'out_for_delivery':
       return 'Out for Delivery';
     case 'completed':
@@ -54,6 +58,8 @@ export const getStatusIcon = (status) => {
       return React.createElement(CheckCircle2, { className: "w-4 h-4 text-blue-500" });
     case 'preparing':
       return React.createElement(Settings, { className: "w-4 h-4 text-orange-500" });
+    case 'waiting_for_rider':
+      return React.createElement(UserCheck, { className: "w-4 h-4 text-indigo-500" });
     case 'out_for_delivery':
       return React.createElement(Truck, { className: "w-4 h-4 text-purple-500" });
     case 'completed':
@@ -73,6 +79,8 @@ export const getStatusTextColor = (status) => {
       return 'text-blue-500';
     case 'preparing':
       return 'text-orange-500';
+    case 'waiting_for_rider':
+      return 'text-indigo-500';
     case 'out_for_delivery':
       return 'text-purple-500';
     case 'completed':

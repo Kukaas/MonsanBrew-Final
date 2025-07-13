@@ -34,8 +34,10 @@ const OrderSchema = new mongoose.Schema({
     referenceNumber: { type: String },
     proofImage: { type: String }, // base64 for GCash
     isReviewed: { type: Boolean, default: false },
-    status: { type: String, enum: ['pending', 'approved', 'preparing', 'out_for_delivery', 'completed', 'cancelled'], default: 'pending' },
+    status: { type: String, enum: ['pending', 'approved', 'preparing', 'waiting_for_rider', 'out_for_delivery', 'completed', 'cancelled'], default: 'pending' },
     cancellationReason: { type: String }, // reason for cancellation
+    riderId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, // assigned rider
+    deliveryProofImage: { type: String }, // base64 for delivery proof
     total: { type: Number, required: true },
 }, { timestamps: true });
 
