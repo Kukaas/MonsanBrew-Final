@@ -15,7 +15,7 @@ import PageLayout from '@/layouts/PageLayout';
 import CustomAlertDialog from '@/components/custom/CustomAlertDialog';
 
 export default function Profile() {
-    const { user, updateUser } = useAuth();
+    const { user, updateUser, logout } = useAuth();
     const { userId } = useParams();
     
     // Redirect if userId doesn't match current user's ID
@@ -294,8 +294,7 @@ export default function Profile() {
     const handleLogout = async () => {
         setLogoutLoading(true);
         try {
-            await userAPI.logout();
-            updateUser(null);
+            await logout();
             toast.success('Logged out successfully!');
             setLogoutOpen(false);
         } catch (err) {
