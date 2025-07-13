@@ -276,7 +276,7 @@ export default function Home() {
                                         className="w-full h-12"
                                     >
                                         <Truck className="w-4 h-4 mr-2" />
-                                        View My Orders
+                                        View Orders
                                     </Button>
                                 </Link>
                                 <Button 

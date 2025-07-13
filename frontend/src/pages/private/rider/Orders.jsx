@@ -264,7 +264,7 @@ export default function Orders() {
             <div className="min-h-screen bg-[#232323] p-4">
                 <div className="max-w-4xl mx-auto">
                     <div className="mb-6">
-                        <h1 className="text-2xl font-bold text-white mb-2">My Orders</h1>
+                        <h1 className="text-2xl font-bold text-white mb-2">Orders</h1>
                         <p className="text-gray-400">Manage your deliveries</p>
                     </div>
 

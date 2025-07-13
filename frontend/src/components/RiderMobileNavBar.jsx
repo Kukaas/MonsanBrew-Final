@@ -18,7 +18,7 @@ export default function RiderMobileNavBar() {
             </Link>
             <Link to="/rider/orders" className="flex flex-col items-center justify-center text-xs gap-1 px-2 py-1 focus:outline-none group">
                 <CheckCircle size={24} className={isActive('/rider/orders', true) ? 'text-[#FFC107]' : 'text-white group-hover:text-[#FFC107]'} />
-                <span className={isActive('/rider/orders', true) ? 'text-[#FFC107] font-bold' : 'text-white'}>My Orders</span>
+                <span className={isActive('/rider/orders', true) ? 'text-[#FFC107] font-bold' : 'text-white'}>Orders</span>
             </Link>
             <Link to={user ? `/profile/${user._id}` : '/rider/profile'} className="flex flex-col items-center justify-center text-xs gap-1 px-2 py-1 focus:outline-none group">
                 <User size={24} className={isActive('/profile', false) ? 'text-[#FFC107] font-bold' : 'text-white'} />
