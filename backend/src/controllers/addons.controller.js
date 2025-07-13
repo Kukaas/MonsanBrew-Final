@@ -3,8 +3,8 @@ import Addon from '../models/addons.model.js';
 // Create a new addon
 export const createAddon = async (req, res) => {
     try {
-        const { name, price, image } = req.body;
-        const addon = new Addon({ name, price, image });
+        const { name, price, image, isAvailable } = req.body;
+        const addon = new Addon({ name, price, image, isAvailable });
         await addon.save();
         res.status(201).json(addon);
     } catch (error) {
@@ -36,10 +36,10 @@ export const getAddonById = async (req, res) => {
 // Update an addon
 export const updateAddon = async (req, res) => {
     try {
-        const { name, price, image } = req.body;
+        const { name, price, image, isAvailable } = req.body;
         const addon = await Addon.findByIdAndUpdate(
             req.params.id,
-            { name, price, image },
+            { name, price, image, isAvailable },
             { new: true, runValidators: true }
         );
         if (!addon) return res.status(404).json({ error: 'Addon not found' });

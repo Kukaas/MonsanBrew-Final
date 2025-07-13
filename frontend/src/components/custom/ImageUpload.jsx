@@ -132,7 +132,7 @@ export default function ImageUpload({ label = 'Image', value, onChange, disabled
 
     return (
         <div className="flex flex-col gap-2">
-            <label className={`block text-base font-bold ${variant === 'dark' ? 'text-[#FFC107]' : 'text-yellow-400'} mb-1`}>{label}</label>
+            <label className={`block text-base font-bold ${variant === 'dark' ? 'text-[#FFC107]' : 'text-[#232323]'} mb-1`}>{label}</label>
             
             {!value ? (
                 <div className={`border-2 border-dashed rounded-lg p-6 transition-all ${variant === 'dark' ? 'border-[#444] bg-[#2A2A2A]' : 'border-gray-300 bg-gray-50'} ${error ? 'border-red-500' : ''} ${variant === 'dark' ? 'hover:border-[#FFC107]' : 'hover:border-yellow-400'}`}>
@@ -150,8 +150,8 @@ export default function ImageUpload({ label = 'Image', value, onChange, disabled
                             />
                             <Button
                                 type="button"
-                                variant="yellow-outline"
-                                className="w-full h-14 font-medium text-base"
+                                variant={variant === 'dark' ? 'yellow-outline' : 'yellow'}
+                                className={`w-full h-14 font-medium text-base ${variant === 'white' ? 'bg-[#FFC107] text-white hover:bg-[#E6A800]' : ''}`}
                                 onClick={() => cameraInputRef.current?.click()}
                                 disabled={disabled}
                             >
@@ -172,8 +172,8 @@ export default function ImageUpload({ label = 'Image', value, onChange, disabled
                             />
                             <Button
                                 type="button"
-                                variant="yellow-outline"
-                                className="w-full h-14 font-medium text-base"
+                                variant={variant === 'dark' ? 'yellow-outline' : 'yellow'}
+                                className={`w-full h-14 font-medium text-base ${variant === 'white' ? 'bg-[#FFC107] text-white hover:bg-[#E6A800]' : ''}`}
                                 onClick={() => inputRef.current?.click()}
                                 disabled={disabled}
                             >
@@ -184,11 +184,11 @@ export default function ImageUpload({ label = 'Image', value, onChange, disabled
                     </div>
                 </div>
             ) : (
-                <div className={`flex items-center gap-4 border-2 rounded-lg px-6 py-4 transition-all border-[#444] bg-[#2A2A2A] ${error ? 'border-red-500' : ''}`}>
+                <div className={`flex items-center gap-4 border-2 rounded-lg px-6 py-4 transition-all ${variant === 'dark' ? 'border-[#444] bg-[#2A2A2A]' : 'border-gray-300 bg-white'} ${error ? 'border-red-500' : ''}`}>
                     <div className="flex-1">
                         <div className="flex items-center gap-2">
                             <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                            <span className="text-sm font-medium text-[#BDBDBD]">
+                            <span className={`text-sm font-medium ${variant === 'dark' ? 'text-[#BDBDBD]' : 'text-[#232323]'}`}>
                                 Image uploaded successfully
                             </span>
                         </div>
@@ -197,7 +197,7 @@ export default function ImageUpload({ label = 'Image', value, onChange, disabled
                         <img src={value} alt="Preview" className="h-20 w-20 object-cover rounded-lg border-2 border-[#FFC107] shadow-lg" />
                         <button
                             type="button"
-                            className="absolute -top-2 -right-2 bg-[#232323] border-[#FFC107] text-[#FFC107] rounded-full p-1.5 w-8 h-8 flex items-center justify-center shadow-lg hover:bg-[#FFC107] hover:text-[#232323] transition-all duration-200"
+                            className={`absolute -top-2 -right-2 border-[#FFC107] text-[#FFC107] rounded-full p-1.5 w-8 h-8 flex items-center justify-center shadow-lg hover:bg-[#FFC107] hover:text-white transition-all duration-200 ${variant === 'dark' ? 'bg-[#232323]' : 'bg-white'}`}
                             onClick={handleRemove}
                             tabIndex={-1}
                             aria-label="Remove image preview"

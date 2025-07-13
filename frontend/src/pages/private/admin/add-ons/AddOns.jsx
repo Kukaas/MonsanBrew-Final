@@ -10,9 +10,8 @@ import {
     DropdownMenuItem,
     DropdownMenuLabel,
 } from "@/components/ui/dropdown-menu";
-import { MoreVertical } from 'lucide-react';
+import { MoreVertical, CheckCircle2, XCircle } from 'lucide-react';
 import { addonsAPI } from "@/services/api";
-import dayjs from 'dayjs';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import CustomAlertDialog from '@/components/custom/CustomAlertDialog';
 import Form from '@/components/custom/Form';
@@ -22,6 +21,8 @@ import { AlertDialogCancel } from '@/components/ui/alert-dialog';
 import { Separator } from "@/components/ui/separator";
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '@/components/ui/select';
 import ImageUpload from '@/components/custom/ImageUpload';
+
+const statusOptions = ["Available", "Not Available"];
 
 export default function AddOns() {
     const [open, setOpen] = useState(false);
@@ -41,6 +42,10 @@ export default function AddOns() {
     const [adding, setAdding] = useState(false);
     const [updating, setUpdating] = useState(false);
     const [deleting, setDeleting] = useState(false);
+    const [statusDialogOpen, setStatusDialogOpen] = useState(false);
+    const [statusChangingAddon, setStatusChangingAddon] = useState(null);
+    const [newStatus, setNewStatus] = useState(null);
+    const [statusLoading, setStatusLoading] = useState(false);
 
     const { data, isLoading } = useQuery({
         queryKey: ['addons'],
@@ -74,8 +79,8 @@ export default function AddOns() {
     });
 
     const { mutate: updateMutate } = useMutation({
-        mutationFn: async ({ id, name, price, image }) => {
-            return await addonsAPI.update(id, { name, price, image });
+        mutationFn: async ({ id, name, price, image, isAvailable }) => {
+            return await addonsAPI.update(id, { name, price, image, isAvailable });
         },
         onSuccess: () => {
             setUpdating(false);
@@ -111,6 +116,27 @@ export default function AddOns() {
         }
     });
 
+    const { mutate: updateStatusMutate } = useMutation({
+        mutationFn: async ({ id, isAvailable }) => {
+            return await addonsAPI.update(id, { isAvailable });
+        },
+        onSuccess: () => {
+            setStatusLoading(false);
+            queryClient.invalidateQueries(['addons']);
+            setStatusDialogOpen(false);
+            setStatusChangingAddon(null);
+            setNewStatus(null);
+            toast.success("Add-on status updated!");
+        },
+        onError: (error) => {
+            setStatusLoading(false);
+            setStatusDialogOpen(false);
+            setStatusChangingAddon(null);
+            setNewStatus(null);
+            toast.error(error?.response?.data?.error || "Failed to update add-on status");
+        }
+    });
+
     const handleAddAddon = (e) => {
         e.preventDefault();
         setFormError("");
@@ -123,7 +149,7 @@ export default function AddOns() {
             return;
         }
         setAdding(true);
-        mutate({ name: name.trim(), price: Number(price), image });
+        mutate({ name: name.trim(), price: Number(price), image, isAvailable: true });
     };
 
     const handleEditAddon = (e) => {
@@ -138,7 +164,13 @@ export default function AddOns() {
             return;
         }
         setUpdating(true);
-        updateMutate({ id: editAddon._id, name: editName.trim(), price: Number(editPrice), image: editImage });
+        updateMutate({ 
+            id: editAddon._id, 
+            name: editName.trim(), 
+            price: Number(editPrice), 
+            image: editImage,
+            isAvailable: editAddon.isAvailable
+        });
     };
 
     const mappedData = (data || []).map(item => ({ ...item, id: item._id }));
@@ -149,6 +181,49 @@ export default function AddOns() {
             accessorKey: "price",
             header: "Price",
             render: row => <span>{`₱${Number(row.price).toFixed(2)}`}</span>,
+        },
+        {
+            id: "status",
+            header: "Status",
+            render: (row) => (
+                <div className="flex justify-center items-center w-full">
+                    <Select
+                        value={row.isAvailable ? "Available" : "Not Available"}
+                        onValueChange={(value) => {
+                            setStatusChangingAddon(row);
+                            setNewStatus(value === "Available");
+                            setStatusDialogOpen(true);
+                        }}
+                        disabled={statusLoading && statusChangingAddon && statusChangingAddon._id === row._id}
+                    >
+                        <SelectTrigger className="w-[170px] bg-[#232323] border border-[#444] focus:border-yellow-400 focus:ring-2 focus:ring-yellow-400 text-white placeholder:text-[#BDBDBD] rounded-md py-2 px-3 text-base font-medium transition-colors disabled:opacity-60">
+                            {row.isAvailable ? (
+                                <span className="flex items-center gap-1 text-green-500">
+                                    <CheckCircle2 className="w-4 h-4 text-green-500" /> Available
+                                </span>
+                            ) : (
+                                <span className="flex items-center gap-1 text-red-500">
+                                    <XCircle className="w-4 h-4 text-red-500" /> Not Available
+                                </span>
+                            )}
+                        </SelectTrigger>
+                        <SelectContent className="bg-[#232323] border border-[#444] text-white rounded-md shadow-lg">
+                            <SelectItem value="Available">
+                                <span className="flex items-center gap-1 text-green-500">
+                                    <CheckCircle2 className="w-4 h-4 text-green-500" /> Available
+                                </span>
+                            </SelectItem>
+                            <SelectItem value="Not Available">
+                                <span className="flex items-center gap-1 text-red-500">
+                                    <XCircle className="w-4 h-4 text-red-500" /> Not Available
+                                </span>
+                            </SelectItem>
+                        </SelectContent>
+                    </Select>
+                </div>
+            ),
+            meta: { filterOptions: statusOptions },
+            accessorFn: row => row.isAvailable ? "Available" : "Not Available"
         },
         {
             accessorKey: "image",
@@ -341,6 +416,39 @@ export default function AddOns() {
                                 onClick={() => { setDeleting(true); deleteMutate(deleteAddon._id); }}
                             >
                                 {deleting ? 'Deleting...' : 'Delete'}
+                            </Button>
+                        </>
+                    }
+                />
+
+                {/* Status Change Dialog */}
+                <CustomAlertDialog
+                    open={statusDialogOpen}
+                    onOpenChange={statusLoading ? undefined : setStatusDialogOpen}
+                    title="Change Add-on Status"
+                    description={`Are you sure you want to mark "${statusChangingAddon?.name}" as ${newStatus ? 'Available' : 'Not Available'}?`}
+                    actions={
+                        <>
+                            <AlertDialogCancel
+                                className="h-10"
+                                disabled={statusLoading}
+                            >
+                                Cancel
+                            </AlertDialogCancel>
+                            <Button
+                                variant="yellow"
+                                size="lg"
+                                loading={statusLoading}
+                                disabled={statusLoading}
+                                onClick={() => {
+                                    setStatusLoading(true);
+                                    updateStatusMutate({
+                                        id: statusChangingAddon._id,
+                                        isAvailable: newStatus,
+                                    });
+                                }}
+                            >
+                                {statusLoading ? 'Updating...' : 'Confirm'}
                             </Button>
                         </>
                     }

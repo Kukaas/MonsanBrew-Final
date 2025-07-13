@@ -227,6 +227,41 @@ export default function ProductDetail() {
         }
     };
 
+    // Buy Now handler
+    const [buyNowLoading, setBuyNowLoading] = React.useState(false);
+    const handleBuyNow = async () => {
+        if (!user) {
+            toast.error('You must be logged in to purchase.');
+            return;
+        }
+        setBuyNowLoading(true);
+        try {
+            // Create a temporary cart item for checkout
+            const checkoutItem = {
+                product: product._id,
+                productName: product.productName,
+                image: product.image || product.images?.[0],
+                size: selectedSize,
+                quantity,
+                addOns: selectedAddons,
+                price: selectedSize ? 
+                    (() => {
+                        const found = product.sizes.find(s => s.label === selectedSize);
+                        return found ? found.price : product.price;
+                    })() : product.price
+            };
+
+            // Store checkout data in sessionStorage for the checkout page
+            sessionStorage.setItem('buyNowItem', JSON.stringify(checkoutItem));
+            
+            // Navigate to checkout page
+            navigate(`/checkout/${user._id}?buyNow=true`);
+        } catch (err) {
+            toast.error('Failed to proceed to checkout.');
+            setBuyNowLoading(false);
+        }
+    };
+
     if (isLoading) {
         return (
             <CustomerLayout>
@@ -382,6 +417,7 @@ export default function ProductDetail() {
                                             key={i}
                                             variant={selectedVariant === v ? 'yellow' : 'yellow-outline'}
                                             onClick={() => setSelectedVariant(v)}
+                                            disabled={!product.isAvailable}
                                             className="min-w-[80px]"
                                         >
                                             {v}
@@ -400,6 +436,7 @@ export default function ProductDetail() {
                                             key={i}
                                             variant={selectedSize === size.label ? 'yellow' : 'yellow-outline'}
                                             onClick={() => setSelectedSize(size.label)}
+                                            disabled={!product.isAvailable}
                                             className="min-w-[60px]"
                                         >
                                             {size.label}
@@ -412,9 +449,23 @@ export default function ProductDetail() {
                         <div className="flex items-center gap-3 mb-2">
                             <div className="font-semibold text-[#232323]">Quantity:</div>
                             <div className="flex items-center gap-1">
-                                <Button variant="yellow-outline" size="icon" onClick={() => setQuantity(q => Math.max(1, q - 1))}>-</Button>
+                                <Button 
+                                    variant="yellow-outline" 
+                                    size="icon" 
+                                    onClick={() => setQuantity(q => Math.max(1, q - 1))}
+                                    disabled={!product.isAvailable}
+                                >
+                                    -
+                                </Button>
                                 <span className="px-3 text-lg font-bold text-[#232323]">{quantity}</span>
-                                <Button variant="yellow-outline" size="icon" onClick={() => setQuantity(q => Math.min(maxQty, q + 1))}>+</Button>
+                                <Button 
+                                    variant="yellow-outline" 
+                                    size="icon" 
+                                    onClick={() => setQuantity(q => Math.min(maxQty, q + 1))}
+                                    disabled={!product.isAvailable}
+                                >
+                                    +
+                                </Button>
                             </div>
                         </div>
                         {/* Customization Section */}
@@ -426,16 +477,20 @@ export default function ProductDetail() {
                                 ) : (
                                     <div className="flex flex-col gap-3">
                                         {addons && addons.length > 0 ? addons.map(addon => (
-                                            <label key={addon._id} className="flex items-center gap-3 cursor-pointer">
+                                            <label key={addon._id} className={`flex items-center gap-3 ${!addon.isAvailable ? 'cursor-not-allowed' : 'cursor-pointer'}`}>
                                                 <input
                                                     type="checkbox"
                                                     checked={selectedAddons.includes(addon._id)}
                                                     onChange={() => handleAddonToggle(addon._id)}
+                                                    disabled={!addon.isAvailable}
                                                     className="accent-[#FFC107] w-5 h-5"
                                                 />
                                                 {addon.image && <img src={addon.image} alt={addon.name} className="w-10 h-10 object-cover rounded border border-gray-200 bg-white" />}
-                                                <span className="text-[#232323] font-medium">{addon.name}</span>
+                                                <span className={`font-medium ${!addon.isAvailable ? 'text-gray-500' : 'text-[#232323]'}`}>{addon.name}</span>
                                                 <span className="text-[#FFC107] font-bold ml-2">+₱{addon.price?.toLocaleString()}</span>
+                                                {!addon.isAvailable && (
+                                                    <span className="text-red-500 text-xs font-medium ml-auto">Not Available</span>
+                                                )}
                                             </label>
                                         )) : <span className="text-gray-400">No add-ons available.</span>}
                                     </div>
@@ -448,13 +503,28 @@ export default function ProductDetail() {
                                 variant="yellow-outline"
                                 className="flex-1 w-full"
                                 onClick={handleAddToCart}
-                                disabled={addCartLoading}
+                                disabled={addCartLoading || !product.isAvailable}
                                 loading={addCartLoading}
                             >
-                                {addCartLoading ? 'Adding...' : 'Add to Cart'}
+                                {addCartLoading ? 'Adding...' : !product.isAvailable ? 'Not Available' : 'Add to Cart'}
                             </Button>
-                            <Button variant="yellow" className="flex-1 w-full">Buy Now</Button>
+                            <Button 
+                                variant="yellow" 
+                                className="flex-1 w-full"
+                                onClick={handleBuyNow}
+                                disabled={buyNowLoading || !product.isAvailable}
+                                loading={buyNowLoading}
+                            >
+                                {buyNowLoading ? 'Processing...' : !product.isAvailable ? 'Not Available' : 'Buy Now'}
+                            </Button>
                         </div>
+                        {!product.isAvailable && (
+                            <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg">
+                                <p className="text-red-700 text-sm font-medium text-center">
+                                    This product is currently not available for purchase.
+                                </p>
+                            </div>
+                        )}
                     </div>
                 </div>
                 {/* Product Description (bottom, full width) */}

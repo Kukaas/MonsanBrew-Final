@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation, useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
-import { userAPI, orderAPI, cartAPI } from '@/services/api';
+import { userAPI, orderAPI, cartAPI, addonsAPI } from '@/services/api';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
 import FormInput from '@/components/custom/FormInput';
@@ -15,10 +15,12 @@ export default function Checkout() {
     const { userId } = useParams();
     const navigate = useNavigate();
     const { user } = useAuth();
+    const location = useLocation();
+    const isBuyNow = new URLSearchParams(location.search).get('buyNow') === 'true';
 
-    // Restore selectedCart from state or localStorage
+    // Restore selectedCart from state or localStorage, or handle buy now
     let selectedCart = state?.selectedCart;
-    if (!selectedCart) {
+    if (!selectedCart && !isBuyNow) {
         const stored = localStorage.getItem('selectedCart');
         if (stored) {
             try {
@@ -28,6 +30,42 @@ export default function Checkout() {
             }
         }
     }
+
+    // Handle buy now item
+    const [buyNowItem, setBuyNowItem] = useState(null);
+    const [buyNowAddons, setBuyNowAddons] = useState([]);
+    const [loadingBuyNow, setLoadingBuyNow] = useState(false);
+
+    useEffect(() => {
+        if (isBuyNow) {
+            const storedItem = sessionStorage.getItem('buyNowItem');
+            if (storedItem) {
+                try {
+                    const item = JSON.parse(storedItem);
+                    setBuyNowItem(item);
+                    
+                    // Fetch add-ons details if there are any
+                    if (item.addOns && item.addOns.length > 0) {
+                        setLoadingBuyNow(true);
+                        addonsAPI.getMany(item.addOns)
+                            .then(res => {
+                                const addonsData = res.data || res || [];
+                                setBuyNowAddons(addonsData);
+                            })
+                            .catch(err => {
+                                console.error('Failed to fetch add-ons:', err);
+                            })
+                            .finally(() => setLoadingBuyNow(false));
+                    }
+                } catch (err) {
+                    console.error('Failed to parse buy now item:', err);
+                    navigate('/');
+                }
+            } else {
+                navigate('/');
+            }
+        }
+    }, [isBuyNow, navigate]);
 
     // All hooks must be called before any return
     const [address, setAddress] = useState(null);
@@ -51,10 +89,10 @@ export default function Checkout() {
     }, []);
 
     useEffect(() => {
-        if (!selectedCart || !Array.isArray(selectedCart) || selectedCart.length === 0) {
+        if (!isBuyNow && (!selectedCart || !Array.isArray(selectedCart) || selectedCart.length === 0)) {
             navigate(`/cart?user=${userId}`);
         }
-    }, [selectedCart, userId, navigate]);
+    }, [selectedCart, userId, navigate, isBuyNow]);
 
     useEffect(() => {
         if (address && typeof address.landmark === 'string') {
@@ -62,8 +100,13 @@ export default function Checkout() {
         }
     }, [address]);
 
-    // Early return if no valid cart data
-    if (!selectedCart || !Array.isArray(selectedCart) || selectedCart.length === 0) {
+    // Early return if no valid cart data and not buy now
+    if (!isBuyNow && (!selectedCart || !Array.isArray(selectedCart) || selectedCart.length === 0)) {
+        return null;
+    }
+
+    // Early return if buy now but no item
+    if (isBuyNow && !buyNowItem) {
         return null;
     }
 
@@ -71,24 +114,40 @@ export default function Checkout() {
     const deliveryFee = 15;
 
     // Calculate total with proper validation
-    const subtotal = selectedCart.reduce((sum, item) => {
-        if (!item || typeof item.price !== 'number') return sum;
-        const itemPrice = Number(item.price) || 0;
-        const addOnsPrice = (item.addOns && Array.isArray(item.addOns)) 
-            ? item.addOns.reduce((s, a) => s + (Number(a.price) || 0), 0) 
-            : 0;
-        const quantity = Number(item.quantity) || 1;
-        return sum + ((itemPrice + addOnsPrice) * quantity);
-    }, 0);
+    const subtotal = isBuyNow ? 
+        (() => {
+            if (!buyNowItem) return 0;
+            const itemPrice = Number(buyNowItem.price) || 0;
+            const addOnsPrice = buyNowAddons.reduce((sum, addon) => sum + (Number(addon.price) || 0), 0);
+            const quantity = Number(buyNowItem.quantity) || 1;
+            return (itemPrice + addOnsPrice) * quantity;
+        })() :
+        selectedCart.reduce((sum, item) => {
+            if (!item || typeof item.price !== 'number') return sum;
+            const itemPrice = Number(item.price) || 0;
+            const addOnsPrice = (item.addOns && Array.isArray(item.addOns)) 
+                ? item.addOns.reduce((s, a) => s + (Number(a.price) || 0), 0) 
+                : 0;
+            const quantity = Number(item.quantity) || 1;
+            return sum + ((itemPrice + addOnsPrice) * quantity);
+        }, 0);
     const total = subtotal + deliveryFee;
 
     // Place order handler
     const handlePlaceOrder = async () => {
-        // Validate cart data before proceeding
-        if (!selectedCart || !Array.isArray(selectedCart) || selectedCart.length === 0) {
-            toast.error('No items in cart. Please add items to your cart first.');
-            navigate(`/cart?user=${userId}`);
-            return;
+        // Validate data before proceeding
+        if (isBuyNow) {
+            if (!buyNowItem) {
+                toast.error('No item to purchase. Please try again.');
+                navigate('/');
+                return;
+            }
+        } else {
+            if (!selectedCart || !Array.isArray(selectedCart) || selectedCart.length === 0) {
+                toast.error('No items in cart. Please add items to your cart first.');
+                navigate(`/cart?user=${userId}`);
+                return;
+            }
         }
 
         // Validate address before placing order
@@ -99,53 +158,83 @@ export default function Checkout() {
 
         setPlacingOrder(true);
         try {
-            // Validate each cart item before creating order
-            const validItems = selectedCart.filter(item => 
-                item && 
-                item.product && 
-                item.productName && 
-                typeof item.price === 'number' && 
-                typeof item.quantity === 'number' && 
-                item.quantity > 0
-            );
-
-            if (validItems.length === 0) {
-                toast.error('No valid items found in cart. Please refresh and try again.');
-                return;
-            }
-
             // Prepare order data
-            const orderData = {
-                userId: user?._id || userId,
-                items: validItems.map(item => ({
-                    productId: item.product,
-                    productName: item.productName,
-                    image: item.image,
-                    size: item.size,
-                    addOns: item.addOns,
-                    quantity: item.quantity,
-                    price: item.price
-                })),
-                address: address,
-                deliveryInstructions,
-                paymentMethod,
-                referenceNumber: paymentMethod === 'gcash' ? referenceNumber : undefined,
-                proofImage: paymentMethod === 'gcash' ? proofImage : undefined,
-                total: total
-            };
+            let orderData;
+            
+            if (isBuyNow) {
+                // Buy now order
+                orderData = {
+                    userId: user?._id || userId,
+                    items: [{
+                        productId: buyNowItem.product,
+                        productName: buyNowItem.productName,
+                        image: buyNowItem.image,
+                        size: buyNowItem.size,
+                        addOns: buyNowAddons,
+                        quantity: buyNowItem.quantity,
+                        price: buyNowItem.price
+                    }],
+                    address: address,
+                    deliveryInstructions,
+                    paymentMethod,
+                    referenceNumber: paymentMethod === 'gcash' ? referenceNumber : undefined,
+                    proofImage: paymentMethod === 'gcash' ? proofImage : undefined,
+                    total: total
+                };
+            } else {
+                // Cart order
+                const validItems = selectedCart.filter(item => 
+                    item && 
+                    item.product && 
+                    item.productName && 
+                    typeof item.price === 'number' && 
+                    typeof item.quantity === 'number' && 
+                    item.quantity > 0
+                );
+
+                if (validItems.length === 0) {
+                    toast.error('No valid items found in cart. Please refresh and try again.');
+                    return;
+                }
+
+                orderData = {
+                    userId: user?._id || userId,
+                    items: validItems.map(item => ({
+                        productId: item.product,
+                        productName: item.productName,
+                        image: item.image,
+                        size: item.size,
+                        addOns: item.addOns,
+                        quantity: item.quantity,
+                        price: item.price
+                    })),
+                    address: address,
+                    deliveryInstructions,
+                    paymentMethod,
+                    referenceNumber: paymentMethod === 'gcash' ? referenceNumber : undefined,
+                    proofImage: paymentMethod === 'gcash' ? proofImage : undefined,
+                    total: total
+                };
+            }
             // Place order
             await orderAPI.placeOrder(orderData);
-            // Remove checked out products from cart
-            for (const item of selectedCart) {
-                if (item._originalIds && Array.isArray(item._originalIds)) {
-                    for (const id of item._originalIds) {
-                        await cartAPI.removeFromCart(id);
+            // Remove checked out products from cart (only for cart orders)
+            if (!isBuyNow) {
+                for (const item of selectedCart) {
+                    if (item._originalIds && Array.isArray(item._originalIds)) {
+                        for (const id of item._originalIds) {
+                            await cartAPI.removeFromCart(id);
+                        }
+                    } else if (item._id) {
+                        await cartAPI.removeFromCart(item._id);
                     }
-                } else if (item._id) {
-                    await cartAPI.removeFromCart(item._id);
                 }
+                localStorage.removeItem('selectedCart');
+            } else {
+                // Clear buy now data
+                sessionStorage.removeItem('buyNowItem');
             }
-            localStorage.removeItem('selectedCart');
+            
             toast.success('Order placed successfully!');
             setTimeout(() => {
                 navigate(`/order/user/${user?._id || userId}`);
@@ -195,7 +284,7 @@ export default function Checkout() {
                 <button
                     className="text-white hover:text-[#FFC107] mr-2"
                     aria-label="Back"
-                    onClick={() => navigate(`/cart?user=${userId}`)}
+                    onClick={() => isBuyNow ? navigate('/') : navigate(`/cart?user=${userId}`)}
                 >
                     <ArrowLeft size={28} />
                 </button>
@@ -263,7 +352,11 @@ export default function Checkout() {
                     variant="yellow"
                     size="sm"
                     className="ml-auto mt-2"
-                    onClick={() => navigate('/profile/address')}
+                    onClick={() => navigate('/profile/address', { 
+                        state: { 
+                            returnTo: isBuyNow ? `/checkout/${user._id}?buyNow=true` : `/checkout/${userId}` 
+                        } 
+                    })}
                     disabled={addressLoading}
                 >Edit</Button>
             </div>
@@ -318,22 +411,41 @@ export default function Checkout() {
                 </div>
             )}
             <div className="w-full max-w-2xl bg-white rounded-2xl p-4 sm:p-8 shadow flex flex-col gap-4 mb-8 overflow-x-auto">
-                {selectedCart.map((item, idx) => (
-                    <div key={idx} className="flex flex-col sm:flex-row items-center gap-4 border-b pb-4 mb-4 last:border-b-0 last:pb-0 last:mb-0 min-w-0">
-                        <img src={item.image || '/placeholder.png'} alt={item.productName} className="w-16 h-16 object-cover rounded mb-2 sm:mb-0" />
+                {isBuyNow ? (
+                    <div className="flex flex-col sm:flex-row items-center gap-4 border-b pb-4 mb-4 last:border-b-0 last:pb-0 last:mb-0 min-w-0">
+                        <img src={buyNowItem.image || '/placeholder.png'} alt={buyNowItem.productName} className="w-16 h-16 object-cover rounded mb-2 sm:mb-0" />
                         <div className="flex-1 min-w-0 w-full">
-                            <div className="font-bold text-base sm:text-lg text-[#232323] truncate">{item.productName}</div>
-                            {item.size && <div className="text-xs text-gray-500 font-semibold">{item.size}</div>}
-                            {item.addOns && item.addOns.length > 0 && (
-                                <div className="text-xs text-[#FFC107] font-bold truncate">Add-ons: {item.addOns.map(a => a.name).join(', ')}</div>
+                            <div className="font-bold text-base sm:text-lg text-[#232323] truncate">{buyNowItem.productName}</div>
+                            {buyNowItem.size && <div className="text-xs text-gray-500 font-semibold">{buyNowItem.size}</div>}
+                            {buyNowAddons && buyNowAddons.length > 0 && (
+                                <div className="text-xs text-[#FFC107] font-bold truncate">
+                                    Add-ons: {buyNowAddons.map(a => a.name).join(', ')}
+                                </div>
                             )}
-                            <div className="text-[#232323] text-sm sm:text-base font-bold">Qty: {item.quantity}</div>
+                            <div className="text-[#232323] text-sm sm:text-base font-bold">Qty: {buyNowItem.quantity}</div>
                         </div>
                         <div className="text-base sm:text-lg font-bold text-[#232323] mt-2 sm:mt-0">
-                            ₱ {(Number(item.price) + (item.addOns ? item.addOns.reduce((sum, a) => sum + (Number(a.price) || 0), 0) : 0)) * item.quantity}
+                            ₱ {(Number(buyNowItem.price) + buyNowAddons.reduce((sum, a) => sum + (Number(a.price) || 0), 0)) * buyNowItem.quantity}
                         </div>
                     </div>
-                ))}
+                ) : (
+                    selectedCart.map((item, idx) => (
+                        <div key={idx} className="flex flex-col sm:flex-row items-center gap-4 border-b pb-4 mb-4 last:border-b-0 last:pb-0 last:mb-0 min-w-0">
+                            <img src={item.image || '/placeholder.png'} alt={item.productName} className="w-16 h-16 object-cover rounded mb-2 sm:mb-0" />
+                            <div className="flex-1 min-w-0 w-full">
+                                <div className="font-bold text-base sm:text-lg text-[#232323] truncate">{item.productName}</div>
+                                {item.size && <div className="text-xs text-gray-500 font-semibold">{item.size}</div>}
+                                {item.addOns && item.addOns.length > 0 && (
+                                    <div className="text-xs text-[#FFC107] font-bold truncate">Add-ons: {item.addOns.map(a => a.name).join(', ')}</div>
+                                )}
+                                <div className="text-[#232323] text-sm sm:text-base font-bold">Qty: {item.quantity}</div>
+                            </div>
+                            <div className="text-base sm:text-lg font-bold text-[#232323] mt-2 sm:mt-0">
+                                ₱ {(Number(item.price) + (item.addOns ? item.addOns.reduce((sum, a) => sum + (Number(a.price) || 0), 0) : 0)) * item.quantity}
+                            </div>
+                        </div>
+                    ))
+                )}
             </div>
             <div className="w-full max-w-2xl mx-auto bg-white rounded-2xl p-8 shadow flex flex-col gap-4 mb-8">
                 <div className="flex justify-between text-lg font-bold text-[#232323]">

@@ -142,11 +142,11 @@ const OrderCard = ({ order, onOrderUpdate }) => {
                 )}
 
                 {order.status === 'completed' && !order.isReviewed && (
-                    <div className="mt-3 flex gap-2">
+                    <div className="mt-3">
                         <Button
-                            variant="outline"
+                            variant="yellow"
                             size="sm"
-                            className="flex-1"
+                            className="w-full"
                             onClick={(e) => {
                                 handleButtonClick(e);
                                 // Use the first item for the review (one review per order)
@@ -175,14 +175,6 @@ const OrderCard = ({ order, onOrderUpdate }) => {
                             }}
                         >
                             Rate & Review Order
-                        </Button>
-                        <Button
-                            variant="yellow"
-                            size="sm"
-                            className="flex-1"
-                            onClick={handleButtonClick}
-                        >
-                            Buy Again
                         </Button>
                     </div>
                 )}

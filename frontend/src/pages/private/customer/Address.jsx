@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { userAPI } from '@/services/api';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -10,6 +10,8 @@ export default function Address() {
     const navigate = useNavigate();
     const { user } = useAuth();
     const { userId } = useParams();
+    const location = useLocation();
+    const returnTo = location.state?.returnTo || `/checkout/${user?._id || userId}`;
     const [form, setForm] = useState({
         contactNumber: '', lotNo: '', purok: '', street: '', landmark: '', barangay: '', municipality: '', province: ''
     });
@@ -57,7 +59,7 @@ export default function Address() {
             await userAPI.updateAddress(form);
             toast.success('Address updated successfully!');
             setTimeout(() => {
-                navigate(`/checkout/${user?._id || userId}`);
+                navigate(returnTo);
             }, 1000);
         } catch (err) {
             toast.error('Failed to update address.');
