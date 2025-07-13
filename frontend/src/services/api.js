@@ -233,3 +233,23 @@ export const orderAPI = {
         return await api.patch(`/orders/${orderId}/complete`, { riderId, deliveryProofImage });
     },
 };
+
+// Review API functions
+export const reviewAPI = {
+    // Create a review
+    createReview: async (reviewData) => {
+        return await api.post('/reviews', reviewData);
+    },
+    // Get reviews for a product
+    getProductReviews: async (productId, page = 1, limit = 10) => {
+        return await api.get(`/reviews/product/${productId}?page=${page}&limit=${limit}`);
+    },
+    // Get reviews by a user
+    getUserReviews: async (userId) => {
+        return await api.get(`/reviews/user/${userId}`);
+    },
+    // Get review for a specific order
+    getOrderReview: async (orderId) => {
+        return await api.get(`/reviews/order/${orderId}`);
+    },
+};

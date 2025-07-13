@@ -1,6 +1,7 @@
 import React from 'react';
 import { Button } from './ui/button';
 import { useNavigate } from 'react-router-dom';
+import { Star } from 'lucide-react';
 
 export default function ProductCard({ product }) {
     // Determine image source (base64 or url)
@@ -40,6 +41,28 @@ export default function ProductCard({ product }) {
                     <>₱ {product.price?.toLocaleString()}</>
                 )}
             </div>
+            
+            {/* Rating and Review Count */}
+            {(product.averageRating > 0 || product.reviewCount > 0) && (
+                <div className="flex items-center gap-2 mb-2">
+                    <div className="flex items-center gap-1">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                            <Star
+                                key={star}
+                                className={`w-3 h-3 ${
+                                    star <= (product.averageRating || 0)
+                                        ? 'fill-[#FFC107] text-[#FFC107]'
+                                        : 'text-gray-300'
+                                }`}
+                            />
+                        ))}
+                    </div>
+                    <span className="text-xs text-gray-500 whitespace-nowrap px-1">
+                        ({product.reviewCount || 0})
+                    </span>
+                </div>
+            )}
+            
             <div className="border-t border-[#E0E0E0] my-2" />
             <Button variant="yellow" className="w-full mt-2" onClick={() => navigate(`/product/${product._id}`)}>Buy</Button>
         </div>

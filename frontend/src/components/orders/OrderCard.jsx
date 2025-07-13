@@ -7,6 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 import OrderStatusBadge from './OrderStatusBadge';
 import CustomAlertDialog from '../custom/CustomAlertDialog';
+import ReviewModal from '../reviews/ReviewModal';
 import { orderAPI } from '@/services/api';
 
 const OrderCard = ({ order, onOrderUpdate }) => {
@@ -14,6 +15,8 @@ const OrderCard = ({ order, onOrderUpdate }) => {
     const [showCancelModal, setShowCancelModal] = useState(false);
     const [cancellationReason, setCancellationReason] = useState('');
     const [cancelLoading, setCancelLoading] = useState(false);
+    const [showReviewModal, setShowReviewModal] = useState(false);
+    const [selectedProductId, setSelectedProductId] = useState(null);
 
     const formatDate = (dateString) => {
         return new Date(dateString).toLocaleDateString('en-US', {
@@ -142,9 +145,34 @@ const OrderCard = ({ order, onOrderUpdate }) => {
                             variant="outline"
                             size="sm"
                             className="flex-1"
-                            onClick={handleButtonClick}
+                            onClick={(e) => {
+                                handleButtonClick(e);
+                                // Use the first item for the review (one review per order)
+                                const firstItem = order.items[0];
+                                if (firstItem && firstItem.productId) {
+                                    // Extract the string ID from productId (handle both string and object cases)
+                                    const productIdString = typeof firstItem.productId === 'string' 
+                                        ? firstItem.productId 
+                                        : firstItem.productId._id || firstItem.productId;
+                                    
+                                    console.log('Selected product for review:', {
+                                        productId: productIdString,
+                                        productName: firstItem.productName,
+                                        orderItems: order.items.map(item => ({
+                                            productId: typeof item.productId === 'string' 
+                                                ? item.productId 
+                                                : item.productId._id || item.productId,
+                                            productName: item.productName
+                                        }))
+                                    });
+                                    setSelectedProductId(productIdString);
+                                    setShowReviewModal(true);
+                                } else {
+                                    toast.error('Product information not found');
+                                }
+                            }}
                         >
-                            Rate & Review
+                            Rate & Review Order
                         </Button>
                         <Button
                             variant="yellow"
@@ -154,6 +182,16 @@ const OrderCard = ({ order, onOrderUpdate }) => {
                         >
                             Buy Again
                         </Button>
+                    </div>
+                )}
+
+                {order.status === 'completed' && order.isReviewed && (
+                    <div className="mt-3">
+                        <div className="text-center p-3 bg-green-50 rounded-lg border border-green-200">
+                            <span className="text-green-700 text-sm font-medium">
+                                ✓ Order Reviewed
+                            </span>
+                        </div>
                     </div>
                 )}
 
@@ -193,6 +231,15 @@ const OrderCard = ({ order, onOrderUpdate }) => {
                         rows={3}
                     />
                 </CustomAlertDialog>
+
+                {/* Review Modal */}
+                <ReviewModal
+                    open={showReviewModal}
+                    onOpenChange={setShowReviewModal}
+                    order={order}
+                    productId={selectedProductId}
+                    onReviewSubmitted={onOrderUpdate}
+                />
             </CardContent>
         </Card>
     );

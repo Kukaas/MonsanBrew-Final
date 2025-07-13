@@ -1,12 +1,12 @@
 import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { orderAPI } from '@/services/api';
+import { orderAPI, reviewAPI } from '@/services/api';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { ArrowLeft, MapPin, Phone, Clock, CreditCard, Package, Camera } from 'lucide-react';
+import { ArrowLeft, MapPin, Phone, Clock, CreditCard, Package, Camera, Star } from 'lucide-react';
 import CustomerLayout from '@/layouts/CustomerLayout';
 import OrderStatusBadge from '@/components/orders/OrderStatusBadge';
 import { toast } from 'sonner';
@@ -32,6 +32,27 @@ export default function OrderDetail() {
             console.error('Error fetching order:', error);
             toast.error('Failed to fetch order details');
         }
+    });
+
+    // Fetch review for this order
+    const { data: reviewData } = useQuery({
+        queryKey: ['order-review', orderId],
+        queryFn: async () => {
+            try {
+                const res = await reviewAPI.getOrderReview(orderId);
+                return res.data?.review || res.review || res;
+            } catch (error) {
+                // If no review exists, return null
+                if (error.response?.status === 404) {
+                    return null;
+                }
+                throw error;
+            }
+        },
+        enabled: !!orderId && order?.status === 'completed',
+        staleTime: 1000 * 60 * 5, // 5 minutes
+        cacheTime: 1000 * 60 * 10, // 10 minutes
+        refetchOnWindowFocus: false,
     });
 
     const formatDate = (dateString) => {
@@ -189,6 +210,58 @@ export default function OrderDetail() {
                                 Photo taken by rider upon delivery completion
                             </p>
                         </div>
+                    </div>
+                )}
+
+                {/* Customer Review */}
+                {order.status === 'completed' && (
+                    <div className="pt-4 border-t border-gray-200">
+                        <div className="flex items-center gap-2 mb-3">
+                            <Star className="w-5 h-5 text-[#FFC107]" />
+                            <span className="font-bold text-base sm:text-lg text-[#232323]">Your Review</span>
+                        </div>
+                        {reviewData ? (
+                            <div className="bg-gray-50 rounded-lg p-4">
+                                <div className="flex items-center gap-2 mb-3">
+                                    {[1, 2, 3, 4, 5].map((star) => (
+                                        <Star
+                                            key={star}
+                                            className={`w-5 h-5 ${
+                                                star <= reviewData.rating
+                                                    ? 'fill-[#FFC107] text-[#FFC107]'
+                                                    : 'text-gray-400'
+                                            }`}
+                                        />
+                                    ))}
+                                    <span className="text-sm font-medium text-gray-700 ml-2">{reviewData.rating}/5</span>
+                                </div>
+                                <div className="bg-white rounded-lg p-3 border border-gray-200">
+                                    <p className="text-gray-800 text-sm leading-relaxed">{reviewData.comment}</p>
+                                </div>
+                                <p className="text-xs text-gray-500 mt-2 text-center">
+                                    Reviewed on {new Date(reviewData.createdAt).toLocaleDateString('en-US', {
+                                        year: 'numeric',
+                                        month: 'long',
+                                        day: 'numeric'
+                                    })}
+                                    {reviewData.isAnonymous && (
+                                        <span className="ml-2 text-yellow-600">(Anonymous)</span>
+                                    )}
+                                </p>
+                                {reviewData.orderId && (
+                                    <p className="text-xs text-gray-500 mt-1 text-center">
+                                        Order #{reviewData.orderId._id?.slice(-8)} • 
+                                        {reviewData.orderId.items?.length || 0} item{(reviewData.orderId.items?.length || 0) !== 1 ? 's' : ''}
+                                    </p>
+                                )}
+                            </div>
+                        ) : (
+                            <div className="bg-gray-50 rounded-lg p-4 text-center">
+                                <Star className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                                <p className="text-gray-600 text-sm">No review submitted yet</p>
+                                <p className="text-gray-500 text-xs mt-1">You can review this order from your orders list</p>
+                            </div>
+                        )}
                     </div>
                 )}
             </div>

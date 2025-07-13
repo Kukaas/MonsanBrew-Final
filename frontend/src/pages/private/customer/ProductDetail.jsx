@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { productAPI, addonsAPI, cartAPI } from '../../../services/api';
+import { productAPI, addonsAPI, cartAPI, reviewAPI } from '../../../services/api';
 import { Button } from '../../../components/ui/button';
 import { Skeleton } from '../../../components/ui/skeleton';
-import { Heart, Share2 } from 'lucide-react';
+import { Heart, Share2, Star } from 'lucide-react';
 import CustomerLayout from '../../../layouts/CustomerLayout';
 import { toast } from 'sonner';
 import { useAuth } from '@/context/AuthContext';
@@ -13,6 +13,7 @@ import FormInput from '@/components/custom/FormInput';
 import QRCode from 'react-qr-code';
 import { Copy as CopyIcon } from 'lucide-react';
 import { AlertDialogCancel } from '@/components/ui/alert-dialog';
+import ReviewFilter from '@/components/reviews/ReviewFilter';
 
 export default function ProductDetail() {
     // All hooks must be at the top
@@ -48,6 +49,71 @@ export default function ProductDetail() {
             setFavorite(Array.isArray(product.favorites) && product.favorites.includes(user._id));
         }
     }, [product, user]);
+
+    // Pagination state for reviews
+    const [reviewPage, setReviewPage] = useState(1);
+    const [allReviews, setAllReviews] = useState([]);
+    const [hasMoreReviews, setHasMoreReviews] = useState(true);
+    const [selectedRating, setSelectedRating] = useState(null);
+    const REVIEWS_PER_PAGE = 5;
+
+    // Fetch reviews for this product (paginated)
+    const { data: reviewsData, isLoading: reviewsLoading, refetch: refetchReviews, isFetching: isFetchingReviews } = useQuery({
+        queryKey: ['product-reviews', id, reviewPage],
+        queryFn: async () => {
+            try {
+                const res = await reviewAPI.getProductReviews(id, reviewPage, REVIEWS_PER_PAGE);
+                return res.data || res;
+            } catch (error) {
+                if (error.response?.status === 404) {
+                    return { reviews: [], totalReviews: 0, totalPages: 1 };
+                }
+                throw error;
+            }
+        },
+        enabled: !!id,
+        keepPreviousData: true,
+        staleTime: 1000 * 60 * 5,
+        cacheTime: 1000 * 60 * 10,
+        refetchOnWindowFocus: false,
+    });
+
+    // Append reviews as pages are loaded
+    useEffect(() => {
+        if (reviewsData && Array.isArray(reviewsData.reviews)) {
+            if (reviewPage === 1) {
+                setAllReviews(reviewsData.reviews);
+            } else {
+                setAllReviews(prev => [...prev, ...reviewsData.reviews]);
+            }
+            setHasMoreReviews(reviewsData.currentPage < reviewsData.totalPages);
+        }
+    }, [reviewsData, reviewPage]);
+
+    // Reset reviews if product changes
+    useEffect(() => {
+        setReviewPage(1);
+        setAllReviews([]);
+        setHasMoreReviews(true);
+        setSelectedRating(null);
+    }, [id]);
+
+    // Filter reviews based on selected rating
+    const filteredReviews = selectedRating 
+        ? allReviews.filter(review => review.rating === selectedRating)
+        : allReviews;
+
+    // Calculate review counts by rating
+    const reviewCounts = allReviews.reduce((acc, review) => {
+        acc[review.rating] = (acc[review.rating] || 0) + 1;
+        return acc;
+    }, {});
+
+    // Handle rating filter change
+    const handleRatingFilterChange = (rating) => {
+        setSelectedRating(rating);
+        // Don't reset the reviews data, just change the filter
+    };
 
     // Favorite/unfavorite mutations
     const favoriteMutation = useMutation({
@@ -291,7 +357,15 @@ export default function ProductDetail() {
                                     <>₱ {product.price?.toLocaleString()}</>
                                 )}
                             </div>
-                            <div className="text-gray-400 text-lg">4.9 ★ | 10+ sold</div>
+                            <div className="text-gray-400 text-lg">
+                                {product.averageRating ? (
+                                    <>
+                                        {product.averageRating.toFixed(1)} ★ | {product.totalSold || 0} sold
+                                    </>
+                                ) : (
+                                    <>No ratings yet | {product.totalSold || 0} sold</>
+                                )}
+                            </div>
                             {product.isAvailable ? (
                                 <span className="ml-2 px-3 py-1 rounded-full bg-green-600 text-white text-xs font-bold">Available</span>
                             ) : (
@@ -402,8 +476,133 @@ export default function ProductDetail() {
                 </div>
                 {/* Reviews Section (bottom, full width) */}
                 <div className="max-w-2xl w-full">
-                    <h3 className="text-xl font-extrabold mb-3 text-[#FFC107]">Reviews</h3>
-                    <div className="bg-white rounded-xl p-6 text-gray-400 text-base shadow-sm border border-gray-200">No reviews yet.</div>
+                    <div className="flex items-center justify-between mb-3">
+                        <h3 className="text-xl font-extrabold text-[#FFC107]">Reviews</h3>
+                    </div>
+                    
+                    {/* Review Filter Component */}
+                    {allReviews && allReviews.length > 0 && (
+                        <ReviewFilter
+                            selectedRating={selectedRating}
+                            onRatingChange={handleRatingFilterChange}
+                            totalReviews={reviewsData?.totalReviews || 0}
+                            averageRating={product?.averageRating || 0}
+                            reviewCounts={reviewCounts}
+                        />
+                    )}
+                    
+                    {allReviews && allReviews.length > 0 ? (
+                        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+                            {/* Filter Status */}
+                            {selectedRating && (
+                                <div className="mb-4 p-3 bg-[#FFC107] bg-opacity-10 rounded-lg border border-[#FFC107]">
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-sm font-medium text-[#232323]">
+                                            Showing {filteredReviews.length} review{filteredReviews.length !== 1 ? 's' : ''} with {selectedRating} star{selectedRating !== 1 ? 's' : ''}
+                                        </span>
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() => handleRatingFilterChange(null)}
+                                            className="text-gray-500 hover:text-gray-700"
+                                        >
+                                            Clear filter
+                                        </Button>
+                                    </div>
+                                </div>
+                            )}
+                            
+                            <div className="space-y-6 max-h-[400px] overflow-y-auto pr-2">
+                                {filteredReviews.map((review, index) => (
+                                    <div key={review._id || index} className="border-b border-gray-100 pb-4 last:border-b-0 last:pb-0">
+                                        <div className="flex items-start gap-4">
+                                            <div className="flex-1">
+                                                <div className="flex items-center gap-3 mb-2">
+                                                    <div className="flex items-center gap-1">
+                                                        {[1, 2, 3, 4, 5].map((star) => (
+                                                            <Star
+                                                                key={star}
+                                                                className={`w-4 h-4 ${
+                                                                    star <= review.rating
+                                                                        ? 'fill-[#FFC107] text-[#FFC107]'
+                                                                        : 'text-gray-300'
+                                                                }`}
+                                                            />
+                                                        ))}
+                                                    </div>
+                                                    <span className="text-sm font-medium text-gray-700">{review.rating}/5</span>
+                                                    <span className="text-sm text-gray-500">•</span>
+                                                    <span className="text-sm text-gray-500">
+                                                        {review.userId?.name || 'Anonymous'}
+                                                    </span>
+                                                </div>
+                                                <p className="text-gray-800 text-sm leading-relaxed mb-2">{review.comment}</p>
+                                                <div className="flex items-center gap-2 text-xs text-gray-500">
+                                                    <span>
+                                                        {new Date(review.createdAt).toLocaleDateString('en-US', {
+                                                            year: 'numeric',
+                                                            month: 'long',
+                                                            day: 'numeric'
+                                                        })}
+                                                    </span>
+                                                    {review.orderId && (
+                                                        <>
+                                                            <span>•</span>
+                                                            <span>Order #{review.orderId._id?.slice(-8)}</span>
+                                                        </>
+                                                    )}
+                                                </div>
+                                                {/* Show order contents if available */}
+                                                {review.orderId?.items && review.orderId.items.length > 0 && (
+                                                    <ul className="mt-2 ml-2 text-xs text-gray-700 list-disc">
+                                                        {review.orderId.items.map((item, idx) => (
+                                                            <li key={idx}>
+                                                                <span className="font-medium">{item.quantity}x {item.productName}</span>
+                                                                {item.size && (
+                                                                    <span> ({item.size})</span>
+                                                                )}
+                                                                {item.addOns && item.addOns.length > 0 && (
+                                                                    <span>
+                                                                        {' '}Add-ons: {item.addOns.map(a => a.name).join(', ')}
+                                                                    </span>
+                                                                )}
+                                                            </li>
+                                                        ))}
+                                                    </ul>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                            {hasMoreReviews && (
+                                <div className="flex justify-center mt-6">
+                                    <Button
+                                        variant="yellow-outline"
+                                        onClick={() => setReviewPage(p => p + 1)}
+                                        disabled={isFetchingReviews}
+                                    >
+                                        {isFetchingReviews ? 'Loading...' : 'Load more reviews'}
+                                    </Button>
+                                </div>
+                            )}
+                            {selectedRating && filteredReviews.length === 0 && (
+                                <div className="text-center py-8">
+                                    <Star className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                                    <p className="text-gray-500">No reviews with {selectedRating} star{selectedRating !== 1 ? 's' : ''}</p>
+                                    <p className="text-gray-400 text-sm mt-1">Try selecting a different rating or clear the filter</p>
+                                </div>
+                            )}
+                        </div>
+                    ) : (
+                        <div className="bg-white rounded-xl p-6 text-gray-400 text-base shadow-sm border border-gray-200">
+                            <div className="text-center py-4">
+                                <Star className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                                <p className="text-gray-500">No reviews yet</p>
+                                <p className="text-gray-400 text-sm mt-1">Be the first to review this product!</p>
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
         </CustomerLayout>

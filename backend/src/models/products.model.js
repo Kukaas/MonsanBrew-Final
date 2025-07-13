@@ -66,12 +66,47 @@ const productSchema = new mongoose.Schema({
         }
     },
     favorites: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User', default: [] }],
+    totalSold: {
+        type: Number,
+        default: 0,
+        min: 0,
+        validate: {
+            validator: function(v) {
+                return v >= 0;
+            },
+            message: 'Total sold cannot be negative'
+        }
+    },
+    averageRating: {
+        type: Number,
+        default: 0,
+        min: 0,
+        max: 5
+    },
+    reviewCount: {
+        type: Number,
+        default: 0,
+        min: 0
+    },
     isDeleted: {
         type: Boolean,
         default: false
     }
 }, {
-    timestamps: true
+    timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true }
+});
+
+// Virtual for total revenue (price * totalSold)
+productSchema.virtual('totalRevenue').get(function() {
+    if (this.sizes && this.sizes.length > 0) {
+        // For products with multiple sizes, calculate average price
+        const totalPrice = this.sizes.reduce((sum, size) => sum + size.price, 0);
+        const avgPrice = totalPrice / this.sizes.length;
+        return avgPrice * this.totalSold;
+    }
+    return (this.price || 0) * this.totalSold;
 });
 
 productSchema.pre('validate', function (next) {

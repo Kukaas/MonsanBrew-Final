@@ -1,6 +1,7 @@
 import Order from '../models/order.model.js';
 import Product from '../models/products.model.js';
 import Inventory from '../models/inventory.model.js';
+import { updateProductSales } from './review.controller.js';
 
 export const placeOrder = async (req, res) => {
     try {
@@ -39,6 +40,10 @@ export const placeOrder = async (req, res) => {
         // Only add deliveryInstructions if present
         if (deliveryInstructions) order.deliveryInstructions = deliveryInstructions;
         await order.save();
+
+        // Note: Product sales are updated when order is completed, not when placed
+        // This prevents double-counting if order is cancelled
+
         res.status(201).json({ order });
     } catch (err) {
         console.error('Order placement error:', err);
@@ -108,9 +113,16 @@ export const cancelOrder = async (req, res) => {
             return res.status(404).json({ error: 'Order not found.' });
         }
 
-        // Only allow cancellation for pending orders
-        if (order.status !== 'pending') {
-            return res.status(400).json({ error: 'Order cannot be cancelled. Only pending orders can be cancelled.' });
+        // Only allow cancellation for pending orders or completed orders (for admin purposes)
+        if (order.status !== 'pending' && order.status !== 'completed') {
+            return res.status(400).json({ error: 'Order cannot be cancelled. Only pending or completed orders can be cancelled.' });
+        }
+
+        // If cancelling a completed order, revert the sales count
+        if (order.status === 'completed') {
+            for (const item of order.items) {
+                await updateProductSales(item.productId, -item.quantity); // Subtract the quantity
+            }
         }
 
         // Only allow cancellation for COD payments
@@ -267,6 +279,11 @@ export const completeOrder = async (req, res) => {
         order.status = 'completed';
         order.deliveryProofImage = deliveryProofImage;
         await order.save();
+
+        // Update product sales count
+        for (const item of order.items) {
+            await updateProductSales(item.productId, item.quantity);
+        }
 
         res.status(200).json({ message: 'Order completed successfully.', order });
     } catch (err) {

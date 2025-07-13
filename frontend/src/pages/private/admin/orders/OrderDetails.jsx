@@ -1,11 +1,11 @@
 import React from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { orderAPI } from "@/services/api";
+import { orderAPI, reviewAPI } from "@/services/api";
 import AdminLayout from "@/layouts/AdminLayout";
 import PageLayout from "@/layouts/PageLayout";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, User, MapPin, CreditCard, Clock, Package, Truck, Camera } from 'lucide-react';
+import { ArrowLeft, User, MapPin, CreditCard, Clock, Package, Truck, Camera, Star } from 'lucide-react';
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getStatusColor, getStatusLabel, getStatusIcon, getStatusTextColor } from "@/lib/utils";
@@ -22,6 +22,27 @@ export default function OrderDetails() {
             return res.data?.order || res.order || res;
         },
         staleTime: 1000 * 60 * 2, // 2 minutes
+        cacheTime: 1000 * 60 * 10, // 10 minutes
+        refetchOnWindowFocus: false,
+    });
+
+    // Fetch review for this order
+    const { data: reviewData } = useQuery({
+        queryKey: ["order-review", orderId],
+        queryFn: async () => {
+            try {
+                const res = await reviewAPI.getOrderReview(orderId);
+                return res.data?.review || res.review || res;
+            } catch (error) {
+                // If no review exists, return null
+                if (error.response?.status === 404) {
+                    return null;
+                }
+                throw error;
+            }
+        },
+        enabled: !!orderId && order?.status === 'completed',
+        staleTime: 1000 * 60 * 5, // 5 minutes
         cacheTime: 1000 * 60 * 10, // 10 minutes
         refetchOnWindowFocus: false,
     });
@@ -203,6 +224,74 @@ export default function OrderDetails() {
                                                     <span className="text-gray-400 text-sm">Proof of delivery uploaded by rider</span>
                                                 </div>
                                             </div>
+                                        </div>
+                                    )}
+
+                                    {/* Customer Review */}
+                                    {order.status === 'completed' && (
+                                        <div className="border-t-2 border-[#FFC107]/30 pt-6 mt-8">
+                                            <div className="flex items-center gap-4 mb-6">
+                                                <div className="bg-[#FFC107] p-3 rounded-full">
+                                                    <Star className="w-8 h-8 text-black" />
+                                                </div>
+                                                <h3 className="text-[#FFC107] text-3xl font-extrabold tracking-widest uppercase drop-shadow-lg">Customer Review</h3>
+                                                <div className="flex-1 h-px bg-gradient-to-r from-[#FFC107] to-transparent"></div>
+                                            </div>
+                                            {reviewData ? (
+                                                <div className="bg-[#1a1a1a]/80 rounded-2xl p-8 border-2 border-[#333] hover:border-[#FFC107]/50 transition-all duration-300 shadow-xl backdrop-blur-sm">
+                                                    <div className="flex items-start gap-6">
+                                                        <div className="flex-1">
+                                                            <div className="flex items-center gap-4 mb-4">
+                                                                <div className="flex items-center gap-2">
+                                                                    {[1, 2, 3, 4, 5].map((star) => (
+                                                                        <Star
+                                                                            key={star}
+                                                                            className={`w-6 h-6 ${
+                                                                                star <= reviewData.rating
+                                                                                    ? 'fill-[#FFC107] text-[#FFC107]'
+                                                                                    : 'text-gray-500'
+                                                                            }`}
+                                                                        />
+                                                                    ))}
+                                                                </div>
+                                                                <span className="text-white font-bold text-xl">{reviewData.rating}/5</span>
+                                                            </div>
+                                                            <div className="bg-[#232323] rounded-xl p-6 border border-[#444]">
+                                                                <p className="text-white text-lg leading-relaxed">{reviewData.comment}</p>
+                                                            </div>
+                                                            <div className="mt-4 text-center">
+                                                                <span className="text-gray-400 text-sm">
+                                                                    Reviewed by {reviewData.userId?.name || 'Customer'} on{' '}
+                                                                    {new Date(reviewData.createdAt).toLocaleDateString('en-US', {
+                                                                        year: 'numeric',
+                                                                        month: 'long',
+                                                                        day: 'numeric'
+                                                                    })}
+                                                                    {reviewData.isAnonymous && (
+                                                                        <span className="ml-2 text-yellow-400">(Anonymous)</span>
+                                                                    )}
+                                                                </span>
+                                                                {reviewData.orderId && (
+                                                                    <div className="mt-2 text-center">
+                                                                        <span className="text-gray-500 text-xs">
+                                                                            Order #{reviewData.orderId._id?.slice(-8)} • 
+                                                                            {reviewData.orderId.items?.length || 0} item{(reviewData.orderId.items?.length || 0) !== 1 ? 's' : ''}
+                                                                        </span>
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ) : (
+                                                <div className="bg-[#1a1a1a]/80 rounded-2xl p-8 border-2 border-[#333] hover:border-[#FFC107]/50 transition-all duration-300 shadow-xl backdrop-blur-sm">
+                                                    <div className="text-center py-8">
+                                                        <Star className="w-16 h-16 text-[#BDBDBD] mx-auto mb-4" />
+                                                        <span className="text-[#BDBDBD] text-xl">No review submitted yet</span>
+                                                        <p className="text-gray-500 text-sm mt-2">Customer hasn't reviewed this order</p>
+                                                    </div>
+                                                </div>
+                                            )}
                                         </div>
                                     )}
                                 </div>
