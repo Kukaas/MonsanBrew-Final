@@ -106,7 +106,8 @@ export const createUser = async (req, res) => {
             municipality,
             province,
             photo,
-            isVerified: true // Admin-created users are automatically verified
+            isVerified: true, // Admin-created users are automatically verified
+            hasChangedPassword: false // New users need to change their password
         });
 
         await user.save();

@@ -31,12 +31,16 @@ export const AuthProvider = ({ children }) => {
         await authAPI.register(registrationData);
     };
 
+    const updateUser = (updatedUser) => {
+        setUser(updatedUser);
+    };
+
     if (loading) {
         return <LoadingSpinner message="Checking authentication..." />;
     }
 
     return (
-        <AuthContext.Provider value={{ user, isAuthenticated: !!user, loading, login, logout, register }}>
+        <AuthContext.Provider value={{ user, isAuthenticated: !!user, loading, login, logout, register, updateUser }}>
             {children}
         </AuthContext.Provider>
     );

@@ -36,6 +36,11 @@ export const authAPI = {
     me: async () => {
         return await api.get('/auth/me');
     },
+
+    // Change password
+    changePassword: async (passwordData) => {
+        return await api.post('/auth/change-password', passwordData);
+    },
 };
 
 // Category API functions

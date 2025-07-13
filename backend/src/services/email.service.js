@@ -65,7 +65,7 @@ export const sendWelcomeWithPasswordEmail = async (to, password) => {
             </h2>
             <p style="color: #555; font-size: 1.1rem; margin-bottom: 2em;">Your account has been created by the admin. Here is your temporary password:</p>
             <div style="font-size: 1.5rem; font-weight: bold; color: #222; background: #FFC107; padding: 12px 0; border-radius: 8px; margin-bottom: 2em; letter-spacing: 2px;">${password}</div>
-            <p style="color: #555; font-size: 1.1rem; margin-bottom: 2em;">Please log in and change your password as soon as possible.</p>
+            <p style="color: #555; font-size: 1.1rem; margin-bottom: 2em;"><strong>Important:</strong> You will be required to change this password on your first login for security purposes.</p>
             <p style="color: #888; font-size: 0.95rem; margin-top: 2em;">If you did not expect this email, you can safely ignore it.</p>
           </div>
         </body>

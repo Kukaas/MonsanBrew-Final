@@ -34,6 +34,7 @@ export const signup = async (req, res) => {
             email,
             password: hashedPassword,
             isVerified: false,
+            hasChangedPassword: true, // Regular signups have changed password (they set it themselves)
             verificationString,
             verificationStringExpires
         });
@@ -111,7 +112,9 @@ export const login = async (req, res) => {
                 id: user._id,
                 name: user.name,
                 email: user.email,
-                isVerified: user.isVerified
+                role: user.role,
+                isVerified: user.isVerified,
+                hasChangedPassword: user.hasChangedPassword
             },
             accessToken,
             refreshToken
@@ -139,12 +142,16 @@ export const logout = async (req, res) => {
 export const getMe = async (req, res) => {
     try {
         const user = await User.findById(req.user._id).select('-password');
-        if (!user) {
-            return res.status(404).json({ success: false, message: 'User not found' });
-        }
-        res.status(200).json({ success: true, user });
+        res.status(200).json({
+            success: true,
+            user: {
+                ...user.toObject(),
+                hasChangedPassword: user.hasChangedPassword
+            }
+        });
     } catch (error) {
-        res.status(500).json({ success: false, message: 'Failed to fetch user' });
+        console.error(error);
+        res.status(500).json({ message: 'Internal server error.' });
     }
 };
 
@@ -199,6 +206,39 @@ export const verifyResetToken = async (req, res) => {
             return res.status(400).json({ message: 'Invalid or expired reset link.' });
         }
         res.status(200).json({ message: 'Valid reset token.' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Internal server error.' });
+    }
+};
+
+export const changePassword = async (req, res) => {
+    try {
+        const { currentPassword, newPassword } = req.body;
+        const userId = req.user._id;
+
+        if (!currentPassword || !newPassword) {
+            return res.status(400).json({ message: 'Current password and new password are required.' });
+        }
+
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ message: 'User not found.' });
+        }
+
+        // Verify current password
+        const isMatch = await bcrypt.compare(currentPassword, user.password);
+        if (!isMatch) {
+            return res.status(400).json({ message: 'Current password is incorrect.' });
+        }
+
+        // Hash new password
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+        user.password = hashedPassword;
+        user.hasChangedPassword = true;
+        await user.save();
+
+        res.status(200).json({ message: 'Password changed successfully.' });
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Internal server error.' });

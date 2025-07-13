@@ -5,7 +5,9 @@ import Register from './pages/public/Register.jsx';
 import VerifyEmail from './pages/public/VerifyEmail.jsx';
 import ResetPassword from './pages/public/ResetPassword.jsx';
 import AdminDashboard from './pages/private/admin/Dashboard.jsx';
-import RiderDashboard from './pages/private/rider/Dashboard.jsx';
+import Home from './pages/private/rider/Home.jsx';
+import OrdersCompleted from './pages/private/rider/OrdersCompleted.jsx';
+import Profile from './pages/private/rider/Profile.jsx';
 import FrontdeskDashboard from './pages/private/frontdesk/Dashboard.jsx';
 import { useAuth } from './context/AuthContext';
 import React from 'react';
@@ -20,7 +22,6 @@ import ViewProduct from './pages/private/admin/products/ViewProduct.jsx';
 import AdminOrders from './pages/private/admin/orders/Orders.jsx';
 import OrderDetails from './pages/private/admin/orders/OrderDetails.jsx';
 import Users from './pages/private/admin/users/Users.jsx';
-import CreateUser from './pages/private/admin/users/CreateUser.jsx';
 import EditUser from './pages/private/admin/users/EditUser.jsx';
 import ViewUser from './pages/private/admin/users/ViewUser.jsx';
 import ProductDetail from './pages/private/customer/ProductDetail';
@@ -30,6 +31,7 @@ import Checkout from './pages/private/customer/Checkout.jsx';
 import Address from './pages/private/customer/Address.jsx';
 import Orders from './pages/private/customer/Orders.jsx';
 import OrderDetail from './pages/private/customer/OrderDetail.jsx';
+import ChangePassword from './pages/public/ChangePassword.jsx';
 
 function RootRedirect() {
   const { user, loading } = useAuth();
@@ -57,6 +59,12 @@ function RequireAuth({ children, allowedRoles }) {
   if (loading) return null;
   if (!user) return <Navigate to="/login" state={{ from: location }} replace />;
   if (allowedRoles && !allowedRoles.includes(user.role)) return <Navigate to="/login" replace />;
+  
+  // Check if user needs to change password (for non-customer roles)
+  if (user.role !== 'customer' && !user.hasChangedPassword && location.pathname !== '/change-password') {
+    return <Navigate to="/change-password" replace />;
+  }
+  
   return children;
 }
 
@@ -82,6 +90,11 @@ function App() {
         <Route path="/register" element={<Register />} />
         <Route path="/verify-email" element={<VerifyEmail />} />
         <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/change-password" element={
+          <RequireAuth>
+            <ChangePassword />
+          </RequireAuth>
+        } />
 
         <Route path="/admin/dashboard" element={
           <RequireAuth allowedRoles={["admin"]}>
@@ -142,11 +155,6 @@ function App() {
             <Users />
           </RequireAuth>
         } />
-        <Route path="/admin/users/create" element={
-          <RequireAuth allowedRoles={["admin"]}>
-            <CreateUser />
-          </RequireAuth>
-        } />
         <Route path="/admin/users/:id/edit" element={
           <RequireAuth allowedRoles={["admin"]}>
             <EditUser />
@@ -160,7 +168,17 @@ function App() {
 
         <Route path="/rider/dashboard" element={
           <RequireAuth allowedRoles={["rider"]}>
-            <RiderDashboard />
+            <Home />
+          </RequireAuth>
+        } />
+        <Route path="/rider/orders-completed" element={
+          <RequireAuth allowedRoles={["rider"]}>
+            <OrdersCompleted />
+          </RequireAuth>
+        } />
+        <Route path="/rider/profile" element={
+          <RequireAuth allowedRoles={["rider"]}>
+            <Profile />
           </RequireAuth>
         } />
         <Route path="/menus" element={<Menus />} />
