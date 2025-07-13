@@ -16,6 +16,9 @@ const routeMap = {
     "/products": "Products",
     "/categories": "Product Category",
     "/add-ons": "Add ons",
+    "/users": "User Management",
+    "/raw-materials": "Raw Materials Inventory",
+    "/orders": "Orders",
 };
 
 export default function AdminHeader() {

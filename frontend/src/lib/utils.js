@@ -1,7 +1,7 @@
 import { clsx } from "clsx";
 import { twMerge } from "tailwind-merge"
 import React from "react";
-import { CheckCircle2, Clock, Settings, Truck, XCircle } from 'lucide-react';
+import { CheckCircle2, Clock, Settings, Truck, XCircle, Shield, Monitor, ShoppingCart, User as UserIcon } from 'lucide-react';
 
 export function cn(...inputs) {
   return twMerge(clsx(inputs));
@@ -81,5 +81,35 @@ export const getStatusTextColor = (status) => {
       return 'text-red-500';
     default:
       return 'text-gray-500';
+  }
+};
+
+export const getRoleColor = (role) => {
+  switch (role) {
+    case 'admin':
+      return 'bg-red-500/20 text-red-500 border-red-500/30';
+    case 'rider':
+      return 'bg-blue-500/20 text-blue-500 border-blue-500/30';
+    case 'frontdesk':
+      return 'bg-purple-500/20 text-purple-500 border-purple-500/30';
+    case 'customer':
+      return 'bg-green-500/20 text-green-500 border-green-500/30';
+    default:
+      return 'bg-gray-500/20 text-gray-500 border-gray-500/30';
+  }
+};
+
+export const getRoleIcon = (role) => {
+  switch (role) {
+    case 'admin':
+      return React.createElement(Shield, { className: 'w-4 h-4 text-red-500' });
+    case 'rider':
+      return React.createElement(Truck, { className: 'w-4 h-4 text-blue-500' });
+    case 'frontdesk':
+      return React.createElement(Monitor, { className: 'w-4 h-4 text-purple-500' });
+    case 'customer':
+      return React.createElement(ShoppingCart, { className: 'w-4 h-4 text-green-500' });
+    default:
+      return React.createElement(UserIcon, { className: 'w-4 h-4 text-gray-500' });
   }
 };

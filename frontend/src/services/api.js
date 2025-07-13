@@ -177,6 +177,22 @@ export const userAPI = {
     updateAddress: async (address) => {
         return await api.put('/user/address', address);
     },
+    // Admin user management
+    getAllUsers: async () => {
+        return await api.get('/user');
+    },
+    getUserById: async (userId) => {
+        return await api.get(`/user/${userId}`);
+    },
+    createUser: async (userData) => {
+        return await api.post('/user', userData);
+    },
+    updateUser: async (userId, userData) => {
+        return await api.put(`/user/${userId}`, userData);
+    },
+    deleteUser: async (userId) => {
+        return await api.delete(`/user/${userId}`);
+    },
 };
 
 export const orderAPI = {

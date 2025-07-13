@@ -19,6 +19,10 @@ import EditProduct from './pages/private/admin/products/EditProduct.jsx';
 import ViewProduct from './pages/private/admin/products/ViewProduct.jsx';
 import AdminOrders from './pages/private/admin/orders/Orders.jsx';
 import OrderDetails from './pages/private/admin/orders/OrderDetails.jsx';
+import Users from './pages/private/admin/users/Users.jsx';
+import CreateUser from './pages/private/admin/users/CreateUser.jsx';
+import EditUser from './pages/private/admin/users/EditUser.jsx';
+import ViewUser from './pages/private/admin/users/ViewUser.jsx';
 import ProductDetail from './pages/private/customer/ProductDetail';
 import Cart from './pages/private/customer/Cart';
 import Favorites from './pages/private/customer/Favorites.jsx';
@@ -130,6 +134,27 @@ function App() {
         <Route path="/admin/raw-materials" element={
           <RequireAuth allowedRoles={["admin"]}>
             <RawMaterials />
+          </RequireAuth>
+        } />
+
+        <Route path="/admin/users" element={
+          <RequireAuth allowedRoles={["admin"]}>
+            <Users />
+          </RequireAuth>
+        } />
+        <Route path="/admin/users/create" element={
+          <RequireAuth allowedRoles={["admin"]}>
+            <CreateUser />
+          </RequireAuth>
+        } />
+        <Route path="/admin/users/:id/edit" element={
+          <RequireAuth allowedRoles={["admin"]}>
+            <EditUser />
+          </RequireAuth>
+        } />
+        <Route path="/admin/users/:id" element={
+          <RequireAuth allowedRoles={["admin"]}>
+            <ViewUser />
           </RequireAuth>
         } />
 

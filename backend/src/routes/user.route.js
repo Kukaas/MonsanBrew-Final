@@ -1,6 +1,7 @@
 import express from 'express';
-import { getAddress, updateAddress } from '../controllers/user.controller.js';
+import { getAddress, updateAddress, getAllUsers, getUserById, createUser, updateUser, deleteUser } from '../controllers/user.controller.js';
 import { protect } from '../middleware/auth.middleware.js';
+import { adminOnly } from '../middleware/admin.middleware.js';
 
 const router = express.Router();
 
@@ -8,5 +9,12 @@ const router = express.Router();
 router.get('/address', protect, getAddress);
 // Update current user's address
 router.put('/address', protect, updateAddress);
+
+// Admin user management routes
+router.get('/', protect, adminOnly, getAllUsers);
+router.get('/:userId', protect, adminOnly, getUserById);
+router.post('/', protect, adminOnly, createUser);
+router.put('/:userId', protect, adminOnly, updateUser);
+router.delete('/:userId', protect, adminOnly, deleteUser);
 
 export default router;

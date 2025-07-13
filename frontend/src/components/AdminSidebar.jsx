@@ -16,6 +16,7 @@ const navMaintenance = [
     { title: "Add ons", icon: <FileText size={18} />, url: "/admin/add-ons" },
     { title: "Raw  Materials Inventory", icon: <Folder size={20} />, url: "/admin/raw-materials" },
     { title: "Products", icon: <Folder size={20} />, url: "/admin/products" },
+    { title: "User Management", icon: <Users size={18} />, url: "/admin/users" },
 ];
 const navSecondary = [
     { title: "Settings", icon: <Settings size={18} />, url: "#" },
