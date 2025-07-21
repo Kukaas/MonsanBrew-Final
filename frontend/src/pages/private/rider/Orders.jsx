@@ -20,6 +20,7 @@ import CustomAlertDialog from "@/components/custom/CustomAlertDialog";
 import { AlertDialogCancel } from "@/components/ui/alert-dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ImageUpload from "@/components/custom/ImageUpload";
+import OrderStatusBadge from "@/components/orders/OrderStatusBadge";
 
 export default function Orders() {
   const { user } = useAuth();
@@ -154,38 +155,31 @@ export default function Orders() {
     return (
       <Card
         key={order._id}
-        className="bg-[#2A2A2A] border-[#444] hover:border-[#FFC107] transition-colors"
+        className="bg-white hover:shadow-lg transition-shadow duration-200 rounded-2xl"
       >
         <CardHeader className="pb-3">
           <div className="flex justify-between items-start">
             <div>
-              <CardTitle className="text-white text-lg">
+              <CardTitle className="text-[#232323] text-lg">
                 Order #{order._id.substring(0, 8)}...
               </CardTitle>
               <p className="text-gray-400 text-sm">
                 {formatDate(order.createdAt)}
               </p>
             </div>
-            <Badge
-              className={`${getStatusColor(
-                order.status
-              )} border rounded-full px-3 py-1 text-xs font-medium`}
-            >
-              {getStatusIcon(order.status)} {getStatusLabel(order.status)}
-            </Badge>
+            {/* Use the shared OrderStatusBadge for status */}
+            <OrderStatusBadge status={order.status} />
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
           {/* Customer Info */}
-          <div className="flex items-center gap-2 text-white">
+          <div className="flex items-center gap-2 text-[#232323] font-medium">
             <User className="w-4 h-4 text-[#FFC107]" />
-            <span className="font-medium">
-              {order.userId?.name || "Unknown Customer"}
-            </span>
+            <span>{order.userId?.name || "Unknown Customer"}</span>
           </div>
 
           {/* Contact Info */}
-          <div className="flex items-center gap-2 text-gray-300">
+          <div className="flex items-center gap-2 text-gray-700">
             <Phone className="w-4 h-4 text-[#FFC107]" />
             <span>
               {order.userId?.contactNumber ||
@@ -195,7 +189,7 @@ export default function Orders() {
           </div>
 
           {/* Address */}
-          <div className="flex items-start gap-2 text-gray-300">
+          <div className="flex items-start gap-2 text-gray-700">
             <MapPin className="w-4 h-4 text-[#FFC107] mt-0.5" />
             <span className="text-sm">{formatAddress(order.address)}</span>
           </div>
@@ -204,39 +198,48 @@ export default function Orders() {
           <div className="space-y-2">
             <div className="flex items-center gap-2 text-white">
               <Package className="w-4 h-4 text-[#FFC107]" />
-              <span className="font-medium">Order Items:</span>
+              <span className="font-bold text-[#232323]">Order Items:</span>
             </div>
             <div className="ml-2 space-y-2">
               {order.items.map((item, index) => (
                 <div
                   key={index}
-                  className="bg-[#232323] rounded-lg p-3 border border-[#444] flex flex-col sm:flex-row sm:items-center gap-2"
+                  className="bg-gray-50 rounded-xl p-4 border-2 border-[#FFC107] flex flex-col sm:flex-row sm:items-center gap-4 shadow"
                 >
-                  <div className="flex-1 flex flex-col sm:flex-row sm:items-center gap-2">
-                    <span className="font-bold text-[#FFC107]">
-                      {item.quantity}x
-                    </span>
-                    <span className="font-semibold text-white">
-                      {item.productName}
-                    </span>
-                    {item.size && (
-                      <span className="text-xs text-[#FFC107] bg-[#333] rounded px-2 py-0.5 ml-2">
-                        Size: {item.size}
+                  <img
+                    src={item.image || "/placeholder.png"}
+                    alt={item.productName}
+                    className="w-20 h-20 object-contain rounded-xl bg-white mb-2 sm:mb-0 shadow"
+                  />
+                  <div className="flex-1 min-w-0 w-full">
+                    <div className="flex flex-col gap-1">
+                      <span className="font-bold text-base text-[#232323] truncate">
+                        {item.productName}
                       </span>
-                    )}
-                    {item.addOns && item.addOns.length > 0 && (
-                      <span className="text-xs text-[#FFC107] bg-[#333] rounded px-2 py-0.5 ml-2">
-                        Add-ons:{" "}
-                        {item.addOns
-                          .map(
-                            (a) =>
-                              `${a.name}${a.price ? ` (+₱${a.price})` : ""}`
-                          )
-                          .join(", ")}
+                      <div className="flex flex-wrap gap-2 mt-1">
+                        {item.size && (
+                          <span className="text-xs bg-[#FFF9E5] text-[#FFC107] font-semibold px-2 py-0.5 rounded">
+                            Size: {item.size}
+                          </span>
+                        )}
+                        {item.addOns && item.addOns.length > 0 && (
+                          <span className="text-xs bg-[#FFF9E5] text-[#FFC107] font-semibold px-2 py-0.5 rounded">
+                            Add-ons:{" "}
+                            {item.addOns
+                              .map(
+                                (a) =>
+                                  `${a.name}${a.price ? ` (+₱${a.price})` : ""}`
+                              )
+                              .join(", ")}
+                          </span>
+                        )}
+                      </div>
+                      <span className="text-[#232323] text-xs font-bold mt-1">
+                        Qty: {item.quantity}
                       </span>
-                    )}
+                    </div>
                   </div>
-                  <span className="font-bold text-white text-base sm:text-lg ml-auto">
+                  <span className="text-base sm:text-lg font-extrabold text-[#232323] mt-2 sm:mt-0 whitespace-nowrap ml-auto">
                     ₱
                     {(
                       item.price +
@@ -250,18 +253,22 @@ export default function Orders() {
               ))}
             </div>
             {/* Breakdown: Items Total, Delivery Fee, Total */}
-            <div className="mt-2 space-y-1 ml-2">
-              <div className="flex justify-between text-xs text-[#FFC107]">
+            <div className="mt-4 space-y-2 ml-2">
+              <div className="flex justify-between items-center text-sm font-bold text-[#232323]">
                 <span>Items Total:</span>
                 <span>₱{itemsTotal.toFixed(2)}</span>
               </div>
-              <div className="flex justify-between text-xs text-[#FFC107]">
+              <div className="flex justify-between items-center text-sm font-bold text-[#232323]">
                 <span>Delivery Fee:</span>
                 <span>₱{deliveryFee.toFixed(2)}</span>
               </div>
-              <div className="flex justify-between text-sm font-bold text-[#FFC107] border-t border-[#FFC107]/30 pt-1 mt-1">
-                <span>Total:</span>
-                <span>₱{grandTotal.toFixed(2)}</span>
+              <div className="flex justify-between items-center border-t border-[#FFC107]/30 pt-2 mt-2">
+                <span className="text-lg font-extrabold text-[#232323]">
+                  Total:
+                </span>
+                <span className="text-lg font-extrabold text-[#232323]">
+                  ₱{grandTotal.toFixed(2)}
+                </span>
               </div>
             </div>
           </div>
@@ -269,7 +276,7 @@ export default function Orders() {
           {/* Total */}
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pt-2 border-t border-[#444]">
             {/* Total line moved to breakdown above */}
-            {isActive ? (
+            {isActive && (
               <Button
                 variant="yellow"
                 size="sm"
@@ -284,30 +291,25 @@ export default function Orders() {
                 <span className="hidden sm:inline">Complete Delivery</span>
                 <span className="sm:hidden">Complete</span>
               </Button>
-            ) : (
-              <Badge className="bg-green-500/20 text-green-500 border-green-500/30 rounded-full px-3 py-1 text-xs font-medium w-full sm:w-auto text-center">
-                <CheckCircle className="w-3 h-3 mr-1" />
-                Delivered
-              </Badge>
             )}
           </div>
 
           {/* Delivery Proof Image (for completed orders) */}
           {order.status === "completed" && order.deliveryProofImage && (
             <div className="pt-4">
-              <div className="bg-[#181818] rounded-xl p-4 border border-[#FFC107]/40 flex flex-col items-center shadow-md">
+              <div className="bg-gray-50 rounded-xl p-4 border border-[#FFC107]/40 flex flex-col items-center shadow-md">
                 <div className="flex items-center gap-2 mb-2">
                   <Camera className="w-5 h-5 text-[#FFC107]" />
-                  <span className="font-bold text-[#FFC107]">
+                  <span className="font-bold text-base sm:text-lg text-[#FFC107]">
                     Delivery Proof
                   </span>
                 </div>
                 <img
                   src={order.deliveryProofImage}
                   alt="Delivery Proof"
-                  className="w-full max-w-xs h-40 object-contain rounded-lg border-2 border-[#FFC107] bg-black shadow"
+                  className="w-full max-w-xs h-40 object-contain rounded-lg border-2 border-[#FFC107] shadow"
                 />
-                <span className="text-xs text-gray-400 mt-2 text-center">
+                <span className="text-xs text-gray-700 mt-2 text-center font-medium">
                   Uploaded by rider upon delivery completion
                 </span>
               </div>
@@ -331,12 +333,12 @@ export default function Orders() {
               {[1, 2, 3].map((i) => (
                 <Card
                   key={i}
-                  className="bg-[#2A2A2A] border-[#444] animate-pulse"
+                  className="bg-gray-100 animate-pulse shadow rounded-2xl"
                 >
                   <CardContent className="p-6">
-                    <div className="h-4 bg-gray-600 rounded w-3/4 mb-4"></div>
-                    <div className="h-3 bg-gray-600 rounded w-1/2 mb-2"></div>
-                    <div className="h-3 bg-gray-600 rounded w-2/3"></div>
+                    <div className="h-4 bg-gray-200 rounded w-3/4 mb-4"></div>
+                    <div className="h-3 bg-gray-200 rounded w-1/2 mb-2"></div>
+                    <div className="h-3 bg-gray-200 rounded w-2/3"></div>
                   </CardContent>
                 </Card>
               ))}
