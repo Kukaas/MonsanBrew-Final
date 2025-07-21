@@ -1,134 +1,152 @@
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 
-const productSchema = new mongoose.Schema({
+const productSchema = new mongoose.Schema(
+  {
     category: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Category',
-        required: true
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Category",
+      required: true,
     },
     productName: {
-        type: String,
-        required: true,
-        trim: true
+      type: String,
+      required: true,
+      trim: true,
     },
     description: {
-        type: String,
-        required: true,
-        trim: true
+      type: String,
+      required: true,
+      trim: true,
     },
-    addOns: [{
+    addOns: [
+      {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Addon',
-        required: function () { return this.isCustomizable; }
-    }],
+        ref: "Addon",
+        required: function () {
+          return this.isCustomizable;
+        },
+      },
+    ],
     isAvailable: {
-        type: Boolean,
-        default: true
+      type: Boolean,
+      default: true,
     },
     preparationTime: {
-        type: Number, // in minutes
-        required: true,
-        min: 0
+      type: Number, // in minutes
+      required: true,
+      min: 0,
     },
     isCustomizable: {
-        type: Boolean,
-        default: false
+      type: Boolean,
+      default: false,
     },
-    ingredients: [{
+    ingredients: [
+      {
         productName: {
-            type: String,
-            required: true
+          type: String,
+          required: true,
         },
         quantity: {
-            type: Number,
-            required: true,
-            min: 0
+          type: Number,
+          required: true,
         },
         unit: {
-            type: String,
-            required: false
-        }
-    }],
+          type: String,
+          required: false,
+        },
+      },
+    ],
     image: {
-        type: String, // base64 string
-        required: false
+      type: String, // base64 string
+      required: false,
     },
-    sizes: [{
+    sizes: [
+      {
         label: { type: String, required: true },
-        price: { type: Number, required: true, min: 0 }
-    }],
+        price: { type: Number, required: true, min: 0 },
+      },
+    ],
     price: {
-        type: Number,
-        min: 0,
-        required: function () {
-            // price is required if sizes is not present or empty
-            return !this.sizes || this.sizes.length === 0;
-        }
+      type: Number,
+      min: 0,
+      required: function () {
+        // price is required if sizes is not present or empty
+        return !this.sizes || this.sizes.length === 0;
+      },
     },
-    favorites: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User', default: [] }],
+    favorites: [
+      { type: mongoose.Schema.Types.ObjectId, ref: "User", default: [] },
+    ],
     totalSold: {
-        type: Number,
-        default: 0,
-        min: 0,
-        validate: {
-            validator: function(v) {
-                return v >= 0;
-            },
-            message: 'Total sold cannot be negative'
-        }
+      type: Number,
+      default: 0,
+      min: 0,
+      validate: {
+        validator: function (v) {
+          return v >= 0;
+        },
+        message: "Total sold cannot be negative",
+      },
     },
     averageRating: {
-        type: Number,
-        default: 0,
-        min: 0,
-        max: 5
+      type: Number,
+      default: 0,
+      min: 0,
+      max: 5,
     },
     reviewCount: {
-        type: Number,
-        default: 0,
-        min: 0
+      type: Number,
+      default: 0,
+      min: 0,
     },
     isDeleted: {
-        type: Boolean,
-        default: false
-    }
-}, {
+      type: Boolean,
+      default: false,
+    },
+  },
+  {
     timestamps: true,
     toJSON: { virtuals: true },
-    toObject: { virtuals: true }
-});
+    toObject: { virtuals: true },
+  }
+);
 
 // Virtual for total revenue (price * totalSold)
-productSchema.virtual('totalRevenue').get(function() {
-    if (this.sizes && this.sizes.length > 0) {
-        // For products with multiple sizes, calculate average price
-        const totalPrice = this.sizes.reduce((sum, size) => sum + size.price, 0);
-        const avgPrice = totalPrice / this.sizes.length;
-        return avgPrice * this.totalSold;
-    }
-    return (this.price || 0) * this.totalSold;
+productSchema.virtual("totalRevenue").get(function () {
+  if (this.sizes && this.sizes.length > 0) {
+    // For products with multiple sizes, calculate average price
+    const totalPrice = this.sizes.reduce((sum, size) => sum + size.price, 0);
+    const avgPrice = totalPrice / this.sizes.length;
+    return avgPrice * this.totalSold;
+  }
+  return (this.price || 0) * this.totalSold;
 });
 
-productSchema.pre('validate', function (next) {
-    // Add-ons required if customizable
-    if (this.isCustomizable && (!this.addOns || this.addOns.length === 0)) {
-        this.invalidate('addOns', 'Add-ons are required when product is customizable.');
+productSchema.pre("validate", function (next) {
+  // Add-ons required if customizable
+  if (this.isCustomizable && (!this.addOns || this.addOns.length === 0)) {
+    this.invalidate(
+      "addOns",
+      "Add-ons are required when product is customizable."
+    );
+  }
+  // At least one of price or sizes must be present
+  if (
+    (!this.sizes || this.sizes.length === 0) &&
+    (this.price === undefined || this.price === null)
+  ) {
+    this.invalidate("price", "Either price or sizes must be provided.");
+  }
+  // If sizes is present, ensure all have label and price
+  if (this.sizes && this.sizes.length > 0) {
+    for (const size of this.sizes) {
+      if (!size.label || typeof size.price !== "number") {
+        this.invalidate("sizes", "Each size must have a label and a price.");
+      }
     }
-    // At least one of price or sizes must be present
-    if ((!this.sizes || this.sizes.length === 0) && (this.price === undefined || this.price === null)) {
-        this.invalidate('price', 'Either price or sizes must be provided.');
-    }
-    // If sizes is present, ensure all have label and price
-    if (this.sizes && this.sizes.length > 0) {
-        for (const size of this.sizes) {
-            if (!size.label || typeof size.price !== 'number') {
-                this.invalidate('sizes', 'Each size must have a label and a price.');
-            }
-        }
-    }
-    next();
+  }
+  next();
 });
 
-const Product = mongoose.model('Product', productSchema);
+const Product = mongoose.model("Product", productSchema);
 
 export default Product;
