@@ -93,7 +93,7 @@ const OrderCard = ({ order, onOrderUpdate }) => {
           </span>
         </div>
 
-        <div className="space-y-3">
+        <div className="space-y-3 border-2 border-[#FFC107] rounded-xl">
           {order.items.map((item, index) => (
             <div
               key={index}
@@ -102,7 +102,7 @@ const OrderCard = ({ order, onOrderUpdate }) => {
               <img
                 src={item.image || "/placeholder.png"}
                 alt={item.productName}
-                className="w-20 h-20 object-contain rounded-xl border-2 border-[#FFC107] bg-white mb-2 sm:mb-0 shadow"
+                className="w-20 h-20 object-contain rounded-xl bg-white mb-2 sm:mb-0 shadow"
               />
               <div className="flex-1 min-w-0 w-full">
                 <div className="flex flex-col gap-1">

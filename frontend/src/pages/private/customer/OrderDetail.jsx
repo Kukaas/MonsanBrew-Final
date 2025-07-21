@@ -115,14 +115,76 @@ export default function OrderDetail() {
     return (
       <CustomerLayout>
         <div className="min-h-screen bg-[#232323] flex flex-col items-center py-10 px-4">
-          <div className="w-full max-w-4xl">
-            <div className="bg-white rounded-2xl shadow-lg p-6 animate-pulse">
-              <div className="h-8 bg-gray-200 rounded mb-4"></div>
-              <div className="h-6 bg-gray-200 rounded w-1/3 mb-6"></div>
+          <div className="w-full max-w-2xl space-y-6">
+            {/* Order ID Card Skeleton */}
+            <div className="w-full bg-white rounded-2xl p-4 sm:p-6 shadow animate-pulse">
+              <div className="flex justify-between items-start">
+                <div className="space-y-2">
+                  <div className="h-6 w-32 bg-gray-200 rounded"></div>
+                  <div className="h-4 w-40 bg-gray-200 rounded"></div>
+                </div>
+                <div className="h-6 w-24 bg-gray-200 rounded"></div>
+              </div>
+            </div>
+
+            {/* Order Items Card Skeleton */}
+            <div className="w-full bg-white rounded-2xl p-4 sm:p-6 shadow animate-pulse">
+              <div className="h-6 w-28 bg-gray-200 rounded mb-4"></div>
               <div className="space-y-4">
-                <div className="h-20 bg-gray-200 rounded"></div>
-                <div className="h-20 bg-gray-200 rounded"></div>
-                <div className="h-20 bg-gray-200 rounded"></div>
+                {[1, 2].map((item) => (
+                  <div
+                    key={item}
+                    className="flex items-center gap-4 bg-gray-50 p-4 rounded-xl border-2 border-gray-200"
+                  >
+                    <div className="w-20 h-20 bg-gray-200 rounded-xl flex-shrink-0"></div>
+                    <div className="flex-1">
+                      <div className="h-5 w-3/4 bg-gray-200 rounded mb-2"></div>
+                      <div className="h-4 w-1/4 bg-gray-200 rounded mb-2"></div>
+                      <div className="h-4 w-1/3 bg-gray-200 rounded"></div>
+                    </div>
+                    <div className="h-6 w-24 bg-gray-200 rounded"></div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Payment Method Card Skeleton */}
+            <div className="w-full bg-white rounded-2xl p-4 sm:p-6 shadow animate-pulse">
+              <div className="h-6 w-40 bg-gray-200 rounded mb-4"></div>
+              <div className="space-y-2">
+                <div className="h-5 w-32 bg-gray-200 rounded"></div>
+                <div className="h-4 w-48 bg-gray-200 rounded"></div>
+              </div>
+            </div>
+
+            {/* Delivery Address Card Skeleton */}
+            <div className="w-full bg-white rounded-2xl p-4 sm:p-6 shadow animate-pulse">
+              <div className="h-6 w-40 bg-gray-200 rounded mb-4"></div>
+              <div className="space-y-3">
+                <div className="h-5 w-48 bg-gray-200 rounded"></div>
+                <div className="h-4 w-full bg-gray-200 rounded"></div>
+                <div className="h-4 w-3/4 bg-gray-200 rounded"></div>
+              </div>
+            </div>
+
+            {/* Order Summary Card Skeleton */}
+            <div className="w-full bg-white rounded-2xl p-4 sm:p-6 shadow animate-pulse">
+              <div className="h-6 w-36 bg-gray-200 rounded mb-4"></div>
+              <div className="space-y-3">
+                <div className="flex justify-between">
+                  <div className="h-4 w-24 bg-gray-200 rounded"></div>
+                  <div className="h-4 w-24 bg-gray-200 rounded"></div>
+                </div>
+                <div className="flex justify-between">
+                  <div className="h-4 w-28 bg-gray-200 rounded"></div>
+                  <div className="h-4 w-20 bg-gray-200 rounded"></div>
+                </div>
+                <div className="border-t border-gray-200 pt-2">
+                  <div className="flex justify-between">
+                    <div className="h-6 w-20 bg-gray-200 rounded"></div>
+                    <div className="h-6 w-28 bg-gray-200 rounded"></div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -186,7 +248,7 @@ export default function OrderDetail() {
               Order #{order._id?.slice(-8)}
             </div>
             <div className="flex items-center gap-2 text-sm text-gray-600">
-              <Clock size={16} />
+              <Clock size={16} className="text-[#FFC107]" />
               <span>Ordered on {formatDate(order.createdAt)}</span>
             </div>
           </div>
@@ -209,37 +271,35 @@ export default function OrderDetail() {
           {order.items.map((item, index) => (
             <div
               key={index}
-              className="flex flex-col sm:flex-row items-center gap-6 border-b pb-6 mb-6 last:border-b-0 last:pb-0 last:mb-0 bg-gray-50 rounded-xl p-4 shadow"
+              className="bg-gray-50 rounded-xl p-4 border-2 border-[#FFC107] flex flex-row items-center gap-4 shadow justify-between"
             >
               <img
                 src={item.image || "/placeholder.png"}
                 alt={item.productName}
-                className="w-24 h-24 object-contain rounded-xl border-2 border-[#FFC107] bg-white mb-2 sm:mb-0 shadow"
+                className="w-20 h-20 object-contain rounded-xl bg-white shadow flex-shrink-0"
               />
-              <div className="flex-1 min-w-0 w-full">
-                <div className="flex flex-col gap-1">
-                  <span className="font-bold text-lg text-[#232323] truncate">
-                    {item.productName}
-                  </span>
-                  <div className="flex flex-wrap gap-2 mt-1">
-                    {item.size && (
-                      <span className="text-xs bg-[#FFC107]/20 text-[#FFC107] font-semibold px-2 py-0.5 rounded">
-                        Size: {item.size}
-                      </span>
-                    )}
-                    {item.addOns && item.addOns.length > 0 && (
-                      <span className="text-xs bg-[#FFC107]/20 text-[#FFC107] font-semibold px-2 py-0.5 rounded">
-                        Add-ons:{" "}
-                        {item.addOns.map((addon) => addon.name).join(", ")}
-                      </span>
-                    )}
-                  </div>
-                  <span className="text-[#232323] text-sm font-bold mt-1">
-                    Qty: {item.quantity}
-                  </span>
+              <div className="flex-1 min-w-0 flex flex-col justify-center px-2">
+                <span className="font-bold text-lg text-[#232323] truncate">
+                  {item.productName}
+                </span>
+                <div className="flex flex-wrap gap-2 mt-1">
+                  {item.size && (
+                    <span className="text-xs bg-[#FFC107]/20 text-[#FFC107] font-semibold px-2 py-0.5 rounded">
+                      Size: {item.size}
+                    </span>
+                  )}
+                  {item.addOns && item.addOns.length > 0 && (
+                    <span className="text-xs bg-[#FFC107]/20 text-[#FFC107] font-semibold px-2 py-0.5 rounded">
+                      Add-ons:{" "}
+                      {item.addOns.map((addon) => addon.name).join(", ")}
+                    </span>
+                  )}
                 </div>
+                <span className="text-[#232323] text-sm font-bold mt-1">
+                  Qty: {item.quantity}
+                </span>
               </div>
-              <div className="text-lg sm:text-xl font-extrabold text-[#232323] mt-2 sm:mt-0 whitespace-nowrap">
+              <div className="text-lg sm:text-xl font-extrabold text-[#232323] whitespace-nowrap text-right">
                 ₱{calculateItemTotal(item).toFixed(2)}
               </div>
             </div>
@@ -334,7 +394,7 @@ export default function OrderDetail() {
       {/* Payment Method */}
       <div className="w-full max-w-2xl bg-white rounded-2xl p-4 sm:p-6 shadow flex flex-col gap-4 mb-6">
         <div className="font-bold text-base sm:text-lg text-[#232323] flex items-center gap-2">
-          <CreditCard size={20} />
+          <CreditCard size={20} className="text-[#FFC107]" />
           Payment Method
         </div>
         <div className="space-y-2">
@@ -372,23 +432,29 @@ export default function OrderDetail() {
       {/* Delivery Address */}
       <div className="w-full max-w-2xl bg-white rounded-2xl p-4 sm:p-6 shadow flex flex-col gap-4 mb-6">
         <div className="font-bold text-base sm:text-lg text-[#232323] flex items-center gap-2">
-          <MapPin size={20} />
+          <MapPin size={20} className="text-[#FFC107]" />
           Delivery Address
         </div>
         <div className="space-y-2">
           {order.address?.contactNumber && (
             <div className="flex items-center gap-2">
-              <Phone size={16} className="text-gray-500" />
+              <Phone size={16} className="text-[#FFC107]" />
               <span className="text-sm">{order.address.contactNumber}</span>
             </div>
           )}
-          <p className="text-sm text-gray-700">
-            {formatAddress(order.address)}
-          </p>
-          {order.address?.landmark && (
-            <p className="text-sm text-gray-600 italic">
-              Landmark: {order.address.landmark}
+          <div className="flex items-start gap-2">
+            <MapPin size={16} className="text-[#FFC107] mt-1 flex-shrink-0" />
+            <p className="text-sm text-gray-700">
+              {formatAddress(order.address)}
             </p>
+          </div>
+          {order.address?.landmark && (
+            <div className="flex items-start gap-2">
+              <MapPin size={16} className="text-[#FFC107] mt-1 flex-shrink-0" />
+              <p className="text-sm text-gray-600 italic">
+                Landmark: {order.address.landmark}
+              </p>
+            </div>
           )}
           {order.deliveryInstructions && (
             <div className="mt-3 p-3 bg-yellow-50 rounded-lg border border-yellow-200">
