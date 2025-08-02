@@ -61,6 +61,11 @@ const OrderStatusBadge = ({ status }) => {
       color: "bg-gray-100 text-gray-800",
       icon: RotateCcw,
     },
+    rejected: {
+      label: "Rejected",
+      color: "bg-red-100 text-red-800",
+      icon: XCircle,
+    },
   };
 
   const config = statusConfig[status] || statusConfig.pending;

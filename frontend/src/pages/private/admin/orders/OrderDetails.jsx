@@ -25,6 +25,7 @@ import {
   getStatusTextColor,
 } from "@/lib/utils";
 import StatusBadge from "@/components/custom/StatusBadge";
+import ImageDisplay from "@/components/custom/ImageDisplay";
 
 export default function OrderDetails() {
   const { orderId } = useParams();
@@ -312,33 +313,16 @@ export default function OrderDetails() {
                   </div>
 
                   {/* Delivery Proof Image */}
-                  {order.deliveryProofImage && order.status === "completed" && (
-                    <div className="border-t-2 border-[#FFC107]/30 pt-6 mt-8">
-                      <div className="flex items-center gap-4 mb-6">
-                        <div className="bg-[#FFC107] p-3 rounded-full">
-                          <Camera className="w-8 h-8 text-black" />
-                        </div>
-                        <h3 className="text-[#FFC107] text-3xl font-extrabold tracking-widest uppercase drop-shadow-lg">
-                          Delivery Proof
-                        </h3>
-                        <div className="flex-1 h-px bg-gradient-to-r from-[#FFC107] to-transparent"></div>
-                      </div>
-                      <div className="bg-[#1a1a1a]/80 rounded-2xl p-8 border-2 border-[#333] hover:border-[#FFC107]/50 transition-all duration-300 shadow-xl backdrop-blur-sm">
-                        <div className="bg-[#232323] rounded-xl p-4 border border-[#444]">
-                          <img
-                            src={order.deliveryProofImage}
-                            alt="Delivery Proof"
-                            className="w-full h-64 object-cover rounded-lg border border-[#444]"
-                          />
-                        </div>
-                        <div className="text-center mt-4">
-                          <span className="text-gray-400 text-sm">
-                            Proof of delivery uploaded by rider
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  )}
+                  {(order.deliveryProofImage && order.status === "completed") ||
+                    (order.status === "refund" && (
+                      <ImageDisplay
+                        imageSrc={order.deliveryProofImage}
+                        altText="Delivery Proof"
+                        title="Delivery Proof"
+                        description="Proof of delivery uploaded by rider"
+                        icon="camera"
+                      />
+                    ))}
 
                   {/* Customer Review */}
                   {order.status === "completed" && (
@@ -474,12 +458,17 @@ export default function OrderDetails() {
               </div>
               <div className="mt-8 flex flex-wrap gap-4">
                 <Badge
-                  className={`${getStatusColor(
-                    order.status
-                  )} border rounded-full px-6 py-3 text-lg font-semibold shadow-md`}
+                  className={`${
+                    order.status === "refund"
+                      ? "bg-orange-500/20 text-orange-400 border-orange-500/30"
+                      : getStatusColor(order.status)
+                  } border rounded-full px-6 py-3 text-lg font-semibold shadow-md`}
                 >
                   <span className="flex items-center gap-2">
-                    {getStatusIcon(order.status)} {getStatusLabel(order.status)}
+                    {getStatusIcon(order.status)}{" "}
+                    {order.status === "refund"
+                      ? "Refund"
+                      : getStatusLabel(order.status)}
                   </span>
                 </Badge>
                 <StatusBadge status={order.paymentMethod} />
@@ -631,24 +620,13 @@ export default function OrderDetails() {
             </div>
             {/* Payment Proof */}
             {order.paymentMethod === "gcash" && order.proofImage && (
-              <>
-                <div className="border-t border-[#232323] my-4" />
-                <div>
-                  <div className="flex items-center gap-3 mb-6">
-                    <CreditCard className="w-7 h-7 text-[#FFC107]" />
-                    <h3 className="text-[#FFC107] text-2xl font-extrabold tracking-widest uppercase">
-                      Payment Proof
-                    </h3>
-                  </div>
-                  <div className="bg-[#232323] rounded-xl p-6 border border-[#333]">
-                    <img
-                      src={order.proofImage}
-                      alt="Payment Proof"
-                      className="max-w-full h-auto rounded-lg border-2 border-[#FFC107]"
-                    />
-                  </div>
-                </div>
-              </>
+              <ImageDisplay
+                imageSrc={order.proofImage}
+                altText="Payment Proof"
+                title="Payment Proof"
+                description="Uploaded by customer as proof of GCash payment"
+                icon="payment"
+              />
             )}
           </div>
         </div>

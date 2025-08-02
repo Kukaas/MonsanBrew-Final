@@ -1,7 +1,7 @@
 import { clsx } from "clsx";
 import { twMerge } from "tailwind-merge"
 import React from "react";
-import { CheckCircle2, Clock, Settings, Truck, XCircle, Shield, Monitor, ShoppingCart, User as UserIcon, UserCheck } from 'lucide-react';
+import { CheckCircle2, Clock, Settings, Truck, XCircle, Shield, Monitor, ShoppingCart, User as UserIcon, UserCheck, RotateCcw } from 'lucide-react';
 
 export function cn(...inputs) {
   return twMerge(clsx(inputs));
@@ -74,6 +74,8 @@ export const getStatusIcon = (status) => {
       return React.createElement(CheckCircle2, { className: "w-4 h-4 text-green-500" });
     case 'cancelled':
       return React.createElement(XCircle, { className: "w-4 h-4 text-red-500" });
+    case 'refund':
+      return React.createElement(RotateCcw, { className: "w-4 h-4 text-orange-500" });
     default:
       return React.createElement(Clock, { className: "w-4 h-4 text-gray-500" });
   }

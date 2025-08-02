@@ -98,6 +98,8 @@ const OrderCard = ({ order, onOrderUpdate }) => {
               status={
                 order.refundStatus === "refund_processed"
                   ? "processed"
+                  : order.refundStatus === "refund_rejected"
+                  ? "rejected"
                   : order.status
               }
             />
