@@ -51,6 +51,11 @@ const OrderStatusBadge = ({ status }) => {
       color: "bg-orange-100 text-orange-800",
       icon: RotateCcw,
     },
+    processed: {
+      label: "Processed",
+      color: "bg-blue-100 text-blue-800",
+      icon: RotateCcw,
+    },
     return_refund: {
       label: "Return/Refund",
       color: "bg-gray-100 text-gray-800",

@@ -79,6 +79,7 @@ const OrderSchema = new mongoose.Schema(
     refundRejectionMessage: { type: String }, // message when refund is rejected
     refundProcessedDate: { type: Date },
     refundAmount: { type: Number }, // amount to be refunded
+    refundPaymentProof: { type: String }, // base64 for refund payment proof
     refundItems: [
       {
         itemIndex: { type: Number, required: true }, // index of the item in the order

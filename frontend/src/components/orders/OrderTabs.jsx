@@ -21,7 +21,14 @@ const OrderTabs = ({ orders, activeTab, setActiveTab, onOrderUpdate }) => {
     if (status === "cancelled")
       return orders.filter((order) => order.status === "cancelled");
     if (status === "return_refund")
-      return orders.filter((order) => order.status === "refund");
+      return orders.filter(
+        (order) =>
+          order.status === "refund" ||
+          order.refundStatus === "refund_requested" ||
+          order.refundStatus === "refund_approved" ||
+          order.refundStatus === "refund_rejected" ||
+          order.refundStatus === "refund_processed"
+      );
     return orders;
   };
 

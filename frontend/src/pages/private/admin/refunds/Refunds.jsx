@@ -33,6 +33,7 @@ import CustomAlertDialog from "@/components/custom/CustomAlertDialog";
 import { AlertDialogCancel } from "@/components/ui/alert-dialog";
 import StatusBadge from "@/components/custom/StatusBadge";
 import { Textarea } from "@/components/ui/textarea";
+import ImageUpload from "@/components/custom/ImageUpload";
 
 const refundStatusOptions = ["Requested", "Approved", "Rejected", "Processed"];
 const paymentMethodOptions = ["COD", "GCash"];
@@ -46,6 +47,8 @@ export default function Refunds() {
   const [statusLoading, setStatusLoading] = useState(false);
   const [rejectionMessage, setRejectionMessage] = useState("");
   const [showRejectionDialog, setShowRejectionDialog] = useState(false);
+  const [showPaymentProofDialog, setShowPaymentProofDialog] = useState(false);
+  const [refundPaymentProof, setRefundPaymentProof] = useState("");
 
   const { data, isLoading } = useQuery({
     queryKey: ["admin-refunds"],
@@ -59,14 +62,20 @@ export default function Refunds() {
   });
 
   const { mutate: updateRefundStatus } = useMutation({
-    mutationFn: async ({ orderId, status, refundAmount, rejectionMessage }) => {
+    mutationFn: async ({
+      orderId,
+      status,
+      refundAmount,
+      rejectionMessage,
+      refundPaymentProof,
+    }) => {
       switch (status) {
         case "refund_approved":
           return await orderAPI.approveRefund(orderId, refundAmount);
         case "refund_rejected":
           return await orderAPI.rejectRefund(orderId, rejectionMessage);
         case "refund_processed":
-          return await orderAPI.processRefund(orderId);
+          return await orderAPI.processRefund(orderId, refundPaymentProof);
         default:
           throw new Error("Invalid status");
       }
@@ -75,9 +84,11 @@ export default function Refunds() {
       toast.success("Refund status updated successfully!");
       setStatusDialogOpen(false);
       setShowRejectionDialog(false);
+      setShowPaymentProofDialog(false);
       setStatusChangingOrder(null);
       setNewStatus(null);
       setRejectionMessage("");
+      setRefundPaymentProof("");
       queryClient.invalidateQueries(["admin-refunds"]);
     },
     onError: (error) => {
@@ -87,9 +98,11 @@ export default function Refunds() {
       console.error("Update refund status error:", error);
       setStatusDialogOpen(false);
       setShowRejectionDialog(false);
+      setShowPaymentProofDialog(false);
       setStatusChangingOrder(null);
       setNewStatus(null);
       setRejectionMessage("");
+      setRefundPaymentProof("");
     },
     onSettled: () => {
       setStatusLoading(false);
@@ -240,6 +253,8 @@ export default function Refunds() {
                 setNewStatus(value);
                 if (value === "refund_rejected") {
                   setShowRejectionDialog(true);
+                } else if (value === "refund_processed") {
+                  setShowPaymentProofDialog(true);
                 } else {
                   setStatusDialogOpen(true);
                 }
@@ -434,6 +449,56 @@ export default function Refunds() {
               onChange={(e) => setRejectionMessage(e.target.value)}
               className="min-h-[100px] bg-[#232323] border border-[#444] text-white placeholder:text-[#BDBDBD] focus:border-yellow-400 focus:ring-2 focus:ring-yellow-400"
               disabled={statusLoading}
+            />
+          </div>
+        </CustomAlertDialog>
+
+        {/* Payment Proof Dialog */}
+        <CustomAlertDialog
+          open={showPaymentProofDialog}
+          onOpenChange={statusLoading ? undefined : setShowPaymentProofDialog}
+          title="Process Refund"
+          description={`Please upload proof of payment (e.g., GCash receipt) for the refund of order ${statusChangingOrder?.id?.substring(
+            0,
+            8
+          )}...`}
+          actions={
+            <>
+              <AlertDialogCancel className="h-10" disabled={statusLoading}>
+                Cancel
+              </AlertDialogCancel>
+              <Button
+                variant="yellow"
+                size="lg"
+                loading={statusLoading}
+                disabled={statusLoading || !refundPaymentProof.trim()}
+                onClick={() => {
+                  setStatusLoading(true);
+                  updateRefundStatus(
+                    {
+                      orderId: statusChangingOrder._id,
+                      status: "refund_processed",
+                      refundPaymentProof: refundPaymentProof.trim(),
+                      refundAmount: statusChangingOrder.refundAmount,
+                    },
+                    {
+                      onSettled: () => setStatusLoading(false),
+                    }
+                  );
+                }}
+              >
+                {statusLoading ? "Processing..." : "Process Refund"}
+              </Button>
+            </>
+          }
+        >
+          <div className="mt-4">
+            <ImageUpload
+              label="Refund Payment Proof"
+              value={refundPaymentProof}
+              onChange={setRefundPaymentProof}
+              disabled={statusLoading}
+              variant="dark"
             />
           </div>
         </CustomAlertDialog>

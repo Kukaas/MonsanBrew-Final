@@ -678,9 +678,16 @@ export const rejectRefund = async (req, res) => {
 export const processRefund = async (req, res) => {
   try {
     const { orderId } = req.params;
+    const { refundPaymentProof } = req.body;
 
     if (!orderId) {
       return res.status(400).json({ error: "Order ID is required." });
+    }
+
+    if (!refundPaymentProof) {
+      return res
+        .status(400)
+        .json({ error: "Refund payment proof is required." });
     }
 
     const order = await Order.findById(orderId);
@@ -700,6 +707,7 @@ export const processRefund = async (req, res) => {
     order.refundStatus = "refund_processed";
     order.status = "refund"; // Keep main status as refund for frontend reference
     order.refundProcessedDate = new Date();
+    order.refundPaymentProof = refundPaymentProof;
 
     await order.save();
 

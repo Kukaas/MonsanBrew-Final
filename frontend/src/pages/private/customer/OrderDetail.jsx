@@ -264,56 +264,88 @@ export default function OrderDetail() {
 
         {/* Refund Information */}
         {order.refundStatus && order.refundStatus !== "none" && (
-          <div className="mt-3 p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+          <div className="mt-3 p-4 bg-gradient-to-r from-yellow-50 to-orange-50 rounded-lg border-2 border-yellow-300 shadow-md">
             <div className="flex items-center gap-2 mb-3">
               <RotateCcw size={16} className="text-yellow-600" />
-              <p className="text-yellow-700 font-medium">Refund Status</p>
+              <p className="text-yellow-800 font-bold text-base">
+                Refund Status
+              </p>
             </div>
 
             <div className="space-y-3">
               <div>
-                <p className="text-yellow-700 font-medium text-sm">Status:</p>
-                <p className="text-yellow-600 text-sm">
-                  {order.refundStatus === "refund_requested"
-                    ? "Requested"
-                    : order.refundStatus === "refund_approved"
-                    ? "Approved"
-                    : order.refundStatus === "refund_rejected"
-                    ? "Rejected"
-                    : order.refundStatus === "refund_processed"
-                    ? "Processed"
-                    : order.refundStatus}
-                </p>
+                <p className="text-yellow-800 font-bold text-sm">Status:</p>
+                <div className="mt-1">
+                  {order.refundStatus === "refund_requested" && (
+                    <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-bold bg-yellow-100 text-yellow-800 border border-yellow-300">
+                      ⏳ Requested
+                    </span>
+                  )}
+                  {order.refundStatus === "refund_approved" && (
+                    <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-bold bg-green-100 text-green-800 border border-green-300">
+                      ✅ Approved
+                    </span>
+                  )}
+                  {order.refundStatus === "refund_rejected" && (
+                    <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-bold bg-red-100 text-red-800 border border-red-300">
+                      ❌ Rejected
+                    </span>
+                  )}
+                  {order.refundStatus === "refund_processed" && (
+                    <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-bold bg-blue-100 text-blue-800 border border-blue-300">
+                      💰 Processed
+                    </span>
+                  )}
+                  {![
+                    "refund_requested",
+                    "refund_approved",
+                    "refund_rejected",
+                    "refund_processed",
+                  ].includes(order.refundStatus) && (
+                    <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-bold bg-gray-100 text-gray-800 border border-gray-300">
+                      {order.refundStatus}
+                    </span>
+                  )}
+                </div>
               </div>
 
               {order.refundReason && (
                 <div>
-                  <p className="text-yellow-700 font-medium text-sm">Reason:</p>
-                  <p className="text-yellow-600 text-sm">
-                    {order.refundReason}
-                  </p>
+                  <p className="text-yellow-800 font-bold text-sm">Reason:</p>
+                  <div className="mt-1 p-3 bg-white rounded-lg border border-yellow-300">
+                    <p className="text-yellow-800 text-sm leading-relaxed">
+                      {order.refundReason}
+                    </p>
+                  </div>
                 </div>
               )}
 
               {order.refundAmount && (
                 <div>
-                  <p className="text-yellow-700 font-medium text-sm">
+                  <p className="text-yellow-800 font-bold text-sm">
                     Refund Amount:
                   </p>
-                  <p className="text-yellow-600 text-sm font-bold">
-                    ₱{order.refundAmount.toFixed(2)}
-                  </p>
+                  <div className="mt-1 p-3 bg-green-50 rounded-lg border-2 border-green-300">
+                    <p className="text-green-800 text-lg font-bold">
+                      ₱{order.refundAmount.toFixed(2)}
+                    </p>
+                  </div>
                 </div>
               )}
 
               {order.refundRejectionMessage && (
-                <div className="mt-3 p-3 bg-red-50 rounded border border-red-200">
-                  <p className="text-red-700 font-medium text-sm">
-                    Rejection Reason:
-                  </p>
-                  <p className="text-red-600 text-sm">
-                    {order.refundRejectionMessage}
-                  </p>
+                <div className="mt-3 p-4 bg-red-50 rounded-lg border-2 border-red-300 shadow-md">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="text-red-600">❌</span>
+                    <p className="text-red-800 font-bold text-sm">
+                      Rejection Reason:
+                    </p>
+                  </div>
+                  <div className="p-3 bg-white rounded-lg border border-red-200">
+                    <p className="text-red-700 text-sm leading-relaxed">
+                      {order.refundRejectionMessage}
+                    </p>
+                  </div>
                 </div>
               )}
 
@@ -376,6 +408,25 @@ export default function OrderDetail() {
                     />
                     <p className="text-xs text-gray-500 mt-2 text-center">
                       Photo uploaded by customer as proof for refund request
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* Refund Payment Proof Image */}
+              {order.refundPaymentProof && (
+                <div className="mt-3">
+                  <p className="text-yellow-700 font-medium text-sm mb-2">
+                    Refund Payment Proof:
+                  </p>
+                  <div className="bg-white rounded p-3 border border-yellow-200">
+                    <img
+                      src={order.refundPaymentProof}
+                      alt="Refund Payment Proof"
+                      className="w-full max-w-xs h-32 object-contain rounded-lg border border-yellow-300 mx-auto"
+                    />
+                    <p className="text-xs text-gray-500 mt-2 text-center">
+                      Payment proof uploaded by admin after processing refund
                     </p>
                   </div>
                 </div>

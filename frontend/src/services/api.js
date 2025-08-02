@@ -255,8 +255,10 @@ export const orderAPI = {
       rejectionMessage,
     });
   },
-  processRefund: async (orderId) => {
-    return await api.patch(`/orders/${orderId}/refund/process`);
+  processRefund: async (orderId, refundPaymentProof) => {
+    return await api.patch(`/orders/${orderId}/refund/process`, {
+      refundPaymentProof,
+    });
   },
 };
 

@@ -94,7 +94,13 @@ const OrderCard = ({ order, onOrderUpdate }) => {
             <span className="text-sm font-medium text-gray-600">
               Order #{order._id?.slice(-8)}
             </span>
-            <OrderStatusBadge status={order.status} />
+            <OrderStatusBadge
+              status={
+                order.refundStatus === "refund_processed"
+                  ? "processed"
+                  : order.status
+              }
+            />
           </div>
           <span className="text-xs text-gray-500">
             {formatDate(order.createdAt)}

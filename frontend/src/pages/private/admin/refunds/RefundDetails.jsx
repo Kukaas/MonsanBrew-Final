@@ -21,6 +21,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import StatusBadge from "@/components/custom/StatusBadge";
+import ImageDisplay from "@/components/custom/ImageDisplay";
 
 export default function RefundDetails() {
   const { orderId } = useParams();
@@ -366,7 +367,7 @@ export default function RefundDetails() {
 
               {/* Refund Proof Image */}
               {order.refundProofImage && (
-                <div className="bg-[#1a1a1a]/80 rounded-2xl p-8 border-2 border-[#333] hover:border-[#FFC107]/50 transition-all duration-300 shadow-xl backdrop-blur-sm">
+                <div className="bg-[#1a1a1a]/80 rounded-2xl p-8 border-2 border-[#333] hover:border-[#FFC107]/50 transition-all duration-300 shadow-xl backdrop-blur-sm mb-6">
                   <div className="flex items-center gap-4 mb-6">
                     <div className="bg-[#FFC107] p-3 rounded-full">
                       <Camera className="w-8 h-8 text-black" />
@@ -386,6 +387,33 @@ export default function RefundDetails() {
                   <div className="text-center mt-4">
                     <span className="text-gray-400 text-sm">
                       Proof uploaded by customer for refund request
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              {/* Refund Payment Proof Image */}
+              {order.refundPaymentProof && (
+                <div className="bg-[#1a1a1a]/80 rounded-2xl p-8 border-2 border-[#333] hover:border-[#FFC107]/50 transition-all duration-300 shadow-xl backdrop-blur-sm">
+                  <div className="flex items-center gap-4 mb-6">
+                    <div className="bg-[#FFC107] p-3 rounded-full">
+                      <CreditCard className="w-8 h-8 text-black" />
+                    </div>
+                    <h3 className="text-[#FFC107] text-2xl font-extrabold tracking-widest uppercase drop-shadow-lg">
+                      Refund Payment Proof
+                    </h3>
+                    <div className="flex-1 h-px bg-gradient-to-r from-[#FFC107] to-transparent"></div>
+                  </div>
+                  <div className="bg-[#232323] rounded-xl p-4 border border-[#444]">
+                    <img
+                      src={order.refundPaymentProof}
+                      alt="Refund Payment Proof"
+                      className="w-full h-64 object-cover rounded-lg border border-[#444]"
+                    />
+                  </div>
+                  <div className="text-center mt-4">
+                    <span className="text-gray-400 text-sm">
+                      Payment proof uploaded by admin after processing refund
                     </span>
                   </div>
                 </div>
@@ -518,26 +546,15 @@ export default function RefundDetails() {
               </div>
             </div>
             {/* Payment Proof */}
-            {order.paymentMethod === "gcash" && order.proofImage && (
-              <>
-                <div className="border-t border-[#232323] my-4" />
-                <div>
-                  <div className="flex items-center gap-3 mb-6">
-                    <CreditCard className="w-7 h-7 text-[#FFC107]" />
-                    <h3 className="text-[#FFC107] text-2xl font-extrabold tracking-widest uppercase">
-                      Payment Proof
-                    </h3>
-                  </div>
-                  <div className="bg-[#232323] rounded-xl p-6 border border-[#333]">
-                    <img
-                      src={order.proofImage}
-                      alt="Payment Proof"
-                      className="max-w-full h-auto rounded-lg border-2 border-[#FFC107]"
-                    />
-                  </div>
-                </div>
-              </>
-            )}
+            <ImageDisplay
+              imageSrc={
+                order.paymentMethod === "gcash" ? order.proofImage : null
+              }
+              altText="Payment Proof"
+              title="Payment Proof"
+              description="Uploaded by customer as proof of GCash payment"
+              icon="payment"
+            />
           </div>
         </div>
       </PageLayout>
