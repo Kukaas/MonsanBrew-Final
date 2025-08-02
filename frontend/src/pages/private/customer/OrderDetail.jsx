@@ -445,7 +445,7 @@ export default function OrderDetail() {
           {order.items.map((item, index) => (
             <div
               key={index}
-              className="bg-gray-50 rounded-xl p-4 border-2 border-[#FFC107] flex flex-row items-center gap-4 shadow justify-between"
+              className="bg-gray-50 rounded-xl p-4 border-1 border-[#FFC107] flex flex-row items-center gap-4 shadow justify-between"
             >
               <img
                 src={item.image || "/placeholder.png"}

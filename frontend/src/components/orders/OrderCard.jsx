@@ -109,11 +109,11 @@ const OrderCard = ({ order, onOrderUpdate }) => {
           </span>
         </div>
 
-        <div className="space-y-3 border-2 border-[#FFC107] rounded-xl">
+        <div className="space-y-3">
           {order.items.map((item, index) => (
             <div
               key={index}
-              className="flex flex-col sm:flex-row items-center gap-6 bg-gray-50 rounded-xl p-4 shadow"
+              className="flex flex-col sm:flex-row items-center gap-6 bg-gray-50 p-4 shadow border-1 border-[#FFC107] rounded-xl"
             >
               <img
                 src={item.image || "/placeholder.png"}
