@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import OrderStatusBadge from "./OrderStatusBadge";
 import CustomAlertDialog from "../custom/CustomAlertDialog";
 import ReviewModal from "../reviews/ReviewModal";
+import RefundModal from "./RefundModal";
 import { orderAPI } from "@/services/api";
 
 const OrderCard = ({ order, onOrderUpdate }) => {
@@ -17,6 +18,7 @@ const OrderCard = ({ order, onOrderUpdate }) => {
   const [cancelLoading, setCancelLoading] = useState(false);
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [selectedProductId, setSelectedProductId] = useState(null);
+  const [showRefundModal, setShowRefundModal] = useState(false);
 
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString("en-US", {
@@ -65,6 +67,11 @@ const OrderCard = ({ order, onOrderUpdate }) => {
   const canCancelOrder =
     order.status === "pending" && order.paymentMethod === "cod";
 
+  const canRequestRefund =
+    order.status === "completed" &&
+    !order.isReviewed &&
+    order.refundStatus === "none";
+
   const handleCardClick = () => {
     navigate(`/order/${order._id}`);
   };
@@ -77,7 +84,8 @@ const OrderCard = ({ order, onOrderUpdate }) => {
     <Card
       className="mb-4 bg-white border border-gray-200 shadow-sm rounded-2xl cursor-pointer hover:shadow-md transition-shadow duration-200"
       onClick={() => {
-        if (!showCancelModal && !showReviewModal) handleCardClick();
+        if (!showCancelModal && !showReviewModal && !showRefundModal)
+          handleCardClick();
       }}
     >
       <CardContent className="p-4">
@@ -181,7 +189,7 @@ const OrderCard = ({ order, onOrderUpdate }) => {
         )}
 
         {order.status === "completed" && !order.isReviewed && (
-          <div className="mt-3">
+          <div className="mt-3 space-y-2">
             <Button
               variant="yellow"
               size="sm"
@@ -217,6 +225,20 @@ const OrderCard = ({ order, onOrderUpdate }) => {
             >
               Rate & Review Order
             </Button>
+
+            {canRequestRefund && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full border-red-200 text-red-600 hover:bg-red-50"
+                onClick={(e) => {
+                  handleButtonClick(e);
+                  setShowRefundModal(true);
+                }}
+              >
+                Request Refund
+              </Button>
+            )}
           </div>
         )}
 
@@ -275,6 +297,14 @@ const OrderCard = ({ order, onOrderUpdate }) => {
           order={order}
           productId={selectedProductId}
           onReviewSubmitted={onOrderUpdate}
+        />
+
+        {/* Refund Modal */}
+        <RefundModal
+          open={showRefundModal}
+          onOpenChange={setShowRefundModal}
+          order={order}
+          onRefundSubmitted={onOrderUpdate}
         />
       </CardContent>
     </Card>

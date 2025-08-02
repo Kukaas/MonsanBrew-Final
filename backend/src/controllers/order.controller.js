@@ -127,12 +127,10 @@ export const cancelOrder = async (req, res) => {
 
     // Only allow cancellation for pending orders or completed orders (for admin purposes)
     if (order.status !== "pending" && order.status !== "completed") {
-      return res
-        .status(400)
-        .json({
-          error:
-            "Order cannot be cancelled. Only pending or completed orders can be cancelled.",
-        });
+      return res.status(400).json({
+        error:
+          "Order cannot be cancelled. Only pending or completed orders can be cancelled.",
+      });
     }
 
     // If cancelling a completed order, revert the sales count
@@ -461,5 +459,280 @@ export const updateOrderStatus = async (req, res) => {
   } catch (err) {
     console.error("Update order status error:", err);
     res.status(500).json({ error: "Failed to update order status." });
+  }
+};
+
+// Request refund
+export const requestRefund = async (req, res) => {
+  try {
+    const { orderId } = req.params;
+    const {
+      reason,
+      refundProofImage,
+      selectedItems,
+      itemQuantities,
+      totalRefundAmount,
+    } = req.body;
+
+    if (!orderId) {
+      return res.status(400).json({ error: "Order ID is required." });
+    }
+
+    if (!reason) {
+      return res.status(400).json({ error: "Refund reason is required." });
+    }
+
+    if (!refundProofImage) {
+      return res.status(400).json({ error: "Refund proof image is required." });
+    }
+
+    if (
+      !selectedItems ||
+      !Array.isArray(selectedItems) ||
+      selectedItems.length === 0
+    ) {
+      return res
+        .status(400)
+        .json({ error: "Please select at least one item to refund." });
+    }
+
+    const order = await Order.findById(orderId);
+
+    if (!order) {
+      return res.status(404).json({ error: "Order not found." });
+    }
+
+    // Only allow refund requests for completed orders
+    if (order.status !== "completed") {
+      return res.status(400).json({
+        error: "Only completed orders can request refunds.",
+      });
+    }
+
+    // Check if refund is already requested or processed
+    if (order.refundStatus !== "none") {
+      return res.status(400).json({
+        error: "Refund has already been requested or processed for this order.",
+      });
+    }
+
+    // Validate selected items
+    const validItemIndices = selectedItems.every(
+      (index) => index >= 0 && index < order.items.length
+    );
+    if (!validItemIndices) {
+      return res.status(400).json({ error: "Invalid item selection." });
+    }
+
+    // Validate item quantities if provided
+    if (itemQuantities) {
+      for (const [itemIndex, quantity] of Object.entries(itemQuantities)) {
+        const index = parseInt(itemIndex);
+        if (index < 0 || index >= order.items.length) {
+          return res
+            .status(400)
+            .json({ error: "Invalid item index in quantities." });
+        }
+        const item = order.items[index];
+        if (quantity < 1 || quantity > item.quantity) {
+          return res.status(400).json({
+            error: `Invalid quantity for item ${index}. Must be between 1 and ${item.quantity}.`,
+          });
+        }
+      }
+    }
+
+    // Create refund items array
+    const refundItems = selectedItems.map((itemIndex) => {
+      const item = order.items[itemIndex];
+      const quantityToRefund = itemQuantities?.[itemIndex] || item.quantity;
+      const itemTotal =
+        (item.price +
+          (item.addOns?.reduce((sum, addon) => sum + addon.price, 0) || 0)) *
+        quantityToRefund;
+
+      return {
+        itemIndex,
+        productId: item.productId,
+        productName: item.productName,
+        size: item.size, // Include size information
+        quantity: quantityToRefund, // Use the selected quantity
+        price: item.price,
+        addOns: item.addOns || [],
+        refundAmount: itemTotal,
+      };
+    });
+
+    // Calculate total refund amount
+    const calculatedTotal = refundItems.reduce(
+      (sum, item) => sum + item.refundAmount,
+      0
+    );
+
+    // Update order with refund request
+    order.refundStatus = "refund_requested";
+    order.status = "refund"; // Update main status for frontend reference
+    order.refundRequestDate = new Date();
+    order.refundReason = reason;
+    order.refundProofImage = refundProofImage;
+    order.refundAmount = calculatedTotal; // Use calculated amount
+    order.refundItems = refundItems; // Store refund items
+
+    await order.save();
+
+    res.status(200).json({
+      message: "Refund request submitted successfully.",
+      order,
+    });
+  } catch (err) {
+    console.error("Request refund error:", err);
+    res.status(500).json({ error: "Failed to request refund." });
+  }
+};
+
+// Approve refund (admin)
+export const approveRefund = async (req, res) => {
+  try {
+    const { orderId } = req.params;
+    const { refundAmount } = req.body;
+
+    if (!orderId) {
+      return res.status(400).json({ error: "Order ID is required." });
+    }
+
+    const order = await Order.findById(orderId);
+
+    if (!order) {
+      return res.status(404).json({ error: "Order not found." });
+    }
+
+    // Check if refund is requested
+    if (order.refundStatus !== "refund_requested") {
+      return res.status(400).json({
+        error: "Order is not in refund requested status.",
+      });
+    }
+
+    // Update order with approved refund
+    order.refundStatus = "refund_approved";
+    order.status = "refund"; // Keep main status as refund for frontend reference
+    order.refundAmount = refundAmount || order.refundAmount; // Use provided amount or calculated amount
+
+    await order.save();
+
+    res.status(200).json({
+      message: "Refund approved successfully.",
+      order,
+    });
+  } catch (err) {
+    console.error("Approve refund error:", err);
+    res.status(500).json({ error: "Failed to approve refund." });
+  }
+};
+
+// Reject refund (admin)
+export const rejectRefund = async (req, res) => {
+  try {
+    const { orderId } = req.params;
+    const { rejectionMessage } = req.body;
+
+    if (!orderId) {
+      return res.status(400).json({ error: "Order ID is required." });
+    }
+
+    if (!rejectionMessage) {
+      return res.status(400).json({ error: "Rejection message is required." });
+    }
+
+    const order = await Order.findById(orderId);
+
+    if (!order) {
+      return res.status(404).json({ error: "Order not found." });
+    }
+
+    // Check if refund is requested
+    if (order.refundStatus !== "refund_requested") {
+      return res.status(400).json({
+        error: "Order is not in refund requested status.",
+      });
+    }
+
+    // Update order with rejected refund
+    order.refundStatus = "refund_rejected";
+    order.status = "refund"; // Keep main status as refund for frontend reference
+    order.refundRejectionMessage = rejectionMessage;
+
+    await order.save();
+
+    res.status(200).json({
+      message: "Refund rejected successfully.",
+      order,
+    });
+  } catch (err) {
+    console.error("Reject refund error:", err);
+    res.status(500).json({ error: "Failed to reject refund." });
+  }
+};
+
+// Process refund (admin)
+export const processRefund = async (req, res) => {
+  try {
+    const { orderId } = req.params;
+
+    if (!orderId) {
+      return res.status(400).json({ error: "Order ID is required." });
+    }
+
+    const order = await Order.findById(orderId);
+
+    if (!order) {
+      return res.status(404).json({ error: "Order not found." });
+    }
+
+    // Check if refund is approved
+    if (order.refundStatus !== "refund_approved") {
+      return res.status(400).json({
+        error: "Order is not in refund approved status.",
+      });
+    }
+
+    // Update order with processed refund
+    order.refundStatus = "refund_processed";
+    order.status = "refund"; // Keep main status as refund for frontend reference
+    order.refundProcessedDate = new Date();
+
+    await order.save();
+
+    res.status(200).json({
+      message: "Refund processed successfully.",
+      order,
+    });
+  } catch (err) {
+    console.error("Process refund error:", err);
+    res.status(500).json({ error: "Failed to process refund." });
+  }
+};
+
+// Get orders with refund requests (admin)
+export const getRefundRequests = async (req, res) => {
+  try {
+    const orders = await Order.find({
+      refundStatus: {
+        $in: [
+          "refund_requested",
+          "refund_approved",
+          "refund_rejected",
+          "refund_processed",
+        ],
+      },
+    })
+      .populate("userId", "name email")
+      .populate("items.productId", "name image")
+      .sort({ refundRequestDate: -1 });
+
+    res.status(200).json({ orders });
+  } catch (err) {
+    console.error("Get refund requests error:", err);
+    res.status(500).json({ error: "Failed to fetch refund requests." });
   }
 };

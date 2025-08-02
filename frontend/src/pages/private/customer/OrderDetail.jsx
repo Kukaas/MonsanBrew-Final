@@ -15,6 +15,7 @@ import {
   Package,
   Camera,
   Star,
+  RotateCcw,
 } from "lucide-react";
 import CustomerLayout from "@/layouts/CustomerLayout";
 import OrderStatusBadge from "@/components/orders/OrderStatusBadge";
@@ -258,6 +259,128 @@ export default function OrderDetail() {
           <div className="mt-3 p-3 bg-red-50 rounded-lg border border-red-200">
             <p className="text-red-700 font-medium">Cancellation Reason:</p>
             <p className="text-red-600 text-sm">{order.cancellationReason}</p>
+          </div>
+        )}
+
+        {/* Refund Information */}
+        {order.refundStatus && order.refundStatus !== "none" && (
+          <div className="mt-3 p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+            <div className="flex items-center gap-2 mb-3">
+              <RotateCcw size={16} className="text-yellow-600" />
+              <p className="text-yellow-700 font-medium">Refund Status</p>
+            </div>
+
+            <div className="space-y-3">
+              <div>
+                <p className="text-yellow-700 font-medium text-sm">Status:</p>
+                <p className="text-yellow-600 text-sm">
+                  {order.refundStatus === "refund_requested"
+                    ? "Requested"
+                    : order.refundStatus === "refund_approved"
+                    ? "Approved"
+                    : order.refundStatus === "refund_rejected"
+                    ? "Rejected"
+                    : order.refundStatus === "refund_processed"
+                    ? "Processed"
+                    : order.refundStatus}
+                </p>
+              </div>
+
+              {order.refundReason && (
+                <div>
+                  <p className="text-yellow-700 font-medium text-sm">Reason:</p>
+                  <p className="text-yellow-600 text-sm">
+                    {order.refundReason}
+                  </p>
+                </div>
+              )}
+
+              {order.refundAmount && (
+                <div>
+                  <p className="text-yellow-700 font-medium text-sm">
+                    Refund Amount:
+                  </p>
+                  <p className="text-yellow-600 text-sm font-bold">
+                    ₱{order.refundAmount.toFixed(2)}
+                  </p>
+                </div>
+              )}
+
+              {order.refundRejectionMessage && (
+                <div className="mt-3 p-3 bg-red-50 rounded border border-red-200">
+                  <p className="text-red-700 font-medium text-sm">
+                    Rejection Reason:
+                  </p>
+                  <p className="text-red-600 text-sm">
+                    {order.refundRejectionMessage}
+                  </p>
+                </div>
+              )}
+
+              {/* Refunded Items */}
+              {order.refundItems && order.refundItems.length > 0 && (
+                <div className="mt-3">
+                  <p className="text-yellow-700 font-medium text-sm mb-2">
+                    Refunded Items:
+                  </p>
+                  <div className="space-y-4">
+                    {order.refundItems.map((refundItem, index) => (
+                      <div
+                        key={index}
+                        className="bg-gray-50 rounded-xl p-4 border-2 border-[#FFC107] flex flex-row items-center gap-4 shadow justify-between"
+                      >
+                        <div className="flex-1 min-w-0 flex flex-col justify-center px-2">
+                          <span className="font-bold text-lg text-[#232323] truncate">
+                            {refundItem.productName}
+                          </span>
+                          <div className="flex flex-wrap gap-2 mt-1">
+                            {refundItem.size && (
+                              <span className="text-xs bg-[#FFC107]/20 text-[#FFC107] font-semibold px-2 py-0.5 rounded">
+                                Size: {refundItem.size}
+                              </span>
+                            )}
+                            {refundItem.addOns &&
+                              refundItem.addOns.length > 0 && (
+                                <span className="text-xs bg-[#FFC107]/20 text-[#FFC107] font-semibold px-2 py-0.5 rounded">
+                                  Add-ons:{" "}
+                                  {refundItem.addOns
+                                    .map((addon) => addon.name)
+                                    .join(", ")}
+                                </span>
+                              )}
+                          </div>
+                          <span className="text-[#232323] text-sm font-bold mt-1">
+                            Refunded Qty: {refundItem.quantity}
+                          </span>
+                        </div>
+                        <div className="text-lg sm:text-xl font-extrabold text-[#232323] whitespace-nowrap text-right">
+                          ₱{refundItem.refundAmount.toFixed(2)}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Refund Proof Image */}
+              {order.refundProofImage && (
+                <div className="mt-3">
+                  <p className="text-yellow-700 font-medium text-sm mb-2">
+                    Refund Proof:
+                  </p>
+                  <div className="bg-white rounded p-3 border border-yellow-200">
+                    <img
+                      src={order.refundProofImage}
+                      alt="Refund Proof"
+                      className="w-full max-w-xs h-32 object-contain rounded-lg border border-yellow-300 mx-auto"
+                    />
+                    <p className="text-xs text-gray-500 mt-2 text-center">
+                      Photo uploaded by customer as proof for refund request
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         )}
       </div>
