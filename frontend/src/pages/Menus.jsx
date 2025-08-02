@@ -6,6 +6,8 @@ import ProductCard from "../components/ProductCard";
 import { Skeleton } from "../components/ui/skeleton";
 
 export default function Menus() {
+  const [searchTerm, setSearchTerm] = useState("");
+
   // Fetch categories
   const {
     data: categories,
@@ -40,8 +42,20 @@ export default function Menus() {
     ...(categories ? categories.map((c) => c.category) : []),
   ];
 
-  // Filter products by selected tab
+  // Filter products by selected tab and search term
   let filteredProducts = products || [];
+
+  // First filter by search term
+  if (searchTerm.trim()) {
+    const searchLower = searchTerm.toLowerCase();
+    filteredProducts = filteredProducts.filter(
+      (p) =>
+        p.productName.toLowerCase().includes(searchLower) ||
+        p.category?.category?.toLowerCase().includes(searchLower)
+    );
+  }
+
+  // Then filter by selected tab
   if (selectedTab === "Featured") {
     filteredProducts = filteredProducts.filter((p) => p.isFeatured);
   } else if (selectedTab !== "All") {
@@ -78,7 +92,9 @@ export default function Menus() {
               <input
                 type="text"
                 placeholder="Search on MonsanBrew"
-                className="w-[500px] rounded-full px-4 py-2 bg-white text-black placeholder-gray-400 focus:outline-none hidden md:block"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full max-w-[500px] rounded-full px-4 py-2 bg-white text-black placeholder-gray-400 focus:outline-none"
               />
             </div>
             {/* Category Tabs */}
