@@ -18,6 +18,7 @@ import {
   RefreshCw,
   Calendar,
   Filter,
+  RotateCcw,
 } from "lucide-react";
 import { dashboardAPI } from "@/services/api";
 import dayjs from "dayjs";
@@ -176,21 +177,10 @@ export default function Dashboard() {
     staleTime: 1000 * 60 * 2, // 2 minutes
   });
 
-  // Low stock items query
-  const { data: lowStockData, isLoading: lowStockLoading } = useQuery({
-    queryKey: ["dashboard-low-stock"],
-    queryFn: async () => {
-      const res = await dashboardAPI.getLowStockItems();
-      return res.data || res;
-    },
-    staleTime: 1000 * 60 * 5, // 5 minutes
-  });
-
   const summary = summaryData?.summary || {};
   const ordersByStatus = summaryData?.ordersByStatus || [];
   const topProducts = summaryData?.topProducts || [];
   const recentOrders = recentOrdersData?.recentOrders || [];
-  const lowStockItems = lowStockData?.lowStockItems || [];
   const salesChartData = salesData?.salesData || [];
 
   // Format sales data for chart
@@ -269,32 +259,6 @@ export default function Dashboard() {
       accessorKey: "date",
       header: "Date",
       cell: ({ row }) => dayjs(row.original.createdAt).format("MMM D, YYYY"),
-    },
-  ];
-
-  // Low stock items table columns
-  const lowStockColumns = [
-    {
-      accessorKey: "productName",
-      header: "Product Name",
-    },
-    {
-      accessorKey: "stock",
-      header: "Stock",
-      cell: ({ row }) => `${row.original.stock} ${row.original.unit || "pcs"}`,
-    },
-    {
-      accessorKey: "status",
-      header: "Status",
-      cell: ({ row }) => (
-        <span
-          className={`${getStatusColor(
-            row.original.status
-          )} border rounded-full px-3 py-1 text-xs font-medium`}
-        >
-          {getStatusLabel(row.original.status)}
-        </span>
-      ),
     },
   ];
 
@@ -386,50 +350,6 @@ export default function Dashboard() {
             iconColor="text-green-400"
           />
           <DashCard
-            title="Total Products"
-            value={summary.totalProducts?.toLocaleString() || "0"}
-            icon={Package}
-            gradientFrom="from-[#232323]"
-            gradientTo="to-[#1a1a1a]"
-            borderColor="border-purple-400/30"
-            iconBgColor="bg-purple-400/20"
-            iconColor="text-purple-400"
-          />
-          <DashCard
-            title="Total Users"
-            value={summary.totalUsers?.toLocaleString() || "0"}
-            icon={Users}
-            gradientFrom="from-[#232323]"
-            gradientTo="to-[#1a1a1a]"
-            borderColor="border-orange-400/30"
-            iconBgColor="bg-orange-400/20"
-            iconColor="text-orange-400"
-          />
-        </div>
-
-        {/* Additional Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <DashCard
-            title="Total Reviews"
-            value={summary.totalReviews?.toLocaleString() || "0"}
-            icon={Star}
-            gradientFrom="from-[#232323]"
-            gradientTo="to-[#1a1a1a]"
-            borderColor="border-yellow-400/30"
-            iconBgColor="bg-yellow-400/20"
-            iconColor="text-yellow-400"
-          />
-          <DashCard
-            title="Low Stock Items"
-            value={summary.lowStockItems?.toLocaleString() || "0"}
-            icon={AlertTriangle}
-            gradientFrom="from-[#232323]"
-            gradientTo="to-[#1a1a1a]"
-            borderColor="border-red-400/30"
-            iconBgColor="bg-red-400/20"
-            iconColor="text-red-400"
-          />
-          <DashCard
             title="Pending Orders"
             value={summary.pendingOrders?.toLocaleString() || "0"}
             icon={TrendingUp}
@@ -438,6 +358,16 @@ export default function Dashboard() {
             borderColor="border-indigo-400/30"
             iconBgColor="bg-indigo-400/20"
             iconColor="text-indigo-400"
+          />
+          <DashCard
+            title="Processed Refunds"
+            value={summary.processedRefundOrders?.toLocaleString() || "0"}
+            icon={RotateCcw}
+            gradientFrom="from-[#232323]"
+            gradientTo="to-[#1a1a1a]"
+            borderColor="border-orange-400/30"
+            iconBgColor="bg-orange-400/20"
+            iconColor="text-orange-400"
           />
         </div>
 
@@ -507,27 +437,6 @@ export default function Dashboard() {
                 rowProps={(row) => ({
                   style: { cursor: "pointer" },
                   onClick: () => navigate(`/admin/orders/${row.original._id}`),
-                })}
-              />
-            </CardContent>
-          </Card>
-
-          {/* Low Stock Items */}
-          <Card className="bg-[#242424] border-[#292929]">
-            <CardHeader>
-              <CardTitle className="text-white">Low Stock Items</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <DataTable
-                columns={lowStockColumns}
-                data={lowStockItems.map((item) => ({ ...item, id: item._id }))}
-                loading={lowStockLoading}
-                rowProps={(row) => ({
-                  style: { cursor: "pointer" },
-                  onClick: () =>
-                    navigate(
-                      `/admin/raw-materials?highlight=${row.original._id}`
-                    ),
                 })}
               />
             </CardContent>
