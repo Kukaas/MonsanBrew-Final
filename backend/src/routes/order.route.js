@@ -34,6 +34,10 @@ router.get("/rider/:riderId", getOrdersByRider);
 // Get orders by user ID
 router.get("/user/:userId", getOrdersByUser);
 
+// Refund routes (must come before /:orderId routes)
+// Get refund requests (admin)
+router.get("/refund/requests", getRefundRequests);
+
 // Get order by ID
 router.get("/:orderId", getOrderById);
 
@@ -52,9 +56,6 @@ router.patch("/:orderId/cancel", cancelOrder);
 // Refund routes
 // Request refund (user)
 router.post("/:orderId/refund/request", requestRefund);
-
-// Get refund requests (admin)
-router.get("/refund/requests", getRefundRequests);
 
 // Approve refund (admin)
 router.patch("/:orderId/refund/approve", approveRefund);

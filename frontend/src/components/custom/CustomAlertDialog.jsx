@@ -28,7 +28,7 @@ export default function CustomAlertDialog({
         }`}
       >
         {(title || description) && (
-          <AlertDialogHeader className="flex-shrink-0 border-b border-gray-700 pb-4">
+          <AlertDialogHeader className="flex-shrink-0">
             {title && (
               <AlertDialogTitle className="text-white text-2xl font-extrabold">
                 {title}
@@ -45,7 +45,7 @@ export default function CustomAlertDialog({
           {children}
         </div>
         {actions && (
-          <AlertDialogFooter className="flex-shrink-0 border-t border-gray-700 pt-4">
+          <AlertDialogFooter className="flex-shrink-0 py-4">
             {actions}
           </AlertDialogFooter>
         )}
