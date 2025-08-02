@@ -247,11 +247,15 @@ export default function Dashboard() {
       header: "Status",
       cell: ({ row }) => (
         <span
-          className={`${getStatusColor(
-            row.original.status
-          )} border rounded-full px-3 py-1 text-xs font-medium`}
+          className={`${
+            row.original.status === "refund"
+              ? "bg-orange-500/20 text-orange-400 border-orange-500/30"
+              : getStatusColor(row.original.status)
+          } border rounded-full px-3 py-1 text-xs font-medium`}
         >
-          {getStatusLabel(row.original.status)}
+          {row.original.status === "refund"
+            ? "Refund"
+            : getStatusLabel(row.original.status)}
         </span>
       ),
     },
@@ -444,7 +448,7 @@ export default function Dashboard() {
         </div>
 
         {/* Top Products */}
-        {topProducts.length > 0 && (
+        {/* {topProducts.length > 0 && (
           <Card className="bg-[#242424] border-[#292929]">
             <CardHeader>
               <CardTitle className="text-white">Top Selling Products</CardTitle>
@@ -475,7 +479,7 @@ export default function Dashboard() {
               </div>
             </CardContent>
           </Card>
-        )}
+        )} */}
       </PageLayout>
     </AdminLayout>
   );
