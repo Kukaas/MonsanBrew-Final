@@ -1,6 +1,35 @@
 import Ingredient from "../models/ingredients.model.js";
 import Inventory from "../models/inventory.model.js";
 
+// Define low stock thresholds for different units
+const LOW_STOCK_THRESHOLDS = {
+  pieces: 20,
+  kilograms: 2,
+  grams: 100,
+  liters: 2,
+  milliliters: 1000,
+  packs: 5,
+  boxes: 3,
+  cans: 10,
+  bottles: 15,
+  trays: 2,
+  sachets: 50,
+  dozens: 2,
+};
+
+// Helper function to update ingredient status based on stock
+const updateIngredientStatus = (ingredient) => {
+  const threshold = LOW_STOCK_THRESHOLDS[ingredient.unit] || 10; // Default threshold
+
+  if (ingredient.stock === 0) {
+    ingredient.status = "out_of_stock";
+  } else if (ingredient.stock <= threshold) {
+    ingredient.status = "low_stock";
+  } else {
+    ingredient.status = "in_stock";
+  }
+};
+
 // Create a new ingredient or update existing one
 export const createIngredient = async (req, res) => {
   try {
@@ -14,14 +43,52 @@ export const createIngredient = async (req, res) => {
     });
 
     if (existing) {
+      // Recipe is optional - some ingredients don't need raw materials
+      if (recipe && recipe.length > 0) {
+        // Check if all raw materials exist and have enough stock
+        for (const recipeItem of recipe) {
+          const rawMaterial = await Inventory.findById(
+            recipeItem.rawMaterialId
+          );
+          if (!rawMaterial) {
+            return res.status(400).json({
+              message: `Raw material with ID ${recipeItem.rawMaterialId} not found.`,
+            });
+          }
+
+          // Calculate how much raw material is needed for the requested stock
+          const requiredQuantity = recipeItem.quantity * stock;
+          if (rawMaterial.stock < requiredQuantity) {
+            return res.status(400).json({
+              message: `Insufficient stock for ${rawMaterial.productName}. Available: ${rawMaterial.stock} ${rawMaterial.unit}, Required: ${requiredQuantity} ${recipeItem.unit}`,
+            });
+          }
+        }
+
+        // Deduct raw materials from inventory
+        for (const recipeItem of recipe) {
+          const rawMaterial = await Inventory.findById(
+            recipeItem.rawMaterialId
+          );
+          const requiredQuantity = recipeItem.quantity; // Don't multiply by stock
+          rawMaterial.stock = parseFloat(
+            (rawMaterial.stock - requiredQuantity).toFixed(2)
+          );
+          await rawMaterial.save();
+        }
+      }
+
       // Update existing ingredient stock
       existing.stock = parseFloat((existing.stock + stock).toFixed(2));
+
+      // Update status based on new stock level
+      updateIngredientStatus(existing);
+
       await existing.save();
       return res.status(200).json(existing);
     }
 
     // Recipe is optional - some ingredients don't need raw materials
-    let rawMaterials = [];
     if (recipe && recipe.length > 0) {
       // Check if all raw materials exist and have enough stock
       for (const recipeItem of recipe) {
@@ -32,25 +99,19 @@ export const createIngredient = async (req, res) => {
           });
         }
 
-        // Calculate how much raw material is needed for the requested stock
-        const requiredQuantity = recipeItem.quantity * stock;
+        // Check if raw material has enough stock (don't multiply by ingredient stock)
+        const requiredQuantity = recipeItem.quantity;
         if (rawMaterial.stock < requiredQuantity) {
           return res.status(400).json({
             message: `Insufficient stock for ${rawMaterial.productName}. Available: ${rawMaterial.stock} ${rawMaterial.unit}, Required: ${requiredQuantity} ${recipeItem.unit}`,
           });
         }
-
-        rawMaterials.push({
-          rawMaterialId: recipeItem.rawMaterialId,
-          quantity: requiredQuantity,
-          unit: recipeItem.unit,
-        });
       }
 
       // Deduct raw materials from inventory
       for (const recipeItem of recipe) {
         const rawMaterial = await Inventory.findById(recipeItem.rawMaterialId);
-        const requiredQuantity = recipeItem.quantity * stock;
+        const requiredQuantity = recipeItem.quantity; // Don't multiply by stock
         rawMaterial.stock = parseFloat(
           (rawMaterial.stock - requiredQuantity).toFixed(2)
         );
@@ -64,9 +125,11 @@ export const createIngredient = async (req, res) => {
       stock,
       unit,
       recipe,
-      rawMaterials,
       image,
     });
+
+    // Update status based on stock level
+    updateIngredientStatus(ingredient);
 
     await ingredient.save();
     res.status(201).json(ingredient);
@@ -80,7 +143,6 @@ export const getIngredients = async (req, res) => {
   try {
     const ingredients = await Ingredient.find({ isDeleted: { $ne: true } })
       .populate("recipe.rawMaterialId", "productName unit")
-      .populate("rawMaterials.rawMaterialId", "productName unit")
       .lean();
     res.status(200).json(ingredients);
   } catch (error) {
@@ -96,7 +158,6 @@ export const getIngredientById = async (req, res) => {
       isDeleted: { $ne: true },
     })
       .populate("recipe.rawMaterialId", "productName unit stock")
-      .populate("rawMaterials.rawMaterialId", "productName unit")
       .lean();
 
     if (!ingredient) {
@@ -198,6 +259,10 @@ export const addIngredientStock = async (req, res) => {
 
     // Add to ingredient stock
     ingredient.stock = parseFloat((ingredient.stock + quantity).toFixed(2));
+
+    // Update status based on new stock level
+    updateIngredientStatus(ingredient);
+
     await ingredient.save();
 
     res.status(200).json(ingredient);

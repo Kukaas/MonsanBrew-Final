@@ -20,6 +20,10 @@ import { AlertDialogCancel } from "@/components/ui/alert-dialog";
 import { Separator } from "@/components/ui/separator";
 import StatusBadge from "@/components/custom/StatusBadge";
 import { useLocation } from "react-router-dom";
+import Form from "@/components/custom/Form";
+import FormInput from "@/components/custom/FormInput";
+import CustomSelect from "@/components/custom/CustomSelect";
+import ImageUpload from "@/components/custom/ImageUpload";
 
 function useIngredientsQuery() {
   return new URLSearchParams(useLocation().search);
@@ -52,6 +56,15 @@ export default function Ingredients() {
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleteItem, setDeleteItem] = useState(null);
   const [deleting, setDeleting] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
+  const [editIngredient, setEditIngredient] = useState(null);
+  const [editName, setEditName] = useState("");
+  const [editDescription, setEditDescription] = useState("");
+  const [editStock, setEditStock] = useState("");
+  const [editUnit, setEditUnit] = useState("pieces");
+  const [editImage, setEditImage] = useState("");
+  const [formError, setFormError] = useState("");
+  const [updating, setUpdating] = useState(false);
   const query = useIngredientsQuery();
   const highlightedId = query.get("highlight");
 
@@ -86,6 +99,66 @@ export default function Ingredients() {
       );
     },
   });
+
+  const { mutate: updateMutate } = useMutation({
+    mutationFn: async ({
+      id,
+      ingredientName,
+      description,
+      stock,
+      unit,
+      image,
+    }) => {
+      return await ingredientsAPI.update(id, {
+        ingredientName,
+        description,
+        stock,
+        unit,
+        image,
+      });
+    },
+    onSuccess: () => {
+      setUpdating(false);
+      queryClient.invalidateQueries(["ingredients"]);
+      setEditOpen(false);
+      setEditIngredient(null);
+      setEditName("");
+      setEditDescription("");
+      setEditStock("");
+      setEditUnit("pieces");
+      setEditImage("");
+      setFormError("");
+      toast.success("Ingredient updated successfully!");
+    },
+    onError: (error) => {
+      setUpdating(false);
+      setFormError(
+        error?.response?.data?.message || "Failed to update ingredient"
+      );
+    },
+  });
+
+  const handleEditIngredient = (e) => {
+    e.preventDefault();
+    setFormError("");
+    if (!editName.trim()) {
+      setFormError("Ingredient name is required");
+      return;
+    }
+    if (!editStock || isNaN(editStock)) {
+      setFormError("Valid stock is required");
+      return;
+    }
+    setUpdating(true);
+    updateMutate({
+      id: editIngredient._id,
+      ingredientName: editName.trim(),
+      description: editDescription.trim(),
+      stock: Number(editStock),
+      unit: editUnit,
+      image: editImage,
+    });
+  };
 
   const mappedData = (data || []).map((item) => ({ ...item, id: item._id }));
 
@@ -144,9 +217,21 @@ export default function Ingredients() {
               View
             </DropdownMenuItem>
             <DropdownMenuItem
-              onClick={() => navigate(`/admin/ingredients/${row.id}/edit`)}
+              disabled={updating}
+              onClick={() => {
+                setEditIngredient(row);
+                setEditName(row.ingredientName);
+                setEditDescription(row.description || "");
+                setEditStock(row.stock);
+                setEditUnit(row.unit);
+                setEditImage(row.image || "");
+                setFormError("");
+                setEditOpen(true);
+              }}
             >
-              Edit
+              {updating && editIngredient && editIngredient._id === row._id
+                ? "Saving..."
+                : "Edit"}
             </DropdownMenuItem>
             <DropdownMenuItem
               className="text-red-500"
@@ -215,6 +300,87 @@ export default function Ingredients() {
             </>
           }
         />
+
+        {/* EDIT DIALOG */}
+        <CustomAlertDialog
+          open={editOpen}
+          onOpenChange={updating ? undefined : setEditOpen}
+          title="Edit Ingredient"
+          description="Update the ingredient information."
+          actions={
+            <>
+              <AlertDialogCancel className="h-10" disabled={updating}>
+                Cancel
+              </AlertDialogCancel>
+              <Button
+                type="submit"
+                form="edit-ingredient-form"
+                variant="yellow"
+                size="lg"
+                loading={updating}
+                disabled={updating}
+              >
+                {updating ? "Saving..." : "Save"}
+              </Button>
+            </>
+          }
+        >
+          <Form id="edit-ingredient-form" onSubmit={handleEditIngredient}>
+            <div className="flex flex-col gap-4">
+              <FormInput
+                label="Ingredient Name"
+                name="editName"
+                value={editName}
+                onChange={(e) => setEditName(e.target.value)}
+                disabled={updating}
+                autoFocus
+                error={formError}
+                placeholder="e.g. Coffee Extract, Bread Dough"
+                variant="dark"
+              />
+              <FormInput
+                label="Description"
+                name="editDescription"
+                value={editDescription}
+                onChange={(e) => setEditDescription(e.target.value)}
+                disabled={updating}
+                error={formError}
+                placeholder="Optional description"
+                variant="dark"
+              />
+              <FormInput
+                label="Stock"
+                name="editStock"
+                type="number"
+                value={editStock}
+                onChange={(e) => setEditStock(e.target.value)}
+                disabled={updating}
+                error={formError}
+                variant="dark"
+              />
+              <CustomSelect
+                label="Unit"
+                value={editUnit}
+                onChange={setEditUnit}
+                options={unitOptions}
+                placeholder="Select unit"
+                name="editUnit"
+                error={formError}
+                variant="dark"
+                disabled={updating}
+              />
+              <div>
+                <ImageUpload
+                  label="Image"
+                  value={editImage}
+                  onChange={setEditImage}
+                  disabled={updating}
+                  error={formError}
+                />
+              </div>
+            </div>
+          </Form>
+        </CustomAlertDialog>
       </PageLayout>
     </AdminLayout>
   );

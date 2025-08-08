@@ -42,7 +42,6 @@ import OrderDetail from "./pages/private/customer/OrderDetail.jsx";
 import ChangePassword from "./pages/public/ChangePassword.jsx";
 import Ingredients from "./pages/private/admin/ingredients/Ingredients.jsx";
 import CreateIngredient from "./pages/private/admin/ingredients/CreateIngredient.jsx";
-import EditIngredient from "./pages/private/admin/ingredients/EditIngredient.jsx";
 import ViewIngredient from "./pages/private/admin/ingredients/ViewIngredient.jsx";
 
 function RootRedirect() {
@@ -225,14 +224,7 @@ function App() {
             </RequireAuth>
           }
         />
-        <Route
-          path="/admin/ingredients/:id/edit"
-          element={
-            <RequireAuth allowedRoles={["admin"]}>
-              <EditIngredient />
-            </RequireAuth>
-          }
-        />
+
         <Route
           path="/admin/ingredients/:id"
           element={

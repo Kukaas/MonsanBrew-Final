@@ -2,6 +2,35 @@ import Product from "../models/products.model.js";
 import Inventory from "../models/inventory.model.js";
 import Ingredient from "../models/ingredients.model.js";
 
+// Define low stock thresholds for different units
+const LOW_STOCK_THRESHOLDS = {
+  pieces: 20,
+  kilograms: 2,
+  grams: 100,
+  liters: 2,
+  milliliters: 1000,
+  packs: 5,
+  boxes: 3,
+  cans: 10,
+  bottles: 15,
+  trays: 2,
+  sachets: 50,
+  dozens: 2,
+};
+
+// Helper function to update ingredient status based on stock
+const updateIngredientStatus = (ingredient) => {
+  const threshold = LOW_STOCK_THRESHOLDS[ingredient.unit] || 10; // Default threshold
+
+  if (ingredient.stock === 0) {
+    ingredient.status = "out_of_stock";
+  } else if (ingredient.stock <= threshold) {
+    ingredient.status = "low_stock";
+  } else {
+    ingredient.status = "in_stock";
+  }
+};
+
 // Create a new product
 export const createProduct = async (req, res) => {
   try {
@@ -52,7 +81,7 @@ export const createProduct = async (req, res) => {
       });
     }
 
-    // Validate ingredients and check stock
+    // Validate ingredients
     let ingredientsWithUnit = [];
     if (ingredients && ingredients.length > 0) {
       for (const ing of ingredients) {
@@ -63,28 +92,12 @@ export const createProduct = async (req, res) => {
           });
         }
 
-        // Check if ingredient has enough stock
-        if (ingredient.stock < ing.quantity) {
-          return res.status(400).json({
-            message: `Insufficient stock for ${ingredient.ingredientName}. Available: ${ingredient.stock} ${ingredient.unit}, Required: ${ing.quantity} ${ing.unit}`,
-          });
-        }
-
         ingredientsWithUnit.push({
           ingredientId: ing.ingredientId,
           quantity: ing.quantity,
           unit: ingredient.unit,
         });
       }
-    }
-
-    // Deduct ingredients from stock
-    for (const ing of ingredientsWithUnit) {
-      const ingredient = await Ingredient.findById(ing.ingredientId);
-      ingredient.stock = parseFloat(
-        (ingredient.stock - ing.quantity).toFixed(2)
-      );
-      await ingredient.save();
     }
 
     const product = new Product({
@@ -172,7 +185,7 @@ export const updateProduct = async (req, res) => {
       });
     }
 
-    // Validate ingredients and check stock
+    // Validate ingredients
     let ingredientsWithUnit = [];
     if (ingredients && ingredients.length > 0) {
       for (const ing of ingredients) {
@@ -183,28 +196,12 @@ export const updateProduct = async (req, res) => {
           });
         }
 
-        // Check if ingredient has enough stock
-        if (ingredient.stock < ing.quantity) {
-          return res.status(400).json({
-            message: `Insufficient stock for ${ingredient.ingredientName}. Available: ${ingredient.stock} ${ingredient.unit}, Required: ${ing.quantity} ${ing.unit}`,
-          });
-        }
-
         ingredientsWithUnit.push({
           ingredientId: ing.ingredientId,
           quantity: ing.quantity,
           unit: ingredient.unit,
         });
       }
-    }
-
-    // Deduct ingredients from stock
-    for (const ing of ingredientsWithUnit) {
-      const ingredient = await Ingredient.findById(ing.ingredientId);
-      ingredient.stock = parseFloat(
-        (ingredient.stock - ing.quantity).toFixed(2)
-      );
-      await ingredient.save();
     }
 
     const product = await Product.findByIdAndUpdate(

@@ -3,6 +3,35 @@ import Product from "../models/products.model.js";
 import Ingredient from "../models/ingredients.model.js";
 import { updateProductSales } from "./review.controller.js";
 
+// Define low stock thresholds for different units
+const LOW_STOCK_THRESHOLDS = {
+  pieces: 20,
+  kilograms: 2,
+  grams: 100,
+  liters: 2,
+  milliliters: 1000,
+  packs: 5,
+  boxes: 3,
+  cans: 10,
+  bottles: 15,
+  trays: 2,
+  sachets: 50,
+  dozens: 2,
+};
+
+// Helper function to update ingredient status based on stock
+const updateIngredientStatus = (ingredient) => {
+  const threshold = LOW_STOCK_THRESHOLDS[ingredient.unit] || 10; // Default threshold
+
+  if (ingredient.stock === 0) {
+    ingredient.status = "out_of_stock";
+  } else if (ingredient.stock <= threshold) {
+    ingredient.status = "low_stock";
+  } else {
+    ingredient.status = "in_stock";
+  }
+};
+
 export const placeOrder = async (req, res) => {
   try {
     const {
@@ -429,14 +458,7 @@ export const updateOrderStatus = async (req, res) => {
               ) / 100;
 
             // Update status based on remaining stock
-            if (ingredient.stock === 0) {
-              ingredient.status = "out_of_stock";
-            } else if (ingredient.stock <= 10) {
-              // Assuming 10 is the low stock threshold
-              ingredient.status = "low_stock";
-            } else {
-              ingredient.status = "in_stock";
-            }
+            updateIngredientStatus(ingredient);
 
             await ingredient.save();
           } else {

@@ -79,13 +79,6 @@ export default function ViewIngredient() {
                   <Skeleton className="h-7 w-64 md:w-96 rounded" />
                 </div>
               </div>
-              <div className="border-t border-[#232323] my-4" />
-              {/* Recipe */}
-              <div>
-                <Skeleton className="h-8 w-48 mb-4 md:mb-6 rounded" />
-                <Skeleton className="h-7 w-40 md:w-64 mb-2 rounded" />
-                <Skeleton className="h-7 w-40 md:w-64 mb-2 rounded" />
-              </div>
             </div>
           </div>
         </PageLayout>
@@ -244,34 +237,6 @@ export default function ViewIngredient() {
                     {ingredient.description}
                   </span>
                 </div>
-              )}
-            </div>
-            <div className="border-t border-[#232323] my-4" />
-            {/* Recipe */}
-            <div>
-              <h3 className="text-[#FFC107] text-2xl font-extrabold mb-6 tracking-widest uppercase drop-shadow-lg">
-                Recipe (Raw Materials)
-              </h3>
-              {ingredient.recipe && ingredient.recipe.length > 0 ? (
-                <ul className="list-disc ml-8 mt-2 space-y-3 text-xl">
-                  {ingredient.recipe.map((item, idx) => (
-                    <li
-                      key={idx}
-                      className="text-white flex items-center gap-2"
-                    >
-                      <span className="font-bold text-[#FFC107]">
-                        {item.rawMaterialId.productName || item.rawMaterialId}
-                      </span>
-                      <span className="ml-2 text-white font-medium">
-                        Qty: {item.quantity} {item.unit}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <span className="text-[#BDBDBD] ml-2 text-lg">
-                  No recipe items defined
-                </span>
               )}
             </div>
           </div>

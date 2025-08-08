@@ -43,25 +43,7 @@ const ingredientSchema = new mongoose.Schema(
         "dozens",
       ],
     },
-    // Raw materials used to create this ingredient
-    rawMaterials: [
-      {
-        rawMaterialId: {
-          type: mongoose.Schema.Types.ObjectId,
-          ref: "Inventory",
-          required: true,
-        },
-        quantity: {
-          type: Number,
-          required: true,
-          min: 0,
-        },
-        unit: {
-          type: String,
-          required: true,
-        },
-      },
-    ],
+
     // Recipe: how much of each raw material is needed to make 1 unit of this ingredient (optional)
     recipe: [
       {
