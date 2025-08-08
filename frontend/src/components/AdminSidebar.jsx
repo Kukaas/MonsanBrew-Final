@@ -13,6 +13,7 @@ import {
   File,
   LogOut,
   RotateCcw,
+  FolderArchiveIcon,
 } from "lucide-react";
 import { Sidebar, SidebarContent, SidebarSeparator } from "./ui/sidebar";
 import { Avatar, AvatarImage, AvatarFallback } from "./ui/avatar";
@@ -40,6 +41,11 @@ const navMaintenance = [
     title: "Raw  Materials Inventory",
     icon: <Folder size={20} />,
     url: "/admin/raw-materials",
+  },
+  {
+    title: "Ingredients",
+    icon: <FolderArchiveIcon size={20} />,
+    url: "/admin/ingredients",
   },
   { title: "Products", icon: <Folder size={20} />, url: "/admin/products" },
   { title: "User Management", icon: <Users size={18} />, url: "/admin/users" },

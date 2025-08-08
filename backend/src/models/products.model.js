@@ -41,13 +41,15 @@ const productSchema = new mongoose.Schema(
     },
     ingredients: [
       {
-        productName: {
-          type: String,
+        ingredientId: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "Ingredient",
           required: true,
         },
         quantity: {
           type: Number,
           required: true,
+          min: 0,
         },
         unit: {
           type: String,

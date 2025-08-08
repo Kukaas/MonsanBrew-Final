@@ -40,6 +40,10 @@ import Address from "./pages/private/customer/Address.jsx";
 import Orders from "./pages/private/customer/Orders.jsx";
 import OrderDetail from "./pages/private/customer/OrderDetail.jsx";
 import ChangePassword from "./pages/public/ChangePassword.jsx";
+import Ingredients from "./pages/private/admin/ingredients/Ingredients.jsx";
+import CreateIngredient from "./pages/private/admin/ingredients/CreateIngredient.jsx";
+import EditIngredient from "./pages/private/admin/ingredients/EditIngredient.jsx";
+import ViewIngredient from "./pages/private/admin/ingredients/ViewIngredient.jsx";
 
 function RootRedirect() {
   const { user, loading } = useAuth();
@@ -201,6 +205,39 @@ function App() {
           element={
             <RequireAuth allowedRoles={["admin"]}>
               <RawMaterials />
+            </RequireAuth>
+          }
+        />
+
+        <Route
+          path="/admin/ingredients"
+          element={
+            <RequireAuth allowedRoles={["admin"]}>
+              <Ingredients />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/admin/ingredients/create"
+          element={
+            <RequireAuth allowedRoles={["admin"]}>
+              <CreateIngredient />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/admin/ingredients/:id/edit"
+          element={
+            <RequireAuth allowedRoles={["admin"]}>
+              <EditIngredient />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/admin/ingredients/:id"
+          element={
+            <RequireAuth allowedRoles={["admin"]}>
+              <ViewIngredient />
             </RequireAuth>
           }
         />

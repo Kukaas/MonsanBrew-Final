@@ -19,6 +19,7 @@ const routeMap = {
   "/users": "User Management",
   "/raw-materials": "Raw Materials Inventory",
   "/orders": "Orders",
+  "/ingredients": "Ingredients",
 };
 
 export default function AdminHeader() {

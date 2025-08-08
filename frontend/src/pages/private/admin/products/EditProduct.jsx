@@ -4,7 +4,7 @@ import {
   productAPI,
   categoryAPI,
   addonsAPI,
-  rawMaterialsAPI,
+  ingredientsAPI,
 } from "@/services/api";
 import AdminLayout from "@/layouts/AdminLayout";
 import PageLayout from "@/layouts/PageLayout";
@@ -16,7 +16,8 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Plus, Minus } from "lucide-react";
+import { Plus, Minus, Calculator } from "lucide-react";
+import UnitConversionModal from "@/components/custom/UnitConversionModal";
 
 export default function EditProduct() {
   const { id } = useParams();
@@ -30,12 +31,13 @@ export default function EditProduct() {
   const [preparationTime, setPreparationTime] = useState("");
   const [isCustomizable, setIsCustomizable] = useState(false);
   const [ingredients, setIngredients] = useState([
-    { productName: "", quantity: "", unit: "" },
+    { ingredientId: "", quantity: "", unit: "" },
   ]);
   const [image, setImage] = useState("");
   const [formError, setFormError] = useState("");
   const [initialized, setInitialized] = useState(false);
   const [showSaving, setShowSaving] = useState(false);
+  const [showUnitConversion, setShowUnitConversion] = useState(false);
   const sizeOptions = [
     { value: "Small", label: "Small" },
     { value: "Medium", label: "Medium" },
@@ -73,9 +75,9 @@ export default function EditProduct() {
     isLoading: loadingIngredients,
     error: errorIngredients,
   } = useQuery({
-    queryKey: ["raw-materials"],
+    queryKey: ["ingredients"],
     queryFn: async () => {
-      const res = await rawMaterialsAPI.getAll();
+      const res = await ingredientsAPI.getAll();
       return res.data || res || [];
     },
   });
@@ -121,11 +123,11 @@ export default function EditProduct() {
       setIngredients(
         product.ingredients && product.ingredients.length > 0
           ? product.ingredients.map((ing) => ({
-              productName: ing.productName,
+              ingredientId: ing.ingredientId?._id || ing.ingredientId,
               quantity: ing.quantity,
               unit: ing.unit || "",
             }))
-          : [{ productName: "", quantity: "", unit: "" }]
+          : [{ ingredientId: "", quantity: "", unit: "" }]
       );
       setImage(product.image || "");
       setSizes(
@@ -169,12 +171,10 @@ export default function EditProduct() {
     setIngredients((ingredients) =>
       ingredients.map((ing, i) => {
         if (i === idx) {
-          if (field === "productName") {
+          if (field === "ingredientId") {
             // Find unit from ingredientsOptions
-            const found = ingredientsOptions?.find(
-              (opt) => opt.productName === value
-            );
-            return { ...ing, productName: value, unit: found?.unit || "" };
+            const found = ingredientsOptions?.find((opt) => opt._id === value);
+            return { ...ing, ingredientId: value, unit: found?.unit || "" };
           }
           return { ...ing, [field]: value };
         }
@@ -186,7 +186,7 @@ export default function EditProduct() {
   const handleAddIngredient = () => {
     setIngredients([
       ...ingredients,
-      { productName: "", quantity: "", unit: "" },
+      { ingredientId: "", quantity: "", unit: "" },
     ]);
   };
   // Handler to remove an ingredient row
@@ -239,7 +239,7 @@ export default function EditProduct() {
     if (
       !ingredients.length ||
       ingredients.some(
-        (ing) => !ing.productName || !ing.quantity || isNaN(ing.quantity)
+        (ing) => !ing.ingredientId || !ing.quantity || isNaN(ing.quantity)
       )
     ) {
       return setFormError("All ingredients must have a name and quantity");
@@ -260,7 +260,7 @@ export default function EditProduct() {
       preparationTime: Number(preparationTime),
       isCustomizable,
       ingredients: ingredients.map((ing) => ({
-        productName: ing.productName,
+        ingredientId: ing.ingredientId,
         quantity: Number(ing.quantity),
         unit: ing.unit,
       })),
@@ -436,7 +436,6 @@ export default function EditProduct() {
                     variant="dark"
                     placeholder="e.g. 120"
                     type="number"
-        
                     className="min-w-[180px] text-white"
                   />
                 )}
@@ -525,27 +524,41 @@ export default function EditProduct() {
               </div>
               {/* Ingredients */}
               <div className="flex flex-col gap-1">
-                <label className="font-bold text-[#FFC107]">Ingredients</label>
+                <div className="flex items-center justify-between">
+                  <label className="font-bold text-[#FFC107]">
+                    Ingredients
+                  </label>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowUnitConversion(true)}
+                    className="text-xs px-2 py-1 h-auto"
+                  >
+                    <Calculator className="w-3 h-3 mr-1" />
+                    Converter
+                  </Button>
+                </div>
                 {ingredients.map((ing, idx) => (
                   <div
                     key={idx}
                     className="flex flex-col sm:flex-row gap-2 w-full sm:items-center bg-[#232323] rounded-lg p-2 border border-[#333]"
                   >
                     <CustomSelect
-                      value={ing.productName}
+                      value={ing.ingredientId}
                       onChange={(val) =>
-                        handleIngredientChange(idx, "productName", val)
+                        handleIngredientChange(idx, "ingredientId", val)
                       }
                       options={
                         ingredientsLoaded
                           ? ingredientsOptions.map((i) => ({
-                              value: i.productName,
-                              label: i.productName,
+                              value: i._id,
+                              label: `${i.ingredientName} (${i.stock} ${i.unit})`,
                             }))
                           : []
                       }
-                      placeholder="Select ingredient (e.g. Coffee Beans)"
-                      name={`ingredient-productName-${idx}`}
+                      placeholder="Select ingredient (e.g. Coffee Extract)"
+                      name={`ingredient-ingredientId-${idx}`}
                       variant="dark"
                       disabled={!ingredientsLoaded}
                       className="flex-1 w-full"
@@ -620,6 +633,11 @@ export default function EditProduct() {
           </div>
         </Form>
       </PageLayout>
+
+      <UnitConversionModal
+        isOpen={showUnitConversion}
+        onClose={() => setShowUnitConversion(false)}
+      />
     </AdminLayout>
   );
 }

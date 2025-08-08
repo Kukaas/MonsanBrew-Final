@@ -732,7 +732,9 @@ export default function ProductDetail() {
                 <ul className="list-disc list-inside text-gray-700">
                   {product.ingredients.map((ing, i) => (
                     <li key={i}>
-                      {ing.productName}{" "}
+                      {ing.ingredientId?.ingredientName ||
+                        ing.ingredientName ||
+                        "Unknown Ingredient"}{" "}
                       <span className="text-[#232323] font-bold">
                         : {ing.quantity}
                         {ing.unit ? ` ${ing.unit}` : ""}

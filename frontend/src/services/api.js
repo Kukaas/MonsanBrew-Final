@@ -119,6 +119,34 @@ export const rawMaterialsAPI = {
   },
 };
 
+// Ingredients API functions
+export const ingredientsAPI = {
+  // Create ingredient
+  create: async (data) => {
+    return await api.post("/ingredients", data);
+  },
+  // Get all ingredients
+  getAll: async () => {
+    return await api.get("/ingredients");
+  },
+  // Get ingredient by ID
+  getById: async (id) => {
+    return await api.get(`/ingredients/${id}`);
+  },
+  // Update ingredient
+  update: async (id, data) => {
+    return await api.put(`/ingredients/${id}`, data);
+  },
+  // Delete ingredient
+  delete: async (id) => {
+    return await api.delete(`/ingredients/${id}`);
+  },
+  // Add stock to ingredient
+  addStock: async (id, quantity) => {
+    return await api.post(`/ingredients/${id}/add-stock`, { quantity });
+  },
+};
+
 // Product API functions
 export const productAPI = {
   // Create product

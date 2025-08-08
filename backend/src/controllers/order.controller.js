@@ -1,6 +1,6 @@
 import Order from "../models/order.model.js";
 import Product from "../models/products.model.js";
-import Inventory from "../models/inventory.model.js";
+import Ingredient from "../models/ingredients.model.js";
 import { updateProductSales } from "./review.controller.js";
 
 export const placeOrder = async (req, res) => {
@@ -361,7 +361,7 @@ export const updateOrderStatus = async (req, res) => {
         .json({ error: "Cannot update completed or cancelled orders." });
     }
 
-    // Check if status is changing to "waiting_for_rider" and deduct inventory
+    // Check if status is changing to "waiting_for_rider" and deduct ingredients
     if (
       status === "waiting_for_rider" &&
       order.status !== "waiting_for_rider"
@@ -369,7 +369,9 @@ export const updateOrderStatus = async (req, res) => {
       try {
         // Get all product details for the order items
         const productIds = order.items.map((item) => item.productId);
-        const products = await Product.find({ _id: { $in: productIds } });
+        const products = await Product.find({
+          _id: { $in: productIds },
+        }).populate("ingredients.ingredientId");
 
         let totalIngredientsToDeduct = [];
 
@@ -391,61 +393,63 @@ export const updateOrderStatus = async (req, res) => {
                 // Add to deduction list
                 totalIngredientsToDeduct.push({
                   productName: orderItem.productName,
-                  ingredientName: ingredient.productName,
+                  ingredientId: ingredient.ingredientId,
+                  ingredientName:
+                    ingredient.ingredientId?.ingredientName ||
+                    "Unknown Ingredient",
                   quantityNeeded,
-                  unit: ingredient.unit || "units",
+                  unit:
+                    ingredient.unit || ingredient.ingredientId?.unit || "units",
                 });
               }
             }
           }
         }
 
-        // Now validate and deduct inventory
+        // Now validate and deduct ingredients
         for (const deductionItem of totalIngredientsToDeduct) {
-          // Find the corresponding inventory item (case-insensitive)
-          const inventoryItem = await Inventory.findOne({
-            productName: {
-              $regex: new RegExp(`^${deductionItem.ingredientName}$`, "i"),
-            },
-          });
+          // Find the corresponding ingredient
+          const ingredient = await Ingredient.findById(
+            deductionItem.ingredientId
+          );
 
-          if (inventoryItem) {
+          if (ingredient) {
             // Check if there's enough stock
-            if (inventoryItem.stock < deductionItem.quantityNeeded) {
+            if (ingredient.stock < deductionItem.quantityNeeded) {
               return res.status(400).json({
-                error: `Insufficient stock for ingredient: ${deductionItem.ingredientName}. Required: ${deductionItem.quantityNeeded} ${deductionItem.unit}, Available: ${inventoryItem.stock} ${inventoryItem.unit}`,
+                error: `Insufficient stock for ingredient: ${deductionItem.ingredientName}. Required: ${deductionItem.quantityNeeded} ${deductionItem.unit}, Available: ${ingredient.stock} ${ingredient.unit}`,
               });
             }
 
-            // Deduct the quantity from inventory
-            const oldStock = inventoryItem.stock;
-            inventoryItem.stock =
+            // Deduct the quantity from ingredient stock
+            const oldStock = ingredient.stock;
+            ingredient.stock =
               Math.round(
-                (inventoryItem.stock - deductionItem.quantityNeeded) * 100
+                (ingredient.stock - deductionItem.quantityNeeded) * 100
               ) / 100;
 
             // Update status based on remaining stock
-            if (inventoryItem.stock === 0) {
-              inventoryItem.status = "out_of_stock";
-            } else if (inventoryItem.stock <= 10) {
+            if (ingredient.stock === 0) {
+              ingredient.status = "out_of_stock";
+            } else if (ingredient.stock <= 10) {
               // Assuming 10 is the low stock threshold
-              inventoryItem.status = "low_stock";
+              ingredient.status = "low_stock";
             } else {
-              inventoryItem.status = "in_stock";
+              ingredient.status = "in_stock";
             }
 
-            await inventoryItem.save();
+            await ingredient.save();
           } else {
             return res.status(400).json({
-              error: `Inventory item not found for ingredient: ${deductionItem.ingredientName}. Please add this ingredient to inventory first.`,
+              error: `Ingredient not found: ${deductionItem.ingredientName}. Please add this ingredient first.`,
             });
           }
         }
-      } catch (inventoryError) {
-        console.error("Error deducting inventory:", inventoryError);
+      } catch (ingredientError) {
+        console.error("Error deducting ingredients:", ingredientError);
         return res
           .status(500)
-          .json({ error: "Failed to update inventory quantities." });
+          .json({ error: "Failed to update ingredient quantities." });
       }
     }
 
