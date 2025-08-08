@@ -98,12 +98,12 @@ export default function Menus() {
               />
             </div>
             {/* Category Tabs */}
-            <div className="flex gap-6 overflow-x-auto pb-2 mb-8 w-full">
+            <div className="flex gap-6 overflow-x-auto pb-2 mb-8 w-full custom-scrollbar whitespace-nowrap">
               {tabs.map((tab) => (
                 <button
                   key={tab}
                   onClick={() => setSelectedTab(tab)}
-                  className={`text-lg font-bold pb-1 border-b-2 transition-colors ${
+                  className={`text-lg font-bold pb-1 border-b-2 transition-colors flex-shrink-0 ${
                     selectedTab === tab
                       ? "text-[#FFC107] border-[#FFC107]"
                       : "text-[#BDBDBD] border-transparent hover:text-[#FFC107]"
