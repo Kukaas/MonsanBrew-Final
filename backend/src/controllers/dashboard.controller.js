@@ -38,7 +38,7 @@ export const getDashboardSummary = async (req, res) => {
       status: { $in: ["completed", "refund"] },
     };
 
-    // Calculate sales with refund adjustments
+    // Calculate sales with refund adjustments and exclude delivery fee
     const salesWithRefunds = await Order.aggregate([
       { $match: completedOrdersFilter },
       {
@@ -55,9 +55,9 @@ export const getDashboardSummary = async (req, res) => {
       },
       {
         $addFields: {
-          // Calculate adjusted total (original total minus refunded amount)
+          // Calculate adjusted total (original total minus refunded amount and delivery fee)
           adjustedTotal: {
-            $subtract: ["$total", "$refundedAmount"],
+            $subtract: ["$total", { $add: ["$refundedAmount", 15] }], // Subtract both refund amount and delivery fee (15 pesos)
           },
         },
       },
@@ -186,9 +186,9 @@ export const getSalesData = async (req, res) => {
       },
       {
         $addFields: {
-          // Calculate adjusted total (original total minus refunded amount)
+          // Calculate adjusted total (original total minus refunded amount and delivery fee)
           adjustedTotal: {
-            $subtract: ["$total", "$refundedAmount"],
+            $subtract: ["$total", { $add: ["$refundedAmount", 15] }], // Subtract both refund amount and delivery fee (15 pesos)
           },
         },
       },
@@ -261,9 +261,9 @@ export const getSalesDataWeekly = async (req, res) => {
       },
       {
         $addFields: {
-          // Calculate adjusted total (original total minus refunded amount)
+          // Calculate adjusted total (original total minus refunded amount and delivery fee)
           adjustedTotal: {
-            $subtract: ["$total", "$refundedAmount"],
+            $subtract: ["$total", { $add: ["$refundedAmount", 15] }], // Subtract both refund amount and delivery fee (15 pesos)
           },
         },
       },
@@ -347,9 +347,9 @@ export const getSalesDataMonthly = async (req, res) => {
       },
       {
         $addFields: {
-          // Calculate adjusted total (original total minus refunded amount)
+          // Calculate adjusted total (original total minus refunded amount and delivery fee)
           adjustedTotal: {
-            $subtract: ["$total", "$refundedAmount"],
+            $subtract: ["$total", { $add: ["$refundedAmount", 15] }], // Subtract both refund amount and delivery fee (15 pesos)
           },
         },
       },

@@ -151,7 +151,7 @@ export default function Checkout() {
         }
 
         // Validate address before placing order
-        if (!address || !address.contactNumber || !address.lotNo || !address.street || !address.barangay || !address.municipality || !address.province) {
+        if (!address || !address.contactNumber || !address.lotNo || !address.barangay || !address.municipality || !address.province) {
             toast.error('Please complete your delivery address before placing the order.');
             return;
         }
@@ -260,7 +260,6 @@ export default function Checkout() {
     const isAddressComplete = address &&
         address.contactNumber &&
         address.lotNo &&
-        address.street &&
         address.barangay &&
         address.municipality &&
         address.province;
