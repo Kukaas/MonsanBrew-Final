@@ -13,17 +13,18 @@ import {
   Phone,
   MapPin,
   Key,
-  Bell,
   Camera,
   LogOut,
 } from "lucide-react";
-import { userAPI } from "@/services/api";
+import { userAPI, authAPI } from "@/services/api";
 import { toast } from "sonner";
 import AdminLayout from "@/layouts/AdminLayout";
 import CustomerLayout from "@/layouts/CustomerLayout";
 import RiderLayout from "@/layouts/RiderLayout";
 import PageLayout from "@/layouts/PageLayout";
 import CustomAlertDialog from "@/components/custom/CustomAlertDialog";
+import Form from "@/components/custom/Form";
+import FormInput from "@/components/custom/FormInput";
 import AdminProfileGrid from "@/components/profile/AdminProfileGrid";
 import UserProfileGrid from "@/components/profile/UserProfileGrid";
 import { useMutation } from "@tanstack/react-query";
@@ -49,6 +50,13 @@ export default function Profile() {
   const fileInputRef = useRef();
   const [logoutOpen, setLogoutOpen] = useState(false);
   const [logoutLoading, setLogoutLoading] = useState(false);
+  const [changePasswordOpen, setChangePasswordOpen] = useState(false);
+  const [changePasswordData, setChangePasswordData] = useState({
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: "",
+  });
+  const [changePasswordErrors, setChangePasswordErrors] = useState({});
 
   const addressMutation = useMutation({
     mutationFn: async (addressData) => {
@@ -65,6 +73,28 @@ export default function Profile() {
     onError: (err) => {
       toast.error(err?.message || "Failed to update address.");
       setIsLoading(false);
+    },
+  });
+
+  const changePasswordMutation = useMutation({
+    mutationFn: async (passwordData) => {
+      return await authAPI.changePassword(passwordData);
+    },
+    onSuccess: () => {
+      toast.success("Password changed successfully!");
+      setChangePasswordOpen(false);
+      setChangePasswordData({
+        currentPassword: "",
+        newPassword: "",
+        confirmPassword: "",
+      });
+      setChangePasswordErrors({});
+    },
+    onError: (err) => {
+      toast.error(err?.message || "Failed to change password.");
+      setChangePasswordErrors({
+        currentPassword: err?.message || "Failed to change password.",
+      });
     },
   });
 
@@ -169,13 +199,7 @@ export default function Profile() {
         icon: Key,
         title: "Change Password",
         description: "Update your account password",
-        action: () => console.log("Change Password clicked"),
-      },
-      {
-        icon: Bell,
-        title: "Notification Settings",
-        description: "Manage your notification preferences",
-        action: () => console.log("Notification Settings clicked"),
+        action: () => setChangePasswordOpen(true),
       },
     ];
 
@@ -186,15 +210,6 @@ export default function Profile() {
         title: "Service Area Settings",
         description: "Manage your delivery zones",
         action: () => console.log("Service Area Settings clicked"),
-      });
-    }
-
-    if (user?.role === "admin") {
-      baseActions.push({
-        icon: Shield,
-        title: "System Settings",
-        description: "Manage system configurations",
-        action: () => console.log("System Settings clicked"),
       });
     }
 
@@ -376,6 +391,61 @@ export default function Profile() {
     }
   };
 
+  const handleChangePasswordInput = (e) => {
+    const { name, value } = e.target;
+    setChangePasswordData((prev) => ({ ...prev, [name]: value }));
+    // Clear error when user starts typing
+    if (changePasswordErrors[name]) {
+      setChangePasswordErrors((prev) => ({ ...prev, [name]: "" }));
+    }
+  };
+
+  const validateChangePassword = () => {
+    const errors = {};
+
+    if (!changePasswordData.currentPassword.trim()) {
+      errors.currentPassword = "Current password is required";
+    }
+
+    if (!changePasswordData.newPassword.trim()) {
+      errors.newPassword = "New password is required";
+    } else if (changePasswordData.newPassword.length < 6) {
+      errors.newPassword = "New password must be at least 6 characters";
+    }
+
+    if (!changePasswordData.confirmPassword.trim()) {
+      errors.confirmPassword = "Please confirm your new password";
+    } else if (changePasswordData.newPassword !== changePasswordData.confirmPassword) {
+      errors.confirmPassword = "Passwords do not match";
+    }
+
+    setChangePasswordErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const handleChangePasswordSubmit = (e) => {
+    e.preventDefault();
+
+    if (!validateChangePassword()) {
+      return;
+    }
+
+    changePasswordMutation.mutate({
+      currentPassword: changePasswordData.currentPassword,
+      newPassword: changePasswordData.newPassword,
+    });
+  };
+
+  const handleChangePasswordCancel = () => {
+    setChangePasswordOpen(false);
+    setChangePasswordData({
+      currentPassword: "",
+      newPassword: "",
+      confirmPassword: "",
+    });
+    setChangePasswordErrors({});
+  };
+
   // Render the appropriate layout based on user role
   const renderLayout = (children) => {
     switch (user?.role) {
@@ -423,6 +493,14 @@ export default function Profile() {
         logoutLoading={logoutLoading}
         setLogoutOpen={setLogoutOpen}
         handleLogout={handleLogout}
+        changePasswordOpen={changePasswordOpen}
+        setChangePasswordOpen={setChangePasswordOpen}
+        changePasswordData={changePasswordData}
+        changePasswordErrors={changePasswordErrors}
+        handleChangePasswordInput={handleChangePasswordInput}
+        handleChangePasswordSubmit={handleChangePasswordSubmit}
+        handleChangePasswordCancel={handleChangePasswordCancel}
+        changePasswordMutation={changePasswordMutation}
       />
     ) : ["customer", "rider"].includes(user?.role) ? (
       <UserProfileGrid
@@ -446,6 +524,14 @@ export default function Profile() {
         logoutLoading={logoutLoading}
         setLogoutOpen={setLogoutOpen}
         handleLogout={handleLogout}
+        changePasswordOpen={changePasswordOpen}
+        setChangePasswordOpen={setChangePasswordOpen}
+        changePasswordData={changePasswordData}
+        changePasswordErrors={changePasswordErrors}
+        handleChangePasswordInput={handleChangePasswordInput}
+        handleChangePasswordSubmit={handleChangePasswordSubmit}
+        handleChangePasswordCancel={handleChangePasswordCancel}
+        changePasswordMutation={changePasswordMutation}
       />
     ) : (
       <div className="min-h-screen bg-[#232323] p-4">
@@ -919,6 +1005,71 @@ export default function Profile() {
               </>
             }
           />
+
+          {/* Change Password Dialog */}
+          <CustomAlertDialog
+            open={changePasswordOpen}
+            onOpenChange={changePasswordMutation?.isPending ? undefined : setChangePasswordOpen}
+            title="Change Password"
+            description="Enter your current password and choose a new password"
+          >
+            <Form onSubmit={handleChangePasswordSubmit} className="space-y-4">
+              <FormInput
+                label="Current Password"
+                type="password"
+                name="currentPassword"
+                value={changePasswordData?.currentPassword || ""}
+                onChange={handleChangePasswordInput}
+                error={changePasswordErrors?.currentPassword}
+                variant="dark"
+                placeholder="Enter your current password"
+                required
+              />
+              <FormInput
+                label="New Password"
+                type="password"
+                name="newPassword"
+                value={changePasswordData?.newPassword || ""}
+                onChange={handleChangePasswordInput}
+                error={changePasswordErrors?.newPassword}
+                variant="dark"
+                placeholder="Enter your new password"
+                required
+              />
+              <FormInput
+                label="Confirm New Password"
+                type="password"
+                name="confirmPassword"
+                value={changePasswordData?.confirmPassword || ""}
+                onChange={handleChangePasswordInput}
+                error={changePasswordErrors?.confirmPassword}
+                variant="dark"
+                placeholder="Confirm your new password"
+                required
+              />
+
+              <div className="flex justify-end gap-3 pt-4">
+                <Button
+                  type="button"
+                  variant="yellow-outline"
+                  size="lg"
+                  onClick={handleChangePasswordCancel}
+                  disabled={changePasswordMutation?.isPending}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  variant="yellow"
+                  size="lg"
+                  disabled={changePasswordMutation?.isPending}
+                  loading={changePasswordMutation?.isPending}
+                >
+                  Change Password
+                </Button>
+              </div>
+            </Form>
+          </CustomAlertDialog>
         </div>
       </div>
     );

@@ -1,10 +1,12 @@
-import React from "react";
+import PropTypes from "prop-types";
 import ProfileAvatarCard from "./ProfileAvatarCard";
 import ProfilePersonalInfoCard from "./ProfilePersonalInfoCard";
 import ProfileAccountStatusCard from "./ProfileAccountStatusCard";
 import ProfileQuickActionsCard from "./ProfileQuickActionsCard";
 import ProfileRoleSpecificInfoCard from "./ProfileRoleSpecificInfoCard";
 import CustomAlertDialog from "@/components/custom/CustomAlertDialog";
+import Form from "@/components/custom/Form";
+import FormInput from "@/components/custom/FormInput";
 import { Button } from "@/components/ui/button";
 import ProfileAddressCard from "./ProfileAddressCard";
 
@@ -29,6 +31,14 @@ export default function UserProfileGrid({
   logoutLoading,
   setLogoutOpen,
   handleLogout,
+  changePasswordOpen,
+  setChangePasswordOpen,
+  changePasswordData,
+  changePasswordErrors,
+  handleChangePasswordInput,
+  handleChangePasswordSubmit,
+  handleChangePasswordCancel,
+  changePasswordMutation,
 }) {
   return (
     <div className="min-h-screen bg-[#232323] p-4">
@@ -98,7 +108,102 @@ export default function UserProfileGrid({
             </>
           }
         />
+                 {/* Change Password Dialog */}
+         <CustomAlertDialog
+           open={changePasswordOpen}
+           onOpenChange={changePasswordMutation?.isPending ? undefined : setChangePasswordOpen}
+           title="Change Password"
+           description="Enter your current password and choose a new password"
+         >
+           <Form onSubmit={handleChangePasswordSubmit} className="space-y-4">
+             <FormInput
+               label="Current Password"
+               type="password"
+               name="currentPassword"
+               value={changePasswordData?.currentPassword || ""}
+               onChange={handleChangePasswordInput}
+               error={changePasswordErrors?.currentPassword}
+               variant="dark"
+               placeholder="Enter your current password"
+               required
+             />
+             <FormInput
+               label="New Password"
+               type="password"
+               name="newPassword"
+               value={changePasswordData?.newPassword || ""}
+               onChange={handleChangePasswordInput}
+               error={changePasswordErrors?.newPassword}
+               variant="dark"
+               placeholder="Enter your new password"
+               required
+             />
+             <FormInput
+               label="Confirm New Password"
+               type="password"
+               name="confirmPassword"
+               value={changePasswordData?.confirmPassword || ""}
+               onChange={handleChangePasswordInput}
+               error={changePasswordErrors?.confirmPassword}
+               variant="dark"
+               placeholder="Confirm your new password"
+               required
+             />
+
+             <div className="flex justify-end gap-3 pt-4">
+               <Button
+                 type="button"
+                 variant="yellow-outline"
+                 size="lg"
+                 onClick={handleChangePasswordCancel}
+                 disabled={changePasswordMutation?.isPending}
+               >
+                 Cancel
+               </Button>
+               <Button
+                 type="submit"
+                 variant="yellow"
+                 size="lg"
+                 disabled={changePasswordMutation?.isPending}
+                 loading={changePasswordMutation?.isPending}
+               >
+                 Change Password
+               </Button>
+             </div>
+           </Form>
+         </CustomAlertDialog>
       </div>
     </div>
   );
 }
+
+UserProfileGrid.propTypes = {
+  fileInputRef: PropTypes.object,
+  handleFileChange: PropTypes.func.isRequired,
+  handleAvatarClick: PropTypes.func.isRequired,
+  localPhoto: PropTypes.string,
+  editData: PropTypes.object.isRequired,
+  user: PropTypes.object.isRequired,
+  getRoleDisplayName: PropTypes.func.isRequired,
+  formatDate: PropTypes.func.isRequired,
+  isEditing: PropTypes.bool.isRequired,
+  handleInputChange: PropTypes.func.isRequired,
+  handleEditToggle: PropTypes.func.isRequired,
+  handleSaveProfile: PropTypes.func.isRequired,
+  handleCancel: PropTypes.func.isRequired,
+  isLoading: PropTypes.bool.isRequired,
+  quickActions: PropTypes.array.isRequired,
+  roleSpecificInfo: PropTypes.object,
+  logoutOpen: PropTypes.bool.isRequired,
+  logoutLoading: PropTypes.bool.isRequired,
+  setLogoutOpen: PropTypes.func.isRequired,
+  handleLogout: PropTypes.func.isRequired,
+  changePasswordOpen: PropTypes.bool.isRequired,
+  setChangePasswordOpen: PropTypes.func.isRequired,
+  changePasswordData: PropTypes.object.isRequired,
+  changePasswordErrors: PropTypes.object.isRequired,
+  handleChangePasswordInput: PropTypes.func.isRequired,
+  handleChangePasswordSubmit: PropTypes.func.isRequired,
+  handleChangePasswordCancel: PropTypes.func.isRequired,
+  changePasswordMutation: PropTypes.object.isRequired,
+};
