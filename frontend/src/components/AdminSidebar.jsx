@@ -1,16 +1,12 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   User,
   BarChart2,
   Users,
   Folder,
-  Settings,
-  HelpCircle,
-  Search,
   Database,
   FileText,
-  File,
   LogOut,
   RotateCcw,
   FolderArchiveIcon,
@@ -73,9 +69,6 @@ export default function AdminSidebar() {
       icon: <User size={18} />,
       url: `/profile/${user?._id}`,
     },
-    { title: "Settings", icon: <Settings size={18} />, url: "#" },
-    { title: "Get Help", icon: <HelpCircle size={18} />, url: "#" },
-    { title: "Search", icon: <Search size={18} />, url: "#" },
   ];
 
   const handleLogout = async () => {
@@ -86,7 +79,7 @@ export default function AdminSidebar() {
         navigate("/login");
       }
     } catch (err) {
-      // Optionally show an error toast here
+      console.log(err);
     } finally {
       setLogoutLoading(false);
     }
@@ -94,14 +87,19 @@ export default function AdminSidebar() {
 
   return (
     <Sidebar collapsible="offcanvas">
-      <SidebarContent className="flex flex-col h-full bg-[#181818] text-white justify-between">
-        <div>
+      <SidebarContent className="flex flex-col h-full bg-[#181818] text-white">
+        {/* Header - Fixed */}
+        <div className="flex-shrink-0 p-4 border-b border-[#232323]">
+          <div className="mb-8 flex items-center gap-2 px-2">
+            <span className="text-2xl font-extrabold text-white">
+              Monsan<span className="text-[#FFC107]">Brew</span>
+            </span>
+          </div>
+        </div>
+
+        {/* Scrollable Content */}
+        <div className="flex-1 overflow-y-auto custom-scrollbar">
           <div className="p-4">
-            <div className="mb-8 flex items-center gap-2 px-2">
-              <span className="text-2xl font-extrabold text-white">
-                Monsan<span className="text-[#FFC107]">Brew</span>
-              </span>
-            </div>
             <nav className="mb-6">
               <div className="mb-2 text-xs font-bold text-[#FFC107] uppercase px-2">
                 Main
@@ -143,8 +141,10 @@ export default function AdminSidebar() {
             </nav>
           </div>
         </div>
-        <div>
-          <nav className="mb-2">
+
+        {/* Footer - Fixed */}
+        <div className="flex-shrink-0 border-t border-[#232323]">
+          <nav className="mb-2 p-4">
             <div className="mb-2 text-xs font-bold text-[#FFC107] uppercase px-2">
               More
             </div>
@@ -164,7 +164,7 @@ export default function AdminSidebar() {
               </Link>
             ))}
           </nav>
-          <div className="flex items-center gap-3 px-3 py-3 mt-4">
+          <div className="flex items-center gap-3 px-3 py-3">
             <Avatar className="h-8 w-8 text-black">
               {user?.photo ? (
                 <AvatarImage
