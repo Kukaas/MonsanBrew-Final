@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useParams, Navigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -31,11 +31,6 @@ import { useMutation } from "@tanstack/react-query";
 export default function Profile() {
   const { user, updateUser, logout } = useAuth();
   const { userId } = useParams();
-
-  // Redirect if userId doesn't match current user's ID
-  if (userId && userId !== user?._id) {
-    return <Navigate to={`/profile/${user?._id}`} replace />;
-  }
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [editData, setEditData] = useState({
@@ -55,6 +50,24 @@ export default function Profile() {
   const [logoutOpen, setLogoutOpen] = useState(false);
   const [logoutLoading, setLogoutLoading] = useState(false);
 
+  const addressMutation = useMutation({
+    mutationFn: async (addressData) => {
+      return await userAPI.updateAddress(addressData);
+    },
+    onSuccess: (response) => {
+      toast.success("Address updated successfully!");
+      if (response && response.user) {
+        updateUser(response.user);
+      }
+      setIsEditing(false);
+      setIsLoading(false);
+    },
+    onError: (err) => {
+      toast.error(err?.message || "Failed to update address.");
+      setIsLoading(false);
+    },
+  });
+
   useEffect(() => {
     if (!isEditing) {
       setEditData({
@@ -72,6 +85,11 @@ export default function Profile() {
       setLocalPhoto(user?.photo || "");
     }
   }, [isEditing, user]);
+
+  // Redirect if userId doesn't match current user's ID
+  if (userId && userId !== user?._id) {
+    return <Navigate to={`/profile/${user?._id}`} replace />;
+  }
 
   const formatDate = (dateString) => {
     if (!dateString) return "Not available";
@@ -304,24 +322,6 @@ export default function Profile() {
     const { name, value } = e.target;
     setEditData((prev) => ({ ...prev, [name]: value }));
   };
-
-  const addressMutation = useMutation({
-    mutationFn: async (addressData) => {
-      return await userAPI.updateAddress(addressData);
-    },
-    onSuccess: (response) => {
-      toast.success("Address updated successfully!");
-      if (response && response.user) {
-        updateUser(response.user);
-      }
-      setIsEditing(false);
-      setIsLoading(false);
-    },
-    onError: (err) => {
-      toast.error(err?.message || "Failed to update address.");
-      setIsLoading(false);
-    },
-  });
 
   const handleSaveProfile = async () => {
     setIsLoading(true);

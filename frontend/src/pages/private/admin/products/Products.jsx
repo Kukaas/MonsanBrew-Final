@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import AdminLayout from "@/layouts/AdminLayout";
 import PageLayout from "@/layouts/PageLayout";
 import DataTable from "@/components/custom/DataTable";
@@ -9,7 +9,6 @@ import {
     DropdownMenuContent,
     DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
-import { Badge } from "@/components/ui/badge";
 import { CheckCircle2, XCircle, MoreVertical } from 'lucide-react';
 import { useNavigate } from "react-router-dom";
 import { productAPI } from "@/services/api";
@@ -23,7 +22,6 @@ import { categoryAPI } from "@/services/api";
 import { Select, SelectTrigger, SelectContent, SelectItem } from "@/components/ui/select";
 
 const statusOptions = ["Available", "Not Available"];
-const sizeOptions = ["Small", "Medium", "Large", "Extra Large"];
 
 export default function Products() {
     const navigate = useNavigate();

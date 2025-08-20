@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { userAPI } from '@/services/api';
 import { useAuth } from '@/context/AuthContext';
@@ -35,14 +35,14 @@ export default function Address() {
             })
             .catch(() => {
                 setForm({
-                    contactNumber,
-                    lotNo,
-                    purok,
-                    street,
-                    landmark,
-                    barangay,
-                    municipality,
-                    province,
+                    contactNumber: '',
+                    lotNo: '',
+                    purok: '',
+                    street: '',
+                    landmark: '',
+                    barangay: '',
+                    municipality: '',
+                    province: '',
                 });
             })
             .finally(() => setLoading(false));
@@ -61,7 +61,8 @@ export default function Address() {
             setTimeout(() => {
                 navigate(returnTo);
             }, 1000);
-        } catch (err) {
+        } catch (error) {
+            console.error('Failed to update address:', error);
             toast.error('Failed to update address.');
         } finally {
             setSaving(false);

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { orderAPI } from '@/services/api';
@@ -18,7 +18,7 @@ export default function Orders() {
     const userId = params?.userId || user?._id;
 
     // Use React Query for fetching orders
-    const { data: orders = [], error, isLoading } = useQuery({
+    const { data: orders = [], isLoading } = useQuery({
         queryKey: ['orders', userId],
         queryFn: async () => {
             if (!userId) return [];

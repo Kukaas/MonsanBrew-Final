@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import AdminLayout from "@/layouts/AdminLayout";
 import PageLayout from "@/layouts/PageLayout";
 import DataTable from "@/components/custom/DataTable";
@@ -19,12 +19,6 @@ import { DropdownMenuLabel } from "@radix-ui/react-dropdown-menu";
 import { Separator } from "@/components/ui/separator";
 import CustomAlertDialog from "@/components/custom/CustomAlertDialog";
 import { AlertDialogCancel } from "@/components/ui/alert-dialog";
-import {
-  Select,
-  SelectTrigger,
-  SelectContent,
-  SelectItem,
-} from "@/components/ui/select";
 import {
   getRoleColor,
   getRoleIcon,

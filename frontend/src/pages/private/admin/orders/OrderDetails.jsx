@@ -1,4 +1,3 @@
-import React from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { orderAPI, reviewAPI } from "@/services/api";
@@ -9,11 +8,9 @@ import {
   ArrowLeft,
   User,
   MapPin,
-  CreditCard,
   Clock,
   Package,
   Truck,
-  Camera,
   Star,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -22,7 +19,6 @@ import {
   getStatusColor,
   getStatusLabel,
   getStatusIcon,
-  getStatusTextColor,
 } from "@/lib/utils";
 import StatusBadge from "@/components/custom/StatusBadge";
 import ImageDisplay from "@/components/custom/ImageDisplay";
@@ -160,7 +156,7 @@ export default function OrderDetails() {
                 Order Not Found
               </h3>
               <p className="text-[#BDBDBD] text-lg">
-                The order you're looking for doesn't exist or has been removed.
+                The order you&apos;re looking for doesn&apos;t exist or has been removed.
               </p>
             </div>
           </div>
@@ -404,7 +400,7 @@ export default function OrderDetails() {
                               No review submitted yet
                             </span>
                             <p className="text-gray-500 text-sm mt-2">
-                              Customer hasn't reviewed this order
+                              Customer hasn&apos;t reviewed this order
                             </p>
                           </div>
                         </div>

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import AdminLayout from "@/layouts/AdminLayout";
 import PageLayout from "@/layouts/PageLayout";
 import DataTable from "@/components/custom/DataTable";
@@ -19,7 +19,7 @@ import FormInput from '@/components/custom/FormInput';
 import { toast } from "sonner";
 import { AlertDialogCancel } from '@/components/ui/alert-dialog';
 import { Separator } from "@/components/ui/separator";
-import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '@/components/ui/select';
+import { Select, SelectTrigger, SelectContent, SelectItem } from '@/components/ui/select';
 import ImageUpload from '@/components/custom/ImageUpload';
 
 const statusOptions = ["Available", "Not Available"];
@@ -164,10 +164,10 @@ export default function AddOns() {
             return;
         }
         setUpdating(true);
-        updateMutate({ 
-            id: editAddon._id, 
-            name: editName.trim(), 
-            price: Number(editPrice), 
+        updateMutate({
+            id: editAddon._id,
+            name: editName.trim(),
+            price: Number(editPrice),
             image: editImage,
             isAvailable: editAddon.isAvailable
         });

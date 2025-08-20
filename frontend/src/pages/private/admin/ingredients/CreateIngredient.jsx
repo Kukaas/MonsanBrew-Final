@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ingredientsAPI, rawMaterialsAPI } from "@/services/api";
 import AdminLayout from "@/layouts/AdminLayout";
@@ -52,7 +52,6 @@ export default function CreateIngredient() {
   const {
     data: rawMaterials,
     isLoading: loadingRawMaterials,
-    error: errorRawMaterials,
   } = useQuery({
     queryKey: ["raw-materials"],
     queryFn: async () => {
@@ -74,7 +73,7 @@ export default function CreateIngredient() {
     mutationFn: async (newIngredient) => {
       return await ingredientsAPI.create(newIngredient);
     },
-    onSuccess: (data) => {
+    onSuccess: () => {
       setShowSaving(false);
       queryClient.invalidateQueries(["ingredients"]);
       const message = existingIngredient

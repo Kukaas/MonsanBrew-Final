@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useLocation, useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { userAPI, orderAPI, cartAPI, addonsAPI } from '@/services/api';
@@ -43,7 +43,7 @@ export default function Checkout() {
                 try {
                     const item = JSON.parse(storedItem);
                     setBuyNowItem(item);
-                    
+
                     // Fetch add-ons details if there are any
                     if (item.addOns && item.addOns.length > 0) {
                         setLoadingBuyNow(true);
@@ -114,7 +114,7 @@ export default function Checkout() {
     const deliveryFee = 15;
 
     // Calculate total with proper validation
-    const subtotal = isBuyNow ? 
+    const subtotal = isBuyNow ?
         (() => {
             if (!buyNowItem) return 0;
             const itemPrice = Number(buyNowItem.price) || 0;
@@ -125,8 +125,8 @@ export default function Checkout() {
         selectedCart.reduce((sum, item) => {
             if (!item || typeof item.price !== 'number') return sum;
             const itemPrice = Number(item.price) || 0;
-            const addOnsPrice = (item.addOns && Array.isArray(item.addOns)) 
-                ? item.addOns.reduce((s, a) => s + (Number(a.price) || 0), 0) 
+            const addOnsPrice = (item.addOns && Array.isArray(item.addOns))
+                ? item.addOns.reduce((s, a) => s + (Number(a.price) || 0), 0)
                 : 0;
             const quantity = Number(item.quantity) || 1;
             return sum + ((itemPrice + addOnsPrice) * quantity);
@@ -160,7 +160,7 @@ export default function Checkout() {
         try {
             // Prepare order data
             let orderData;
-            
+
             if (isBuyNow) {
                 // Buy now order
                 orderData = {
@@ -183,12 +183,12 @@ export default function Checkout() {
                 };
             } else {
                 // Cart order
-                const validItems = selectedCart.filter(item => 
-                    item && 
-                    item.product && 
-                    item.productName && 
-                    typeof item.price === 'number' && 
-                    typeof item.quantity === 'number' && 
+                const validItems = selectedCart.filter(item =>
+                    item &&
+                    item.product &&
+                    item.productName &&
+                    typeof item.price === 'number' &&
+                    typeof item.quantity === 'number' &&
                     item.quantity > 0
                 );
 
@@ -234,7 +234,7 @@ export default function Checkout() {
                 // Clear buy now data
                 sessionStorage.removeItem('buyNowItem');
             }
-            
+
             toast.success('Order placed successfully!');
             setTimeout(() => {
                 navigate(`/order/user/${user?._id || userId}`);
@@ -255,14 +255,14 @@ export default function Checkout() {
     // Payment method state
     // Place order button enabled logic
     const canPlaceOrder = (paymentMethod === 'cod') || (paymentMethod === 'gcash' && referenceNumber.trim() && proofImage);
-    
+
     // Address validation for order placement
-    const isAddressComplete = address && 
-        address.contactNumber && 
-        address.lotNo && 
-        address.street && 
-        address.barangay && 
-        address.municipality && 
+    const isAddressComplete = address &&
+        address.contactNumber &&
+        address.lotNo &&
+        address.street &&
+        address.barangay &&
+        address.municipality &&
         address.province;
 
     // Final order placement validation
@@ -352,10 +352,10 @@ export default function Checkout() {
                     variant="yellow"
                     size="sm"
                     className="ml-auto mt-2"
-                    onClick={() => navigate('/profile/address', { 
-                        state: { 
-                            returnTo: isBuyNow ? `/checkout/${user._id}?buyNow=true` : `/checkout/${userId}` 
-                        } 
+                    onClick={() => navigate('/profile/address', {
+                        state: {
+                            returnTo: isBuyNow ? `/checkout/${user._id}?buyNow=true` : `/checkout/${userId}`
+                        }
                     })}
                     disabled={addressLoading}
                 >Edit</Button>

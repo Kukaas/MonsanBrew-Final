@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { productAPI } from "@/services/api";
 import CustomerLayout from "@/layouts/CustomerLayout";
@@ -53,7 +53,6 @@ export default function Favorites() {
       setUnfavoriteLoadingId(null);
     },
   });
-  const isUnfavoriteLoading = unfavoriteMutation.isLoading;
 
   const [shareOpen, setShareOpen] = useState(null); // productId or null
   const [showQR, setShowQR] = useState(false);
@@ -77,7 +76,7 @@ export default function Favorites() {
               No favorites yet
             </div>
             <div className="text-gray-500 mb-6 text-center">
-              You haven't added any products to your favorites.
+              You haven&apos;t added any products to your favorites.
             </div>
             <Button
               variant="yellow"
@@ -112,10 +111,9 @@ export default function Favorites() {
                 </div>
               ))
             : favorites.map((product) => {
-                const favorite = true;
                 const url = `${window.location.origin}/product/${product._id}`;
                 // Inline SVG QR code (placeholder, not a real QR code)
-                const QRCodeSVG = (
+                (
                   <svg
                     width="120"
                     height="120"

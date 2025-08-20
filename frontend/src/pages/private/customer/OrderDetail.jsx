@@ -1,21 +1,18 @@
-import React from "react";
-import { useParams, useNavigate } from "react-router-dom";
+  import { useNavigate, useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { orderAPI, reviewAPI } from "@/services/api";
-import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   ArrowLeft,
   MapPin,
-  Phone,
   Clock,
-  CreditCard,
   Package,
+  RotateCcw,
   Camera,
   Star,
-  RotateCcw,
+  CreditCard,
+  Phone,
 } from "lucide-react";
 import CustomerLayout from "@/layouts/CustomerLayout";
 import OrderStatusBadge from "@/components/orders/OrderStatusBadge";
@@ -24,8 +21,6 @@ import { toast } from "sonner";
 export default function OrderDetail() {
   const { orderId } = useParams();
   const navigate = useNavigate();
-  const { user } = useAuth();
-
   // Fetch single order details using Tanstack Query
   const {
     data: order,
@@ -206,7 +201,7 @@ export default function OrderDetail() {
                   <h2 className="text-2xl font-bold">Order Not Found</h2>
                 </div>
                 <p className="text-gray-600 mb-6">
-                  The order you're looking for doesn't exist or has been
+                  The order you&apos;re looking for doesn&apos;t exist or has been
                   removed.
                 </p>
                 <Button

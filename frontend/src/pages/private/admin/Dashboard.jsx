@@ -1,22 +1,15 @@
-import React, { useState, useEffect } from "react";
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import AdminLayout from "@/layouts/AdminLayout";
 import DashCard from "@/components/custom/DashCard";
 import DataTable from "@/components/custom/DataTable";
 import CustomSelect from "@/components/custom/CustomSelect";
 import CustomDateRangePicker from "@/components/custom/CustomDateRangePicker";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   ShoppingCart,
   DollarSign,
-  Package,
-  Users,
-  Star,
-  AlertTriangle,
   TrendingUp,
-  RefreshCw,
-  Calendar,
   Filter,
   RotateCcw,
 } from "lucide-react";
@@ -77,7 +70,8 @@ function fillDays(data, fromDate, toDate, keys = []) {
 }
 
 // Helper to generate all week labels in a range (e.g., 'Week 1', 'Week 2', ...)
-function fillWeeks(data, fromDate, toDate, keys = []) {
+// eslint-disable-next-line no-unused-vars
+  function fillWeeks(data, fromDate, toDate, keys = []) {
   const start = new Date(fromDate);
   const end = new Date(toDate);
   const result = [];
@@ -99,7 +93,6 @@ function fillWeeks(data, fromDate, toDate, keys = []) {
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  const [selectedMaterialId, setSelectedMaterialId] = useState(null);
   // Always use the current month for the date range
   const firstDayOfMonth = dayjs().startOf("month").toDate();
   const lastDayOfMonth = dayjs().endOf("month").toDate();
@@ -119,8 +112,6 @@ export default function Dashboard() {
   // Dashboard summary query
   const {
     data: summaryData,
-    isLoading: summaryLoading,
-    refetch: refetchSummary,
   } = useQuery({
     queryKey: ["dashboard-summary", dateRange, statusFilter],
     queryFn: async () => {
@@ -138,7 +129,7 @@ export default function Dashboard() {
   });
 
   // Sales data query
-  const { data: salesData, isLoading: salesLoading } = useQuery({
+  const { data: salesData } = useQuery({
     queryKey: ["dashboard-sales", dateRange, groupBy],
     queryFn: async () => {
       if (groupBy === "month") {
@@ -179,7 +170,6 @@ export default function Dashboard() {
 
   const summary = summaryData?.summary || {};
   const ordersByStatus = summaryData?.ordersByStatus || [];
-  const topProducts = summaryData?.topProducts || [];
   const recentOrders = recentOrdersData?.recentOrders || [];
   const salesChartData = salesData?.salesData || [];
 
@@ -220,7 +210,7 @@ export default function Dashboard() {
   }
 
   // Format orders by status for chart (no change needed for months)
-  const formattedOrdersByStatus = ordersByStatus.map((item) => ({
+  ordersByStatus.map((item) => ({
     status: item._id?.replace("_", " ").toUpperCase() || "Unknown",
     count: item.count,
   }));
@@ -282,14 +272,6 @@ export default function Dashboard() {
     { value: "week", label: "Weekly" },
     { value: "month", label: "Monthly" },
   ];
-
-  // Custom tooltip formatter
-  const formatTooltip = (value, name) => {
-    if (name === "sales") {
-      return [`₱${value.toLocaleString()}`, "Sales"];
-    }
-    return [value, name];
-  };
 
   return (
     <AdminLayout>

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { orderAPI } from "@/services/api";
 import { useAuth } from "@/context/AuthContext";
@@ -8,15 +8,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
   MapPin,
-  Phone,
   Package,
   User,
   Truck,
-  TrendingUp,
   Clock,
   CheckCircle,
   DollarSign,
-  Calendar,
   Navigation,
   Zap,
 } from "lucide-react";
@@ -120,10 +117,6 @@ export default function Home() {
   // Fixed delivery fee of ₱15 per delivery
   const deliveryFee = 15;
   const totalEarnings = recentCompletedOrders.length * deliveryFee;
-  const averageOrderValue =
-    recentCompletedOrders.length > 0
-      ? totalEarnings / recentCompletedOrders.length
-      : 0;
 
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString("en-US", {

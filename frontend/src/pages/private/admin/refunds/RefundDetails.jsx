@@ -1,4 +1,3 @@
-import React from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { orderAPI } from "@/services/api";
@@ -166,7 +165,8 @@ export default function RefundDetails() {
                 Refund Not Found
               </h3>
               <p className="text-[#BDBDBD] text-lg">
-                The refund you're looking for doesn't exist or has been removed.
+                The refund you&apos;re looking for doesn&apos;t exist or has
+                been removed.
               </p>
             </div>
           </div>

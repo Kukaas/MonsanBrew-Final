@@ -1,11 +1,10 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { orderAPI } from "@/services/api";
 import { useAuth } from "@/context/AuthContext";
 import RiderLayout from "@/layouts/RiderLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import {
   MapPin,
   Phone,
@@ -14,7 +13,6 @@ import {
   CheckCircle,
   Camera,
 } from "lucide-react";
-import { getStatusColor, getStatusLabel, getStatusIcon } from "@/lib/utils";
 import { toast } from "sonner";
 import CustomAlertDialog from "@/components/custom/CustomAlertDialog";
 import { AlertDialogCancel } from "@/components/ui/alert-dialog";
@@ -424,7 +422,7 @@ export default function Orders() {
                     No Active Orders
                   </div>
                   <div className="text-gray-500 mb-6 text-center">
-                    You don't have any orders currently out for delivery.
+                    You don&apos;t have any orders currently out for delivery.
                   </div>
                   <Button
                     variant="yellow"
@@ -457,7 +455,7 @@ export default function Orders() {
                     No Completed Orders
                   </div>
                   <div className="text-gray-500 mb-6 text-center">
-                    You haven't completed any orders yet.
+                    You haven&apos;t completed any orders yet.
                   </div>
                   <Button
                     variant="yellow"

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import AdminLayout from "@/layouts/AdminLayout";
 import PageLayout from "@/layouts/PageLayout";

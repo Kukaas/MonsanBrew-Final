@@ -71,8 +71,6 @@ export default function ProductDetail() {
   // Fetch reviews for this product (paginated)
   const {
     data: reviewsData,
-    isLoading: reviewsLoading,
-    refetch: refetchReviews,
     isFetching: isFetchingReviews,
   } = useQuery({
     queryKey: ["product-reviews", id, reviewPage],
@@ -260,7 +258,7 @@ export default function ProductDetail() {
       setSelectedAddons([]);
       // Reset selected image to first
       if (images[0]) setSelectedImage(images[0]);
-    } catch (err) {
+    } catch {
       toast.error("Failed to add to cart.");
       setAddCartLoading(false);
     }
@@ -296,7 +294,7 @@ export default function ProductDetail() {
 
       // Navigate to checkout page
       navigate(`/checkout/${user._id}?buyNow=true`);
-    } catch (err) {
+    } catch {
       toast.error("Failed to proceed to checkout.");
       setBuyNowLoading(false);
     }

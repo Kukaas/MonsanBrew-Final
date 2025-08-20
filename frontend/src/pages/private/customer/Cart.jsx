@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { cartAPI } from "@/services/api";
 import CustomerLayout from "@/layouts/CustomerLayout";
@@ -32,7 +32,6 @@ export default function Cart() {
   const {
     data: cart = [],
     isLoading,
-    refetch,
   } = useQuery({
     queryKey: ["cart", userId],
     queryFn: () =>
@@ -78,7 +77,6 @@ export default function Cart() {
   // Per-item loading state
   // loadingItem: { key: groupKey, action: 'inc' | 'dec' | 'del' } | null
   const [loadingItem, setLoadingItem] = useState(null);
-  const [deletingItem, setDeletingItem] = useState(null); // key of item being deleted
 
   // Helper to get group key for a cart item
   function getGroupKey(item) {
@@ -146,7 +144,6 @@ export default function Cart() {
       queryClient.invalidateQueries({ queryKey: ["cart", userId] });
     },
   });
-  const isDeleting = deleteGroupMutation.isLoading;
 
   // Handle quantity update
   const handleUpdateQuantity = (group, delta) => {
@@ -237,7 +234,7 @@ export default function Cart() {
               Your cart is empty
             </div>
             <div className="text-gray-500 mb-6 text-center">
-              Looks like you haven't added anything yet.
+              Looks like you haven&apos;t added anything yet.
             </div>
             <Button
               variant="yellow"
