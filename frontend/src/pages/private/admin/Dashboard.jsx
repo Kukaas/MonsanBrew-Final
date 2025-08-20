@@ -192,13 +192,13 @@ export default function Dashboard() {
               .format("MMMM")
           : item.month,
     }));
-    formattedSalesData = fillMonths(formattedSalesData, ["sales", "orders"]);
+    formattedSalesData = fillMonths(formattedSalesData, ["sales", "expenses", "orders"]);
   } else if (groupBy === "day") {
     formattedSalesData = fillDays(
       formattedSalesData,
       dateRange.from,
       dateRange.to,
-      ["sales", "orders"]
+      ["sales", "expenses", "orders"]
     );
   } else if (groupBy === "week") {
     // Use week label from API, do not fill weeks (backend already fills)
@@ -336,73 +336,77 @@ export default function Dashboard() {
             iconColor="text-green-400"
           />
           <DashCard
-            title="Pending Orders"
-            value={summary.pendingOrders?.toLocaleString() || "0"}
+            title="Total Expenses"
+            value={`₱${summary.totalExpenses?.toLocaleString() || "0"}`}
             icon={TrendingUp}
             gradientFrom="from-[#232323]"
             gradientTo="to-[#1a1a1a]"
-            borderColor="border-indigo-400/30"
-            iconBgColor="bg-indigo-400/20"
-            iconColor="text-indigo-400"
+            borderColor="border-red-400/30"
+            iconBgColor="bg-red-400/20"
+            iconColor="text-red-400"
           />
           <DashCard
-            title="Processed Refunds"
-            value={summary.processedRefundOrders?.toLocaleString() || "0"}
+            title="Net Profit"
+            value={`₱${summary.netProfit?.toLocaleString() || "0"}`}
             icon={RotateCcw}
             gradientFrom="from-[#232323]"
             gradientTo="to-[#1a1a1a]"
-            borderColor="border-orange-400/30"
-            iconBgColor="bg-orange-400/20"
-            iconColor="text-orange-400"
+            borderColor={summary.netProfit >= 0 ? "border-green-400/30" : "border-red-400/30"}
+            iconBgColor={summary.netProfit >= 0 ? "bg-green-400/20" : "bg-red-400/20"}
+            iconColor={summary.netProfit >= 0 ? "text-green-400" : "text-red-400"}
           />
         </div>
 
         {/* Charts Section */}
         <div className="grid grid-cols-1 gap-6">
           {/* Sales Chart (Full Width) */}
-          <DashboardAreaChart
-            data={
-              groupBy === "month"
-                ? formattedSalesData.map((item) => ({
-                    ...item,
-                    date: item.month,
-                  }))
-                : groupBy === "day"
-                ? formattedSalesData.map((item) => ({
-                    ...item,
-                    date: item.day,
-                  }))
-                : groupBy === "week"
-                ? formattedSalesData
-                : formattedSalesData
-            }
-            config={{
-              sales: {
-                label: "Sales",
-                color: "#F59E0B", // yellowish (amber)
-              },
-            }}
-            title="Sales Overview"
-            description="Sales and order trends for the selected period"
-            areaKeys={["sales"]}
-            dateKey={
-              groupBy === "month"
-                ? "month"
-                : groupBy === "day"
-                ? "day"
-                : groupBy === "week"
-                ? "week"
-                : "date"
-            }
-            defaultTimeRange={
-              groupBy === "month" ? "90d" : groupBy === "week" ? "30d" : "7d"
-            }
-            timeRangeOptions={[
-              { value: "90d", label: "Last 3 months" },
-              { value: "30d", label: "Last 30 days" },
-              { value: "7d", label: "Last 7 days" },
-            ]}
-          />
+                     <DashboardAreaChart
+             data={
+               groupBy === "month"
+                 ? formattedSalesData.map((item) => ({
+                     ...item,
+                     date: item.month,
+                   }))
+                 : groupBy === "day"
+                 ? formattedSalesData.map((item) => ({
+                     ...item,
+                     date: item.day,
+                   }))
+                 : groupBy === "week"
+                 ? formattedSalesData
+                 : formattedSalesData
+             }
+             config={{
+               sales: {
+                 label: "Sales",
+                 color: "#F59E0B", // yellowish (amber)
+               },
+               expenses: {
+                 label: "Expenses",
+                 color: "#EF4444", // red
+               },
+             }}
+             title="Sales & Expenses Overview"
+             description="Sales and expenses trends for the selected period"
+             areaKeys={["sales", "expenses"]}
+             dateKey={
+               groupBy === "month"
+                 ? "month"
+                 : groupBy === "day"
+                 ? "day"
+                 : groupBy === "week"
+                 ? "week"
+                 : "date"
+             }
+             defaultTimeRange={
+               groupBy === "month" ? "90d" : groupBy === "week" ? "30d" : "7d"
+             }
+             timeRangeOptions={[
+               { value: "90d", label: "Last 3 months" },
+               { value: "30d", label: "Last 30 days" },
+               { value: "7d", label: "Last 7 days" },
+             ]}
+           />
         </div>
 
         {/* Tables Section */}

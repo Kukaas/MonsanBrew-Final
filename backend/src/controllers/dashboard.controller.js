@@ -3,6 +3,7 @@ import Product from "../models/products.model.js";
 import User from "../models/user.model.js";
 import Review from "../models/review.model.js";
 import Inventory from "../models/inventory.model.js";
+import Expense from "../models/expense.model.js";
 
 // Get dashboard summary statistics
 export const getDashboardSummary = async (req, res) => {
@@ -93,6 +94,12 @@ export const getDashboardSummary = async (req, res) => {
       refundStatus: "refund_processed",
     });
 
+    // Get total expenses for the period
+    const totalExpenses = await Expense.aggregate([
+      { $match: dateFilter },
+      { $group: { _id: null, total: { $sum: "$amount" } } },
+    ]);
+
     // Get orders by status for status breakdown
     const ordersByStatus = await Order.aggregate([
       { $match: dateFilter },
@@ -109,6 +116,8 @@ export const getDashboardSummary = async (req, res) => {
       summary: {
         totalOrders,
         totalSales: salesWithRefunds.length > 0 ? salesWithRefunds[0].total : 0,
+        totalExpenses: totalExpenses.length > 0 ? totalExpenses[0].total : 0,
+        netProfit: (salesWithRefunds.length > 0 ? salesWithRefunds[0].total : 0) - (totalExpenses.length > 0 ? totalExpenses[0].total : 0),
         totalReviews,
         pendingOrders,
         processedRefundOrders,
@@ -204,18 +213,35 @@ export const getSalesData = async (req, res) => {
       },
     ]);
 
+    // Get expenses data for the same period
+    const expensesData = await Expense.aggregate([
+      {
+        $match: {
+          date: { $gte: start, $lte: end },
+        },
+      },
+      {
+        $group: {
+          _id: groupByField,
+          expenses: { $sum: "$amount" },
+        },
+      },
+    ]);
+
     // Fill in missing dates with zero values
     const filledData = [];
     const current = new Date(start);
 
     while (current <= end) {
       const dateKey = current.toISOString().split("T")[0]; // YYYY-MM-DD format
-      const existingData = salesData.find((item) => item._id === dateKey);
+      const existingSalesData = salesData.find((item) => item._id === dateKey);
+      const existingExpensesData = expensesData.find((item) => item._id === dateKey);
 
       filledData.push({
         date: dateKey,
-        sales: existingData ? existingData.sales : 0,
-        orders: existingData ? existingData.orders : 0,
+        sales: existingSalesData ? existingSalesData.sales : 0,
+        expenses: existingExpensesData ? existingExpensesData.expenses : 0,
+        orders: existingSalesData ? existingSalesData.orders : 0,
       });
 
       current.setDate(current.getDate() + 1);
@@ -281,6 +307,24 @@ export const getSalesDataWeekly = async (req, res) => {
         $sort: { "_id.year": 1, "_id.week": 1 },
       },
     ]);
+    // Get expenses data for the same period
+    const expensesData = await Expense.aggregate([
+      {
+        $match: {
+          date: { $gte: start, $lte: end },
+        },
+      },
+      {
+        $group: {
+          _id: {
+            year: { $year: "$date" },
+            week: { $isoWeek: "$date" },
+          },
+          expenses: { $sum: "$amount" },
+        },
+      },
+    ]);
+
     // Fill missing weeks
     const filledData = [];
     let current = new Date(start);
@@ -291,13 +335,17 @@ export const getSalesDataWeekly = async (req, res) => {
       const year = current.getFullYear();
       const week = getISOWeek(current);
       const key = `${year}-W${week}`;
-      const existing = salesData.find(
+      const existingSales = salesData.find(
+        (item) => item._id.year === year && item._id.week === week
+      );
+      const existingExpenses = expensesData.find(
         (item) => item._id.year === year && item._id.week === week
       );
       filledData.push({
         week: key,
-        sales: existing ? existing.sales : 0,
-        orders: existing ? existing.orders : 0,
+        sales: existingSales ? existingSales.sales : 0,
+        expenses: existingExpenses ? existingExpenses.expenses : 0,
+        orders: existingSales ? existingSales.orders : 0,
       });
       current.setDate(current.getDate() + 7);
     }
@@ -364,14 +412,34 @@ export const getSalesDataMonthly = async (req, res) => {
         $sort: { "_id.month": 1 },
       },
     ]);
+    // Get expenses data for the same year
+    const expensesData = await Expense.aggregate([
+      {
+        $match: {
+          date: {
+            $gte: new Date(`${targetYear}-01-01T00:00:00.000Z`),
+            $lte: new Date(`${targetYear}-12-31T23:59:59.999Z`),
+          },
+        },
+      },
+      {
+        $group: {
+          _id: { month: { $month: "$date" } },
+          expenses: { $sum: "$amount" },
+        },
+      },
+    ]);
+
     // Fill missing months
     const filledData = [];
     for (let m = 1; m <= 12; m++) {
-      const existing = salesData.find((item) => item._id.month === m);
+      const existingSales = salesData.find((item) => item._id.month === m);
+      const existingExpenses = expensesData.find((item) => item._id.month === m);
       filledData.push({
         month: m,
-        sales: existing ? existing.sales : 0,
-        orders: existing ? existing.orders : 0,
+        sales: existingSales ? existingSales.sales : 0,
+        expenses: existingExpenses ? existingExpenses.expenses : 0,
+        orders: existingSales ? existingSales.orders : 0,
       });
     }
     res.status(200).json({ salesData: filledData });

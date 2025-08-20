@@ -42,6 +42,7 @@ import ChangePassword from "./pages/public/ChangePassword.jsx";
 import Ingredients from "./pages/private/admin/ingredients/Ingredients.jsx";
 import CreateIngredient from "./pages/private/admin/ingredients/CreateIngredient.jsx";
 import ViewIngredient from "./pages/private/admin/ingredients/ViewIngredient.jsx";
+import Expenses from "./pages/private/admin/expenses/Expenses.jsx";
 
 function RootRedirect() {
   const { user, loading } = useAuth();
@@ -239,6 +240,15 @@ function App() {
           element={
             <RequireAuth allowedRoles={["admin"]}>
               <ViewIngredient />
+            </RequireAuth>
+          }
+        />
+
+        <Route
+          path="/admin/expenses"
+          element={
+            <RequireAuth allowedRoles={["admin"]}>
+              <Expenses />
             </RequireAuth>
           }
         />

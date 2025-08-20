@@ -127,7 +127,7 @@ export default function DashboardAreaChart({
                 type="monotone"
                 fill={`url(#fill${key})`}
                 stroke={`var(--color-${key})`}
-                stackId="a"
+                strokeWidth={2}
               />
             ))}
             <ChartLegend content={<ChartLegendContent />} />
@@ -136,4 +136,4 @@ export default function DashboardAreaChart({
       </CardContent>
     </Card>
   );
-} 
+}

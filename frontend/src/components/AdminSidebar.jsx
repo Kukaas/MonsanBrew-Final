@@ -10,6 +10,7 @@ import {
   LogOut,
   RotateCcw,
   FolderArchiveIcon,
+  DollarSign,
 } from "lucide-react";
 import { Sidebar, SidebarContent, SidebarSeparator } from "./ui/sidebar";
 import { Avatar, AvatarImage, AvatarFallback } from "./ui/avatar";
@@ -25,6 +26,7 @@ const navMain = [
   },
   { title: "Orders", icon: <FileText size={20} />, url: "/admin/orders" },
   { title: "Refunds", icon: <RotateCcw size={20} />, url: "/admin/refunds" },
+  { title: "Expenses", icon: <DollarSign size={18} />, url: "/admin/expenses" },
 ];
 const navMaintenance = [
   {

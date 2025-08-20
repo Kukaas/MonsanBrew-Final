@@ -369,3 +369,45 @@ export const dashboardAPI = {
     return await api.get("/dashboard/low-stock");
   },
 };
+
+// Expenses API functions
+export const expensesAPI = {
+  // Create expense
+  create: async (data) => {
+    return await api.post("/expenses", data);
+  },
+  // Get all expenses with filters
+  getAll: async (filters = {}) => {
+    const params = new URLSearchParams();
+    if (filters.startDate) params.append("startDate", filters.startDate);
+    if (filters.endDate) params.append("endDate", filters.endDate);
+    if (filters.category) params.append("category", filters.category);
+    if (filters.paymentMethod) params.append("paymentMethod", filters.paymentMethod);
+    if (filters.minAmount) params.append("minAmount", filters.minAmount);
+    if (filters.maxAmount) params.append("maxAmount", filters.maxAmount);
+    if (filters.page) params.append("page", filters.page);
+    if (filters.limit) params.append("limit", filters.limit);
+
+    return await api.get(`/expenses?${params.toString()}`);
+  },
+  // Get expense by ID
+  getById: async (id) => {
+    return await api.get(`/expenses/${id}`);
+  },
+  // Update expense
+  update: async (id, data) => {
+    return await api.put(`/expenses/${id}`, data);
+  },
+  // Delete expense
+  delete: async (id) => {
+    return await api.delete(`/expenses/${id}`);
+  },
+  // Get expense statistics
+  getStats: async (filters = {}) => {
+    const params = new URLSearchParams();
+    if (filters.startDate) params.append("startDate", filters.startDate);
+    if (filters.endDate) params.append("endDate", filters.endDate);
+
+    return await api.get(`/expenses/stats?${params.toString()}`);
+  },
+};
