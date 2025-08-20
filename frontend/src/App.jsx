@@ -16,7 +16,7 @@ import RiderOrders from "./pages/private/rider/Orders.jsx";
 import Profile from "./pages/private/Profile.jsx";
 import FrontdeskDashboard from "./pages/private/frontdesk/Dashboard.jsx";
 import { useAuth } from "./context/AuthContext";
-import React from "react";
+import PropTypes from "prop-types";
 import Menus from "./pages/Menus";
 import Products from "./pages/private/admin/products/Products";
 import AddOns from "./pages/private/admin/add-ons/AddOns";
@@ -29,7 +29,6 @@ import AdminOrders from "./pages/private/admin/orders/Orders.jsx";
 import OrderDetails from "./pages/private/admin/orders/OrderDetails.jsx";
 import Users from "./pages/private/admin/users/Users.jsx";
 import EditUser from "./pages/private/admin/users/EditUser.jsx";
-import ViewUser from "./pages/private/admin/users/ViewUser.jsx";
 import AdminRefunds from "./pages/private/admin/refunds/Refunds.jsx";
 import AdminRefundDetails from "./pages/private/admin/refunds/RefundDetails.jsx";
 import ProductDetail from "./pages/private/customer/ProductDetail";
@@ -68,7 +67,12 @@ function RootRedirect() {
   }
 }
 
-function RequireAuth({ children, allowedRoles }) {
+function RequireAuth(
+  {
+    children,
+    allowedRoles,
+  }
+) {
   const { user, loading } = useAuth();
   const location = useLocation();
   if (loading) return null;
@@ -87,6 +91,11 @@ function RequireAuth({ children, allowedRoles }) {
 
   return children;
 }
+
+RequireAuth.propTypes = {
+  children: PropTypes.node.isRequired,
+  allowedRoles: PropTypes.arrayOf(PropTypes.string),
+};
 
 function RoleRedirect() {
   const { user, loading } = useAuth();
@@ -247,14 +256,6 @@ function App() {
           element={
             <RequireAuth allowedRoles={["admin"]}>
               <EditUser />
-            </RequireAuth>
-          }
-        />
-        <Route
-          path="/admin/users/:id"
-          element={
-            <RequireAuth allowedRoles={["admin"]}>
-              <ViewUser />
             </RequireAuth>
           }
         />

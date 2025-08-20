@@ -73,3 +73,53 @@ export const sendWelcomeWithPasswordEmail = async (to, password) => {
   };
   await transporter.sendMail(mailOptions);
 };
+
+export const sendDeactivationEmail = async (to, name, reason) => {
+  const mailOptions = {
+    from: `"Monsan Brew" <${ENV.EMAIL_USER}>`,
+    to,
+    subject: 'Account Deactivation Notice',
+    html: `
+        <body style="background: #f4f4f4; padding: 40px 0; font-family: 'Segoe UI', 'Arial', sans-serif;">
+          <div style="max-width: 420px; margin: 0 auto; background: #fff; border-radius: 18px; box-shadow: 0 2px 12px rgba(0,0,0,0.07); padding: 32px 28px; text-align: center;">
+            <h2 style="font-size: 2rem; font-weight: 700; margin-bottom: 0.5em; color: #222; letter-spacing: -1px;">
+              Account Deactivated <span style='font-size:1.5rem;'>⚠️</span>
+            </h2>
+            <p style="color: #555; font-size: 1.1rem; margin-bottom: 2em;">Dear ${name},</p>
+            <p style="color: #555; font-size: 1.1rem; margin-bottom: 2em;">Your Monsan Brew account has been deactivated by an administrator.</p>
+            <div style="background: #f8f9fa; border-left: 4px solid #dc3545; padding: 16px; margin: 20px 0; text-align: left;">
+              <p style="color: #555; font-size: 1rem; margin: 0;"><strong>Reason:</strong> ${reason}</p>
+            </div>
+            <p style="color: #555; font-size: 1.1rem; margin-bottom: 2em;">If you believe this was done in error or have any questions, please contact our support team.</p>
+            <p style="color: #888; font-size: 0.95rem; margin-top: 2em;">Thank you for your understanding.</p>
+          </div>
+        </body>
+        `
+  };
+  await transporter.sendMail(mailOptions);
+};
+
+export const sendActivationEmail = async (to, name) => {
+  const mailOptions = {
+    from: `"Monsan Brew" <${ENV.EMAIL_USER}>`,
+    to,
+    subject: 'Account Reactivation Notice',
+    html: `
+        <body style="background: #f4f4f4; padding: 40px 0; font-family: 'Segoe UI', 'Arial', sans-serif;">
+          <div style="max-width: 420px; margin: 0 auto; background: #fff; border-radius: 18px; box-shadow: 0 2px 12px rgba(0,0,0,0.07); padding: 32px 28px; text-align: center;">
+            <h2 style="font-size: 2rem; font-weight: 700; margin-bottom: 0.5em; color: #222; letter-spacing: -1px;">
+              Account Reactivated <span style='font-size:1.5rem;'>✅</span>
+            </h2>
+            <p style="color: #555; font-size: 1.1rem; margin-bottom: 2em;">Dear ${name},</p>
+            <p style="color: #555; font-size: 1.1rem; margin-bottom: 2em;">Great news! Your Monsan Brew account has been reactivated by an administrator.</p>
+            <p style="color: #555; font-size: 1.1rem; margin-bottom: 2em;">You can now log in to your account and continue using our services.</p>
+            <div style="background: #d4edda; border-left: 4px solid #28a745; padding: 16px; margin: 20px 0; text-align: left;">
+              <p style="color: #155724; font-size: 1rem; margin: 0;"><strong>Status:</strong> Account is now active</p>
+            </div>
+            <p style="color: #888; font-size: 0.95rem; margin-top: 2em;">Thank you for your patience.</p>
+          </div>
+        </body>
+        `
+  };
+  await transporter.sendMail(mailOptions);
+};

@@ -13,6 +13,9 @@ const userSchema = new mongoose.Schema({
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true },
     isVerified: { type: Boolean, default: false },
+    isActive: { type: Boolean, default: true }, // New field for activation status
+    deactivationReason: { type: String }, // Reason for deactivation
+    deactivatedAt: { type: Date }, // When user was deactivated
     hasChangedPassword: { type: Boolean, default: true },
     verificationString: { type: String },
     verificationStringExpires: { type: Date },

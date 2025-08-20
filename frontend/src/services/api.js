@@ -229,6 +229,16 @@ export const userAPI = {
   deleteUser: async (userId) => {
     return await api.delete(`/user/${userId}`);
   },
+  // New activation/deactivation endpoints
+  activateUser: async (userId) => {
+    return await api.post(`/user/${userId}/activate`);
+  },
+  deactivateUser: async (userId, reason) => {
+    return await api.post(`/user/${userId}/deactivate`, { reason });
+  },
+  verifyUser: async (userId) => {
+    return await api.post(`/user/${userId}/verify`);
+  },
 };
 
 export const orderAPI = {
