@@ -1,7 +1,8 @@
-import React from 'react';
+import { forwardRef } from 'react';
+import PropTypes from 'prop-types';
 import { cn } from '../../lib/utils';
 
-const Form = React.forwardRef(({
+const Form = forwardRef(({
     onSubmit,
     children,
     className,
@@ -27,5 +28,11 @@ const Form = React.forwardRef(({
 });
 
 Form.displayName = 'Form';
+
+Form.propTypes = {
+    onSubmit: PropTypes.func,
+    children: PropTypes.node,
+    className: PropTypes.string,
+};
 
 export default Form;

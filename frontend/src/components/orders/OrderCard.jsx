@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import { useState } from "react";
+import PropTypes from "prop-types";
 import { useNavigate } from "react-router-dom";
 import { useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -317,6 +318,31 @@ const OrderCard = ({ order, onOrderUpdate }) => {
       </CardContent>
     </Card>
   );
+};
+
+OrderCard.propTypes = {
+  order: PropTypes.shape({
+    _id: PropTypes.string.isRequired,
+    status: PropTypes.string.isRequired,
+    paymentMethod: PropTypes.string.isRequired,
+    isReviewed: PropTypes.bool,
+    refundStatus: PropTypes.string,
+    createdAt: PropTypes.string.isRequired,
+    total: PropTypes.number.isRequired,
+    items: PropTypes.arrayOf(PropTypes.shape({
+      productId: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
+      productName: PropTypes.string.isRequired,
+      image: PropTypes.string,
+      price: PropTypes.number.isRequired,
+      quantity: PropTypes.number.isRequired,
+      size: PropTypes.string,
+      addOns: PropTypes.arrayOf(PropTypes.shape({
+        name: PropTypes.string.isRequired,
+        price: PropTypes.number.isRequired,
+      })),
+    })).isRequired,
+  }).isRequired,
+  onOrderUpdate: PropTypes.func,
 };
 
 export default OrderCard;

@@ -65,7 +65,7 @@ export default function AdminHeader() {
                 </Link>
               </BreadcrumbLink>
             </BreadcrumbItem>
-            {breadcrumbs.map((crumb, idx) =>
+            {breadcrumbs.map((crumb) =>
               crumb.url === "/admin/dashboard" ? null : (
                 <React.Fragment key={crumb.url}>
                   <BreadcrumbSeparator className="text-[#FFC107] font-bold" />

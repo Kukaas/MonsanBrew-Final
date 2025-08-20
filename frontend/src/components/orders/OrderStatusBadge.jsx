@@ -1,4 +1,4 @@
-import React from "react";
+import PropTypes from "prop-types";
 import {
   Clock,
   Package,
@@ -77,6 +77,22 @@ const OrderStatusBadge = ({ status }) => {
       {config.label}
     </Badge>
   );
+};
+
+OrderStatusBadge.propTypes = {
+  status: PropTypes.oneOf([
+    'pending',
+    'approved',
+    'preparing',
+    'waiting_for_rider',
+    'out_for_delivery',
+    'completed',
+    'cancelled',
+    'refund',
+    'processed',
+    'return_refund',
+    'rejected'
+  ]).isRequired,
 };
 
 export default OrderStatusBadge;

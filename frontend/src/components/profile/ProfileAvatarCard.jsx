@@ -1,9 +1,9 @@
-import React from "react";
+import PropTypes from "prop-types";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Shield, Camera } from "lucide-react";
 
-export default function ProfileAvatarCard({
+function ProfileAvatarCard({
   fileInputRef,
   handleFileChange,
   handleAvatarClick,
@@ -56,3 +56,15 @@ export default function ProfileAvatarCard({
     </div>
   );
 }
+
+ProfileAvatarCard.propTypes = {
+  fileInputRef: PropTypes.object,
+  handleFileChange: PropTypes.func.isRequired,
+  handleAvatarClick: PropTypes.func.isRequired,
+  localPhoto: PropTypes.string,
+  editData: PropTypes.object.isRequired,
+  user: PropTypes.object,
+  getRoleDisplayName: PropTypes.func.isRequired,
+};
+
+export default ProfileAvatarCard;

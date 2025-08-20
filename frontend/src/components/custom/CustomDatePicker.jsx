@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
+import PropTypes from 'prop-types';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Label } from '@/components/ui/label';
@@ -60,3 +61,13 @@ export default function CustomDatePicker({
         </div>
     );
 }
+
+CustomDatePicker.propTypes = {
+    label: PropTypes.string,
+    value: PropTypes.string,
+    onChange: PropTypes.func.isRequired,
+    placeholder: PropTypes.string,
+    disabled: PropTypes.bool,
+    name: PropTypes.string,
+    className: PropTypes.string,
+};

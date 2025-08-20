@@ -1,4 +1,4 @@
-import React from "react";
+import PropTypes from "prop-types";
 import { CreditCard, Camera, Package } from "lucide-react";
 
 const ImageDisplay = ({
@@ -49,6 +49,15 @@ const ImageDisplay = ({
       </div>
     </>
   );
+};
+
+ImageDisplay.propTypes = {
+    imageSrc: PropTypes.string,
+    altText: PropTypes.string,
+    title: PropTypes.string,
+    description: PropTypes.string,
+    icon: PropTypes.oneOf(['default', 'payment', 'camera', 'package']),
+    className: PropTypes.string,
 };
 
 export default ImageDisplay;

@@ -1,9 +1,9 @@
-import React from 'react';
+import PropTypes from 'prop-types';
 import Header from '../components/Header';
 import MobileNavBar from '../components/MobileNavBar';
 import MobileTopBar from '../components/MobileTopBar';
 
-export default function CustomerLayout({ children }) {
+function CustomerLayout({ children }) {
     return (
         <div className="min-h-screen bg-[#232323] flex flex-col">
             {/* Desktop Header */}
@@ -27,3 +27,9 @@ export default function CustomerLayout({ children }) {
         </div>
     );
 }
+
+CustomerLayout.propTypes = {
+    children: PropTypes.node.isRequired,
+};
+
+export default CustomerLayout;

@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import { useState } from "react";
+import PropTypes from "prop-types";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -202,6 +203,17 @@ const ReviewModal = ({
       </div>
     </CustomAlertDialog>
   );
+};
+
+ReviewModal.propTypes = {
+  open: PropTypes.bool.isRequired,
+  onOpenChange: PropTypes.func.isRequired,
+  order: PropTypes.shape({
+    _id: PropTypes.string.isRequired,
+    userId: PropTypes.string.isRequired,
+  }).isRequired,
+  productId: PropTypes.string.isRequired,
+  onReviewSubmitted: PropTypes.func,
 };
 
 export default ReviewModal;

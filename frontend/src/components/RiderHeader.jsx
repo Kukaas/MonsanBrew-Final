@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { ClipboardList, CheckCircle, User, LogOut } from 'lucide-react';
+import { User, LogOut } from 'lucide-react';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from './ui/dropdown-menu';
 import { Separator } from './ui/separator';
 import CustomAlertDialog from "./custom/CustomAlertDialog";
@@ -20,7 +20,8 @@ export default function RiderHeader() {
         try {
             await logout();
             navigate('/login');
-        } catch (err) {
+        } catch (error) {
+            console.error('Logout error:', error);
         } finally {
             setLogoutLoading(false);
             setLogoutOpen(false);
@@ -102,4 +103,4 @@ export default function RiderHeader() {
             ) : null}
         </header>
     );
-} 
+}

@@ -1,7 +1,7 @@
-import React from "react";
+import PropTypes from "prop-types";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 
-export default function ProfileRoleSpecificInfoCard({ roleSpecificInfo }) {
+function ProfileRoleSpecificInfoCard({ roleSpecificInfo }) {
   if (!roleSpecificInfo) return null;
   const Icon = roleSpecificInfo.icon;
   return (
@@ -27,3 +27,16 @@ export default function ProfileRoleSpecificInfoCard({ roleSpecificInfo }) {
     </Card>
   );
 }
+
+ProfileRoleSpecificInfoCard.propTypes = {
+  roleSpecificInfo: PropTypes.shape({
+    icon: PropTypes.elementType.isRequired,
+    title: PropTypes.string.isRequired,
+    items: PropTypes.arrayOf(PropTypes.shape({
+      label: PropTypes.string.isRequired,
+      value: PropTypes.string.isRequired,
+    })).isRequired,
+  }),
+};
+
+export default ProfileRoleSpecificInfoCard;

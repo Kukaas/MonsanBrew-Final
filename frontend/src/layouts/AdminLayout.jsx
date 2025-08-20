@@ -1,4 +1,4 @@
-import React from "react";
+import PropTypes from "prop-types";
 import {
     SidebarProvider,
     Sidebar,
@@ -7,7 +7,7 @@ import {
 import AdminSidebar from "../components/AdminSidebar";
 import AdminHeader from "../components/AdminHeader";
 
-export default function AdminLayout({ children }) {
+function AdminLayout({ children }) {
     return (
         <SidebarProvider>
             <Sidebar>
@@ -22,3 +22,9 @@ export default function AdminLayout({ children }) {
         </SidebarProvider>
     );
 }
+
+AdminLayout.propTypes = {
+    children: PropTypes.node.isRequired,
+};
+
+export default AdminLayout;

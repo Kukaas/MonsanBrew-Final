@@ -1,4 +1,4 @@
-import React from 'react';
+import PropTypes from 'prop-types';
 import { Badge } from '@/components/ui/badge';
 import { CheckCircle2, Loader2, AlertTriangle, Clock, CreditCard, Banknote } from 'lucide-react';
 
@@ -40,3 +40,15 @@ export default function StatusBadge({ stock, status }) {
         </Badge>
     );
 }
+
+StatusBadge.propTypes = {
+    stock: PropTypes.number,
+    status: PropTypes.oneOf([
+        'in_stock',
+        'out_of_stock',
+        'expired',
+        'low_stock',
+        'gcash',
+        'cod'
+    ]).isRequired,
+};

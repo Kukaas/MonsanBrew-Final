@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
+import PropTypes from "prop-types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import CustomAlertDialog from "./CustomAlertDialog";
@@ -295,3 +296,8 @@ export default function UnitConversionModal({ isOpen, onClose }) {
     </CustomAlertDialog>
   );
 }
+
+UnitConversionModal.propTypes = {
+  isOpen: PropTypes.bool.isRequired,
+  onClose: PropTypes.func.isRequired,
+};

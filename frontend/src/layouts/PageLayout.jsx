@@ -1,6 +1,6 @@
-import React from "react";
+import PropTypes from 'prop-types';
 
-export default function PageLayout({ title, description, children, action }) {
+function PageLayout({ title, description, children, action }) {
     return (
         <section className="flex flex-col w-full h-full min-h-0 min-w-0 flex-1 p-0">
             <header className="px-4 pb-2 lg:px-0 flex items-center gap-4">
@@ -14,3 +14,12 @@ export default function PageLayout({ title, description, children, action }) {
         </section>
     );
 }
+
+PageLayout.propTypes = {
+    title: PropTypes.string.isRequired,
+    description: PropTypes.string,
+    children: PropTypes.node.isRequired,
+    action: PropTypes.node,
+};
+
+export default PageLayout;

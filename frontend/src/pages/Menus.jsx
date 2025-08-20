@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import CustomerLayout from "../layouts/CustomerLayout";
 import { useQuery } from "@tanstack/react-query";
 import { categoryAPI, productAPI } from "../services/api";

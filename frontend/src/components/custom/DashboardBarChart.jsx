@@ -1,4 +1,4 @@
-import * as React from "react";
+import PropTypes from "prop-types";
 import { TrendingUp } from "lucide-react";
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
 import {
@@ -93,4 +93,15 @@ export default function DashboardBarChart({
       )}
     </Card>
   );
-} 
+}
+
+DashboardBarChart.propTypes = {
+  data: PropTypes.arrayOf(PropTypes.object),
+  config: PropTypes.object,
+  title: PropTypes.string,
+  description: PropTypes.string,
+  barKey: PropTypes.string,
+  dateKey: PropTypes.string,
+  footer: PropTypes.node,
+  xAxisTickFormatter: PropTypes.func,
+};

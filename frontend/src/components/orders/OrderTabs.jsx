@@ -1,4 +1,4 @@
-import React from "react";
+import PropTypes from "prop-types";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import OrderCard from "./OrderCard";
 import OrderEmptyState from "./OrderEmptyState";
@@ -170,6 +170,13 @@ const OrderTabs = ({ orders, activeTab, setActiveTab, onOrderUpdate }) => {
       </div>
     </Tabs>
   );
+};
+
+OrderTabs.propTypes = {
+  orders: PropTypes.arrayOf(PropTypes.object).isRequired,
+  activeTab: PropTypes.string.isRequired,
+  setActiveTab: PropTypes.func.isRequired,
+  onOrderUpdate: PropTypes.func,
 };
 
 export default OrderTabs;

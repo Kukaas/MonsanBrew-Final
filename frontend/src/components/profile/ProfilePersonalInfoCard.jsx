@@ -1,8 +1,8 @@
-import React from "react";
+import PropTypes from "prop-types";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { User, Mail, Shield, Calendar } from "lucide-react";
 
-export default function ProfilePersonalInfoCard({
+function ProfilePersonalInfoCard({
   user,
   getRoleDisplayName,
   formatDate,
@@ -44,3 +44,11 @@ export default function ProfilePersonalInfoCard({
     </Card>
   );
 }
+
+ProfilePersonalInfoCard.propTypes = {
+  user: PropTypes.object,
+  getRoleDisplayName: PropTypes.func.isRequired,
+  formatDate: PropTypes.func.isRequired,
+};
+
+export default ProfilePersonalInfoCard;

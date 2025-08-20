@@ -1,9 +1,9 @@
-import React from "react";
+import PropTypes from "prop-types";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-export default function ProfileAddressCard({
+function ProfileAddressCard({
   isEditing,
   editData,
   user,
@@ -82,3 +82,16 @@ export default function ProfileAddressCard({
     </Card>
   );
 }
+
+ProfileAddressCard.propTypes = {
+  isEditing: PropTypes.bool.isRequired,
+  editData: PropTypes.object.isRequired,
+  user: PropTypes.object,
+  handleInputChange: PropTypes.func.isRequired,
+  handleEditToggle: PropTypes.func.isRequired,
+  handleSaveProfile: PropTypes.func.isRequired,
+  handleCancel: PropTypes.func.isRequired,
+  isLoading: PropTypes.bool.isRequired,
+};
+
+export default ProfileAddressCard;

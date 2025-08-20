@@ -1,4 +1,4 @@
-import React from "react";
+import PropTypes from "prop-types";
 import {
   AlertDialog,
   AlertDialogTrigger,
@@ -53,3 +53,14 @@ export default function CustomAlertDialog({
     </AlertDialog>
   );
 }
+
+CustomAlertDialog.propTypes = {
+  open: PropTypes.bool,
+  onOpenChange: PropTypes.func,
+  trigger: PropTypes.node,
+  title: PropTypes.string,
+  description: PropTypes.string,
+  children: PropTypes.node,
+  actions: PropTypes.node,
+  className: PropTypes.string,
+};

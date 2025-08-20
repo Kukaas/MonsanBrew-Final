@@ -1,4 +1,5 @@
-import * as React from "react"
+import { useState, useEffect, useRef } from 'react';
+import PropTypes from "prop-types"
 import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, FilterX } from 'lucide-react';
 import {
     flexRender,
@@ -18,12 +19,11 @@ import {
     TableRow,
 } from "@/components/ui/table"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { useEffect, useRef } from 'react';
 
 export default function DataTable({ columns, data, loading, rowProps, highlightedId }) {
-    const [pagination, setPagination] = React.useState({ pageIndex: 0, pageSize: 10 })
-    const [globalFilter, setGlobalFilter] = React.useState("");
-    const [columnFilters, setColumnFilters] = React.useState([]);
+    const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 })
+    const [globalFilter, setGlobalFilter] = useState("");
+    const [columnFilters, setColumnFilters] = useState([]);
 
     const table = useReactTable({
         data,
@@ -224,3 +224,11 @@ export default function DataTable({ columns, data, loading, rowProps, highlighte
         </div>
     )
 }
+
+DataTable.propTypes = {
+    columns: PropTypes.array.isRequired,
+    data: PropTypes.array.isRequired,
+    loading: PropTypes.bool,
+    rowProps: PropTypes.func,
+    highlightedId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+};

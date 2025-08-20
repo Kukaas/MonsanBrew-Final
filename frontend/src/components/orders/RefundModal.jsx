@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import { useState } from "react";
+import PropTypes from "prop-types";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -312,7 +313,7 @@ const RefundModal = ({ open, onOpenChange, order, onRefundSubmitted }) => {
                 <li>• Only completed orders can request refunds</li>
                 <li>• Provide clear photos showing the issue</li>
                 <li>• Refund requests are reviewed by our team</li>
-                <li>• You'll be notified of the decision via email</li>
+                <li>• You&apos;ll be notified of the decision via email</li>
               </ul>
             </div>
           </div>
@@ -320,6 +321,25 @@ const RefundModal = ({ open, onOpenChange, order, onRefundSubmitted }) => {
       </div>
     </CustomAlertDialog>
   );
+};
+
+RefundModal.propTypes = {
+  open: PropTypes.bool.isRequired,
+  onOpenChange: PropTypes.func.isRequired,
+  order: PropTypes.shape({
+    _id: PropTypes.string.isRequired,
+    items: PropTypes.arrayOf(PropTypes.shape({
+      productName: PropTypes.string.isRequired,
+      image: PropTypes.string,
+      price: PropTypes.number.isRequired,
+      quantity: PropTypes.number.isRequired,
+      addOns: PropTypes.arrayOf(PropTypes.shape({
+        name: PropTypes.string.isRequired,
+        price: PropTypes.number.isRequired,
+      })),
+    })).isRequired,
+  }).isRequired,
+  onRefundSubmitted: PropTypes.func,
 };
 
 export default RefundModal;

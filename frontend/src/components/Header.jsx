@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { ShoppingCart, Bell, User, LogOut } from 'lucide-react';
@@ -26,8 +26,9 @@ export default function Header() {
         try {
             await logout();
             navigate('/login');
-        } catch (err) {
+        } catch (error) {
             // Optionally show an error toast here
+            console.error('Logout error:', error);
         } finally {
             setLogoutLoading(false);
             setLogoutOpen(false);

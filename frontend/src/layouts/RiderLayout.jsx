@@ -1,8 +1,8 @@
-import React from 'react';
+import PropTypes from 'prop-types';
 import RiderHeader from '../components/RiderHeader';
 import RiderMobileNavBar from '../components/RiderMobileNavBar';
 
-export default function RiderLayout({ children }) {
+function RiderLayout({ children }) {
     return (
         <div className="min-h-screen bg-[#232323] flex flex-col">
             {/* Desktop Header */}
@@ -21,4 +21,10 @@ export default function RiderLayout({ children }) {
             </div>
         </div>
     );
-} 
+}
+
+RiderLayout.propTypes = {
+    children: PropTypes.node.isRequired,
+};
+
+export default RiderLayout;

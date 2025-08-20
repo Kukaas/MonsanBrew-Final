@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
+import PropTypes from 'prop-types';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Label } from '@/components/ui/label';
@@ -68,4 +69,17 @@ export default function CustomDateRangePicker({
             </Popover>
         </div>
     );
-} 
+}
+
+CustomDateRangePicker.propTypes = {
+    label: PropTypes.string,
+    value: PropTypes.shape({
+        from: PropTypes.instanceOf(Date),
+        to: PropTypes.instanceOf(Date),
+    }),
+    onChange: PropTypes.func.isRequired,
+    placeholder: PropTypes.string,
+    disabled: PropTypes.bool,
+    name: PropTypes.string,
+    className: PropTypes.string,
+};

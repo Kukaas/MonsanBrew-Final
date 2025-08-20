@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import Form from '../../components/custom/Form';
 import FormInput from '../../components/custom/FormInput';
 import { Button } from '../../components/ui/button';
@@ -10,10 +10,10 @@ import { useAuth } from '../../context/AuthContext';
 
 export default function ChangePassword() {
     const { user, updateUser } = useAuth();
-    const [form, setForm] = useState({ 
-        currentPassword: '', 
-        newPassword: '', 
-        confirmPassword: '' 
+    const [form, setForm] = useState({
+        currentPassword: '',
+        newPassword: '',
+        confirmPassword: ''
     });
     const [showCurrentPassword, setShowCurrentPassword] = useState(false);
     const [showNewPassword, setShowNewPassword] = useState(false);
@@ -46,11 +46,11 @@ export default function ChangePassword() {
                 newPassword: form.newPassword
             });
             toast.success('Password changed successfully!');
-            
+
             // Fetch updated user data to get the new hasChangedPassword status
             const updatedUserData = await authAPI.me();
             updateUser(updatedUserData.user);
-            
+
             // Redirect based on user role
             setTimeout(() => {
                 switch (user?.role) {
@@ -169,4 +169,4 @@ export default function ChangePassword() {
             </div>
         </div>
     );
-} 
+}

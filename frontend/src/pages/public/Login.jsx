@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import Form from '../../components/custom/Form';
 import FormInput from '../../components/custom/FormInput';
 import { Button } from '../../components/ui/button';
@@ -224,7 +224,7 @@ export default function Login() {
                     </div>
                 </Form>
                 <div className="mt-8 text-center">
-                    <span className="text-white text-sm">Don't have an account? </span>
+                    <span className="text-white text-sm">Don&apos;t have an account? </span>
                     <Link to="/register" className="text-[#FFC107] font-bold text-sm">Sign Up</Link>
                 </div>
             </div>

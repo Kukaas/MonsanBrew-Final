@@ -1,4 +1,4 @@
-import * as React from "react";
+import PropTypes from "prop-types";
 import { Area, AreaChart, CartesianGrid, XAxis } from "recharts";
 import {
   Card,
@@ -137,3 +137,12 @@ export default function DashboardAreaChart({
     </Card>
   );
 }
+
+DashboardAreaChart.propTypes = {
+  data: PropTypes.arrayOf(PropTypes.object),
+  config: PropTypes.object,
+  title: PropTypes.string,
+  description: PropTypes.string,
+  dateKey: PropTypes.string,
+  areaKeys: PropTypes.arrayOf(PropTypes.string),
+};

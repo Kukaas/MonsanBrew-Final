@@ -1,9 +1,9 @@
-import React from "react";
+import PropTypes from "prop-types";
 import { Button } from "./ui/button";
 import { useNavigate } from "react-router-dom";
 import { Star } from "lucide-react";
 
-export default function ProductCard({ product }) {
+function ProductCard({ product }) {
   // Determine image source (base64 or url)
   let imageSrc = "/placeholder.png";
   if (product.image) {
@@ -90,3 +90,20 @@ export default function ProductCard({ product }) {
     </div>
   );
 }
+
+ProductCard.propTypes = {
+  product: PropTypes.shape({
+    _id: PropTypes.string.isRequired,
+    productName: PropTypes.string.isRequired,
+    image: PropTypes.string,
+    imageUrl: PropTypes.string,
+    price: PropTypes.number,
+    sizes: PropTypes.arrayOf(PropTypes.shape({
+      price: PropTypes.number.isRequired,
+    })),
+    averageRating: PropTypes.number,
+    reviewCount: PropTypes.number,
+  }).isRequired,
+};
+
+export default ProductCard;

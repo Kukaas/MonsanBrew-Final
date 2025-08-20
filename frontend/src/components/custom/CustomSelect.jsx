@@ -1,4 +1,4 @@
-import React from 'react';
+import PropTypes from 'prop-types';
 import {
     Select as ShadcnSelect,
     SelectTrigger,
@@ -43,3 +43,17 @@ export default function CustomSelect({
         </div>
     );
 }
+
+CustomSelect.propTypes = {
+    label: PropTypes.string,
+    value: PropTypes.string,
+    onChange: PropTypes.func.isRequired,
+    options: PropTypes.arrayOf(PropTypes.shape({
+        value: PropTypes.string.isRequired,
+        label: PropTypes.string.isRequired,
+    })).isRequired,
+    placeholder: PropTypes.string,
+    disabled: PropTypes.bool,
+    name: PropTypes.string,
+    className: PropTypes.string,
+};

@@ -1,8 +1,8 @@
-import React from "react";
+import PropTypes from "prop-types";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Shield } from "lucide-react";
 
-export default function ProfileAccountStatusCard({ user }) {
+function ProfileAccountStatusCard({ user }) {
   return (
     <Card className="bg-[#2A2A2A] border-[#444]">
       <CardHeader>
@@ -39,3 +39,11 @@ export default function ProfileAccountStatusCard({ user }) {
     </Card>
   );
 }
+
+ProfileAccountStatusCard.propTypes = {
+  user: PropTypes.shape({
+    isVerified: PropTypes.bool,
+  }),
+};
+
+export default ProfileAccountStatusCard;

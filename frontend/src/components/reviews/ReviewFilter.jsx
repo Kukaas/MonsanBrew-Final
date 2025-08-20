@@ -1,10 +1,10 @@
-import React from 'react';
+import PropTypes from 'prop-types';
 import { Star } from 'lucide-react';
 import { Button } from '../ui/button';
 
-const ReviewFilter = ({ 
-    selectedRating, 
-    onRatingChange, 
+const ReviewFilter = ({
+    selectedRating,
+    onRatingChange,
     totalReviews = 0,
     averageRating = 0,
     reviewCounts = {} // Object with rating counts: {5: 10, 4: 5, 3: 2, 2: 1, 1: 0}
@@ -21,7 +21,7 @@ const ReviewFilter = ({
             <div className="mb-4">
                 <h4 className="font-semibold text-[#232323]">Filter Reviews</h4>
             </div>
-            
+
             {/* Overall Rating Summary */}
             <div className="flex items-center gap-3 mb-4 p-3 bg-gray-50 rounded-lg">
                 <div className="text-center">
@@ -50,14 +50,14 @@ const ReviewFilter = ({
                     const count = reviewCounts[rating] || 0;
                     const percentage = getRatingPercentage(rating);
                     const isSelected = selectedRating === rating;
-                    
+
                     return (
                         <button
                             key={rating}
                             onClick={() => onRatingChange(rating)}
                             className={`w-full flex items-center justify-between p-2 rounded-lg transition-colors ${
-                                isSelected 
-                                    ? 'bg-gray-100 border border-gray-300' 
+                                isSelected
+                                    ? 'bg-gray-100 border border-gray-300'
                                     : 'hover:bg-gray-50'
                             }`}
                         >
@@ -80,7 +80,7 @@ const ReviewFilter = ({
                             </div>
                             <div className="flex items-center gap-2">
                                 <div className="w-16 bg-gray-200 rounded-full h-2">
-                                    <div 
+                                    <div
                                         className="bg-[#FFC107] h-2 rounded-full transition-all duration-300"
                                         style={{ width: `${percentage}%` }}
                                     />
@@ -99,4 +99,12 @@ const ReviewFilter = ({
     );
 };
 
-export default ReviewFilter; 
+ReviewFilter.propTypes = {
+  selectedRating: PropTypes.number,
+  onRatingChange: PropTypes.func.isRequired,
+  totalReviews: PropTypes.number,
+  averageRating: PropTypes.number,
+  reviewCounts: PropTypes.object, // Object with rating counts: {5: 10, 4: 5, 3: 2, 2: 1, 1: 0}
+};
+
+export default ReviewFilter;

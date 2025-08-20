@@ -1,4 +1,3 @@
-import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { ClipboardList, CheckCircle, User } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
@@ -26,4 +25,4 @@ export default function RiderMobileNavBar() {
             </Link>
         </nav>
     );
-} 
+}

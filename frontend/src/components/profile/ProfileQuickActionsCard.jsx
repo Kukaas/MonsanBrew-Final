@@ -1,7 +1,7 @@
-import React from "react";
+import PropTypes from "prop-types";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 
-export default function ProfileQuickActionsCard({ quickActions }) {
+function ProfileQuickActionsCard({ quickActions }) {
   return (
     <Card className="bg-[#2A2A2A] border-[#444]">
       <CardHeader>
@@ -51,3 +51,14 @@ export default function ProfileQuickActionsCard({ quickActions }) {
     </Card>
   );
 }
+
+ProfileQuickActionsCard.propTypes = {
+  quickActions: PropTypes.arrayOf(PropTypes.shape({
+    title: PropTypes.string.isRequired,
+    description: PropTypes.string.isRequired,
+    action: PropTypes.func.isRequired,
+    icon: PropTypes.elementType.isRequired,
+  })).isRequired,
+};
+
+export default ProfileQuickActionsCard;

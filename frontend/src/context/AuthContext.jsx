@@ -1,6 +1,7 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useState } from 'react';
 import { authAPI } from '../services/api';
 import LoadingSpinner from '../components/custom/LoadingSpinner';
+import PropTypes from 'prop-types';
 
 const AuthContext = createContext();
 
@@ -44,6 +45,10 @@ export const AuthProvider = ({ children }) => {
             {children}
         </AuthContext.Provider>
     );
+};
+
+AuthProvider.propTypes = {
+    children: PropTypes.node.isRequired,
 };
 
 export const useAuth = () => useContext(AuthContext);

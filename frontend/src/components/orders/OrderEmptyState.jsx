@@ -1,4 +1,4 @@
-import React from 'react';
+import PropTypes from 'prop-types';
 import { useNavigate } from 'react-router-dom';
 import { Package } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -22,6 +22,10 @@ const OrderEmptyState = ({ message }) => {
             </div>
         </div>
     );
+};
+
+OrderEmptyState.propTypes = {
+  message: PropTypes.string,
 };
 
 export default OrderEmptyState;

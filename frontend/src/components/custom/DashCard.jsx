@@ -1,14 +1,14 @@
-import React from 'react';
+import PropTypes from 'prop-types';
 import { Card, CardContent } from '@/components/ui/card';
 
-const DashCard = ({ 
-    title, 
-    value, 
-    icon: Icon, 
-    gradientFrom, 
-    gradientTo, 
-    borderColor, 
-    iconBgColor, 
+const DashCard = ({
+    title,
+    value,
+    icon: Icon,
+    gradientFrom,
+    gradientTo,
+    borderColor,
+    iconBgColor,
     iconColor,
     className = ""
 }) => {
@@ -29,4 +29,16 @@ const DashCard = ({
     );
 };
 
-export default DashCard; 
+DashCard.propTypes = {
+    title: PropTypes.string.isRequired,
+    value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
+    icon: PropTypes.elementType.isRequired,
+    gradientFrom: PropTypes.string,
+    gradientTo: PropTypes.string,
+    borderColor: PropTypes.string,
+    iconBgColor: PropTypes.string,
+    iconColor: PropTypes.string,
+    className: PropTypes.string,
+};
+
+export default DashCard;

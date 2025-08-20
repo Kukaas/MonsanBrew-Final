@@ -1,4 +1,5 @@
-import React, { useRef, useState } from 'react';
+import { useRef, useState } from 'react';
+import PropTypes from 'prop-types';
 import { Camera, Upload, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -8,12 +9,12 @@ const compressImage = (file, maxSizeMB = 5, quality = 0.8) => {
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
         const img = new Image();
-        
+
         img.onload = () => {
             // Calculate new dimensions while maintaining aspect ratio
             let { width, height } = img;
             const maxDimension = 1920; // Max width/height
-            
+
             if (width > height && width > maxDimension) {
                 height = (height * maxDimension) / width;
                 width = maxDimension;
@@ -21,13 +22,13 @@ const compressImage = (file, maxSizeMB = 5, quality = 0.8) => {
                 width = (width * maxDimension) / height;
                 height = maxDimension;
             }
-            
+
             canvas.width = width;
             canvas.height = height;
-            
+
             // Draw and compress
             ctx.drawImage(img, 0, 0, width, height);
-            
+
             // Convert to blob with compression
             canvas.toBlob((blob) => {
                 // If still too large, compress more
@@ -40,7 +41,7 @@ const compressImage = (file, maxSizeMB = 5, quality = 0.8) => {
                 }
             }, 'image/jpeg', quality);
         };
-        
+
         img.src = URL.createObjectURL(file);
     });
 };
@@ -125,15 +126,11 @@ export default function ImageUpload({ label = 'Image', value, onChange, disabled
         if (cameraInputRef.current) cameraInputRef.current.value = "";
     };
 
-    // Style for dark variant
-    const darkClass = "bg-[#232323] border-[#FFC107]";
-    // Style for white variant
-    const whiteClass = "bg-white border-[#E0E0E0]";
 
     return (
         <div className="flex flex-col gap-2">
             <label className={`block text-base font-bold ${variant === 'dark' ? 'text-[#FFC107]' : 'text-[#232323]'} mb-1`}>{label}</label>
-            
+
             {!value ? (
                 <div className={`border-2 border-dashed rounded-lg p-6 transition-all ${variant === 'dark' ? 'border-[#444] bg-[#2A2A2A]' : 'border-gray-300 bg-gray-50'} ${error ? 'border-red-500' : ''} ${variant === 'dark' ? 'hover:border-[#FFC107]' : 'hover:border-yellow-400'}`}>
                     <div className="flex flex-col sm:flex-row gap-4">
@@ -207,8 +204,17 @@ export default function ImageUpload({ label = 'Image', value, onChange, disabled
                     </div>
                 </div>
             )}
-            
+
             {error && <span className="text-red-500 text-xs mt-1">{error}</span>}
         </div>
     );
 }
+
+ImageUpload.propTypes = {
+    label: PropTypes.string,
+    value: PropTypes.string,
+    onChange: PropTypes.func.isRequired,
+    disabled: PropTypes.bool,
+    error: PropTypes.string,
+    variant: PropTypes.oneOf(['dark', 'white']),
+};
