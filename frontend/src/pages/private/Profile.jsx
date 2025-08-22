@@ -49,6 +49,10 @@ export default function Profile() {
   const [localPhoto, setLocalPhoto] = useState(user?.photo || "");
   const fileInputRef = useRef();
   const [logoutOpen, setLogoutOpen] = useState(false);
+  const [coordinates, setCoordinates] = useState({
+    latitude: user?.latitude || 13.323830,
+    longitude: user?.longitude || 121.845809
+  });
   const [logoutLoading, setLogoutLoading] = useState(false);
   const [changePasswordOpen, setChangePasswordOpen] = useState(false);
   const [changePasswordData, setChangePasswordData] = useState({
@@ -446,6 +450,16 @@ export default function Profile() {
     setChangePasswordErrors({});
   };
 
+  const handleCoordinateUpdate = (newCoordinates) => {
+    setCoordinates(newCoordinates);
+    // Update the editData with new coordinates
+    setEditData(prev => ({
+      ...prev,
+      latitude: newCoordinates.latitude,
+      longitude: newCoordinates.longitude
+    }));
+  };
+
   // Render the appropriate layout based on user role
   const renderLayout = (children) => {
     switch (user?.role) {
@@ -532,6 +546,8 @@ export default function Profile() {
         handleChangePasswordSubmit={handleChangePasswordSubmit}
         handleChangePasswordCancel={handleChangePasswordCancel}
         changePasswordMutation={changePasswordMutation}
+        coordinates={coordinates}
+        onCoordinateUpdate={handleCoordinateUpdate}
       />
     ) : (
       <div className="min-h-screen bg-[#232323] p-4">
