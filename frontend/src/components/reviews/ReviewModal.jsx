@@ -42,14 +42,6 @@ const ReviewModal = ({
     setIsSubmitting(true);
 
     try {
-      console.log("Submitting review with data:", {
-        userId: order.userId,
-        productId: productId,
-        orderId: order._id,
-        rating,
-        comment: comment.trim(),
-      });
-
       await reviewAPI.createReview({
         userId: order.userId,
         productId: productId,

@@ -37,6 +37,9 @@ const OrderSchema = new mongoose.Schema(
       barangay: String,
       municipality: String,
       province: String,
+      // Add coordinates for map functionality
+      latitude: Number,
+      longitude: Number,
     },
     deliveryInstructions: { type: String }, // optional
     paymentMethod: { type: String, enum: ["gcash", "cod"], required: true },

@@ -411,3 +411,49 @@ export const expensesAPI = {
     return await api.get(`/expenses/stats?${params.toString()}`);
   },
 };
+
+// Mapbox API functions
+export const mapboxAPI = {
+  // Geocode address to coordinates
+  geocodeAddress: async (address) => {
+    const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_API_KEY;
+    const encodedAddress = encodeURIComponent(address);
+    const response = await fetch(
+      `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodedAddress}.json?access_token=${MAPBOX_TOKEN}&country=PH&limit=1`
+    );
+    const data = await response.json();
+    if (data.features && data.features.length > 0) {
+      const [lng, lat] = data.features[0].center;
+      return { latitude: lat, longitude: lng };
+    }
+    throw new Error('Address not found');
+  },
+
+  // Get directions between two points
+  getDirections: async (startCoords, endCoords) => {
+    const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_API_KEY;
+    const start = `${startCoords.longitude},${startCoords.latitude}`;
+    const end = `${endCoords.longitude},${endCoords.latitude}`;
+    const response = await fetch(
+      `https://api.mapbox.com/directions/v5/mapbox/driving/${start};${end}?access_token=${MAPBOX_TOKEN}&geometries=geojson&overview=full&steps=true`
+    );
+    const data = await response.json();
+    if (data.routes && data.routes.length > 0) {
+      return data.routes[0];
+    }
+    throw new Error('No route found');
+  },
+
+  // Reverse geocode coordinates to address
+  reverseGeocode: async (latitude, longitude) => {
+    const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_API_KEY;
+    const response = await fetch(
+      `https://api.mapbox.com/geocoding/v5/mapbox.places/${longitude},${latitude}.json?access_token=${MAPBOX_TOKEN}&country=PH&limit=1`
+    );
+    const data = await response.json();
+    if (data.features && data.features.length > 0) {
+      return data.features[0];
+    }
+    throw new Error('Location not found');
+  },
+};

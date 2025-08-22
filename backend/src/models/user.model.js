@@ -10,6 +10,9 @@ const userSchema = new mongoose.Schema({
     barangay: { type: String, },
     municipality: { type: String, },
     province: { type: String, },
+    // Add coordinates for map functionality
+    latitude: { type: Number },
+    longitude: { type: Number },
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true },
     isVerified: { type: Boolean, default: false },

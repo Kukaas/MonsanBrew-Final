@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import CustomerLayout from "@/layouts/CustomerLayout";
 import OrderStatusBadge from "@/components/orders/OrderStatusBadge";
+import DeliveryNavigation from "@/components/custom/DeliveryNavigation";
 import { toast } from "sonner";
 
 export default function OrderDetail() {
@@ -637,6 +638,28 @@ export default function OrderDetail() {
           )}
         </div>
       </div>
+
+      {/* Delivery Map */}
+      {order.address?.latitude && order.address?.longitude && (
+        <div className="w-full max-w-2xl bg-white rounded-2xl p-4 sm:p-6 shadow flex flex-col gap-4 mb-6">
+          <div className="font-bold text-base sm:text-lg text-[#232323] flex items-center gap-2">
+            <MapPin size={20} className="text-[#FFC107]" />
+            Delivery Location
+          </div>
+          <DeliveryNavigation
+            deliveryAddress={formatAddress(order.address)}
+            deliveryCoordinates={{
+              latitude: order.address.latitude,
+              longitude: order.address.longitude
+            }}
+            restaurantCoordinates={{
+              latitude: 13.323830,
+              longitude: 121.845809
+            }}
+            className="w-full"
+          />
+        </div>
+      )}
 
       {/* Order Summary */}
       <div className="w-full max-w-2xl bg-white rounded-2xl p-4 sm:p-6 shadow flex flex-col gap-4 mb-8">

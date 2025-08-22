@@ -5,6 +5,7 @@ import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, MapPin } from 'lucide-react';
 import { toast } from 'sonner';
+import MapSelector from '@/components/custom/MapSelector';
 
 export default function Address() {
     const navigate = useNavigate();
@@ -15,8 +16,13 @@ export default function Address() {
     const [form, setForm] = useState({
         contactNumber: '', lotNo: '', purok: '', street: '', landmark: '', barangay: '', municipality: '', province: ''
     });
+    const [coordinates, setCoordinates] = useState({
+        latitude: 13.323830,
+        longitude: 121.845809
+    });
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
+    const [showMap, setShowMap] = useState(false);
 
     useEffect(() => {
         userAPI.getAddress()
@@ -32,6 +38,12 @@ export default function Address() {
                     municipality: address.municipality,
                     province: address.province,
                 });
+                if (address.latitude && address.longitude) {
+                    setCoordinates({
+                        latitude: address.latitude,
+                        longitude: address.longitude
+                    });
+                }
             })
             .catch(() => {
                 setForm({
@@ -52,11 +64,43 @@ export default function Address() {
         setForm(f => ({ ...f, [e.target.name]: e.target.value }));
     };
 
+    const handleLocationSelect = (locationData) => {
+        setCoordinates({
+            latitude: locationData.latitude,
+            longitude: locationData.longitude
+        });
+
+        // Try to extract address components from the selected location
+        if (locationData.address) {
+            const addressParts = locationData.address.split(', ');
+            // This is a simple parsing - you might want to improve this based on your needs
+            if (addressParts.length >= 3) {
+                const street = addressParts[0];
+                const barangay = addressParts[1];
+                const municipality = addressParts[2];
+
+                setForm(prev => ({
+                    ...prev,
+                    street: street || prev.street,
+                    barangay: barangay || prev.barangay,
+                    municipality: municipality || prev.municipality,
+                }));
+            }
+        }
+
+        setShowMap(false);
+    };
+
     const handleSubmit = async e => {
         e.preventDefault();
         setSaving(true);
         try {
-            await userAPI.updateAddress(form);
+            const addressData = {
+                ...form,
+                latitude: coordinates.latitude,
+                longitude: coordinates.longitude
+            };
+            await userAPI.updateAddress(addressData);
             toast.success('Address updated successfully!');
             setTimeout(() => {
                 navigate(returnTo);
@@ -82,6 +126,7 @@ export default function Address() {
                 </button>
                 <h1 className="text-xl font-extrabold text-white flex-1 text-center mr-8">Edit Delivery Address</h1>
             </div>
+
             <div className="w-full max-w-md bg-white rounded-2xl shadow-lg p-0 mt-6 mb-8">
                 {/* Card Header */}
                 <div className="flex items-center gap-3 px-6 pt-6 pb-2 border-b">
@@ -93,10 +138,43 @@ export default function Address() {
                         <div className="text-xs text-gray-500">Please provide your complete address for delivery</div>
                     </div>
                 </div>
+
                 {loading ? (
                     <div className="text-center text-gray-500 py-8">Loading...</div>
                 ) : (
                     <form className="flex flex-col gap-4 px-6 py-6" onSubmit={handleSubmit}>
+                        {/* Map Selector */}
+                        <div className="mb-4">
+                            <div className="flex items-center justify-between mb-2">
+                                <label className="block text-xs font-bold text-gray-700">Location on Map</label>
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => setShowMap(!showMap)}
+                                    className="text-xs"
+                                >
+                                    {showMap ? 'Hide Map' : 'Show Map'}
+                                </Button>
+                            </div>
+                            {showMap && (
+                                <MapSelector
+                                    onLocationSelect={handleLocationSelect}
+                                    initialLatitude={coordinates.latitude}
+                                    initialLongitude={coordinates.longitude}
+                                    className="mb-4"
+                                />
+                            )}
+                            {!showMap && (
+                                <div className="p-3 bg-gray-50 rounded-lg border border-gray-200">
+                                    <div className="text-xs text-gray-600">
+                                        <strong>Current coordinates:</strong><br />
+                                        {coordinates.latitude.toFixed(6)}, {coordinates.longitude.toFixed(6)}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
                         <div>
                             <label className="block text-xs font-bold text-gray-700 mb-1">Contact Number</label>
                             <input name="contactNumber" value={form.contactNumber} onChange={handleChange} placeholder="09xxxxxxxxx" className="border border-gray-300 rounded px-3 py-2 w-full focus:outline-[#FFC107]" />

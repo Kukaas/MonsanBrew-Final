@@ -11,7 +11,7 @@ import {
 export const getAddress = async (req, res) => {
   try {
     const user = await User.findById(req.user._id).select(
-      "contactNumber lotNo purok street landmark barangay municipality province"
+      "contactNumber lotNo purok street landmark barangay municipality province latitude longitude"
     );
     if (!user) return res.status(404).json({ message: "User not found" });
     res.status(200).json({ address: user });
@@ -32,6 +32,8 @@ export const updateAddress = async (req, res) => {
       barangay,
       municipality,
       province,
+      latitude,
+      longitude,
     } = req.body;
     const user = await User.findByIdAndUpdate(
       req.user._id,
@@ -44,12 +46,14 @@ export const updateAddress = async (req, res) => {
         barangay,
         municipality,
         province,
+        latitude,
+        longitude,
       },
       {
         new: true,
         runValidators: true,
         fields:
-          "contactNumber lotNo purok street landmark barangay municipality province",
+          "contactNumber lotNo purok street landmark barangay municipality province latitude longitude",
       }
     );
     if (!user) return res.status(404).json({ message: "User not found" });

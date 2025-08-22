@@ -9,6 +9,7 @@ import gcashLogo from '@/assets/gcash.png';
 import codLogo from '@/assets/cod.png';
 import ImageUpload from '@/components/custom/ImageUpload';
 import { toast } from 'sonner';
+import PropTypes from 'prop-types';
 
 export default function Checkout() {
     const { state } = useLocation();
@@ -34,7 +35,6 @@ export default function Checkout() {
     // Handle buy now item
     const [buyNowItem, setBuyNowItem] = useState(null);
     const [buyNowAddons, setBuyNowAddons] = useState([]);
-    const [loadingBuyNow, setLoadingBuyNow] = useState(false);
 
     useEffect(() => {
         if (isBuyNow) {
@@ -46,7 +46,6 @@ export default function Checkout() {
 
                     // Fetch add-ons details if there are any
                     if (item.addOns && item.addOns.length > 0) {
-                        setLoadingBuyNow(true);
                         addonsAPI.getMany(item.addOns)
                             .then(res => {
                                 const addonsData = res.data || res || [];
@@ -54,8 +53,7 @@ export default function Checkout() {
                             })
                             .catch(err => {
                                 console.error('Failed to fetch add-ons:', err);
-                            })
-                            .finally(() => setLoadingBuyNow(false));
+                            });
                     }
                 } catch (err) {
                     console.error('Failed to parse buy now item:', err);
@@ -163,24 +161,28 @@ export default function Checkout() {
 
             if (isBuyNow) {
                 // Buy now order
-                orderData = {
-                    userId: user?._id || userId,
-                    items: [{
-                        productId: buyNowItem.product,
-                        productName: buyNowItem.productName,
-                        image: buyNowItem.image,
-                        size: buyNowItem.size,
-                        addOns: buyNowAddons,
-                        quantity: buyNowItem.quantity,
-                        price: buyNowItem.price
-                    }],
-                    address: address,
-                    deliveryInstructions,
-                    paymentMethod,
-                    referenceNumber: paymentMethod === 'gcash' ? referenceNumber : undefined,
-                    proofImage: paymentMethod === 'gcash' ? proofImage : undefined,
-                    total: total
-                };
+                            orderData = {
+                userId: user?._id || userId,
+                items: [{
+                    productId: buyNowItem.product,
+                    productName: buyNowItem.productName,
+                    image: buyNowItem.image,
+                    size: buyNowItem.size,
+                    addOns: buyNowAddons,
+                    quantity: buyNowItem.quantity,
+                    price: buyNowItem.price
+                }],
+                address: {
+                    ...address,
+                    latitude: address?.latitude || 13.323830,
+                    longitude: address?.longitude || 121.845809
+                },
+                deliveryInstructions,
+                paymentMethod,
+                referenceNumber: paymentMethod === 'gcash' ? referenceNumber : undefined,
+                proofImage: paymentMethod === 'gcash' ? proofImage : undefined,
+                total: total
+            };
             } else {
                 // Cart order
                 const validItems = selectedCart.filter(item =>
@@ -208,7 +210,11 @@ export default function Checkout() {
                         quantity: item.quantity,
                         price: item.price
                     })),
-                    address: address,
+                    address: {
+                        ...address,
+                        latitude: address?.latitude || 13.323830,
+                        longitude: address?.longitude || 121.845809
+                    },
                     deliveryInstructions,
                     paymentMethod,
                     referenceNumber: paymentMethod === 'gcash' ? referenceNumber : undefined,
@@ -274,6 +280,11 @@ export default function Checkout() {
             <span className="text-base sm:text-sm text-[#232323] font-medium break-all">{value && value.trim() !== '' ? value : 'N/A'}</span>
         </div>
     );
+
+    InfoRow.propTypes = {
+        label: PropTypes.string.isRequired,
+        value: PropTypes.string
+    };
 
 
     return (

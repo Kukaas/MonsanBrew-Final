@@ -53,15 +53,6 @@ const RefundModal = ({ open, onOpenChange, order, onRefundSubmitted }) => {
         return total + itemTotal;
       }, 0);
 
-      console.log("Submitting refund request with data:", {
-        orderId: order._id,
-        reason: reason.trim(),
-        refundProofImage: proofImage,
-        selectedItems,
-        itemQuantities,
-        totalRefundAmount,
-      });
-
       await orderAPI.requestRefund(order._id, {
         reason: reason.trim(),
         refundProofImage: proofImage,

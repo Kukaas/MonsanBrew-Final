@@ -19,6 +19,7 @@ import { AlertDialogCancel } from "@/components/ui/alert-dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ImageUpload from "@/components/custom/ImageUpload";
 import OrderStatusBadge from "@/components/orders/OrderStatusBadge";
+import DeliveryNavigation from "@/components/custom/DeliveryNavigation";
 
 export default function Orders() {
   const { user } = useAuth();
@@ -271,6 +272,19 @@ export default function Orders() {
             </div>
           </div>
 
+          {/* Delivery Navigation (for active orders) */}
+          {isActive && (
+            <div className="pt-4 border-t border-gray-200">
+              <DeliveryNavigation
+                deliveryAddress={formatAddress(order.address)}
+                deliveryCoordinates={{
+                  latitude: order.address?.latitude || 13.323830,
+                  longitude: order.address?.longitude || 121.845809
+                }}
+              />
+            </div>
+          )}
+
           {/* Total */}
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pt-2 border-t border-[#444]">
             {/* Total line moved to breakdown above */}
@@ -434,7 +448,11 @@ export default function Orders() {
                 </div>
               ) : (
                 <div className="grid gap-4">
-                  {activeOrders.map((order) => renderOrderCard(order, true))}
+                  {activeOrders.map((order) => (
+                    <div key={order._id}>
+                      {renderOrderCard(order, true)}
+                    </div>
+                  ))}
                 </div>
               )}
             </TabsContent>

@@ -213,18 +213,6 @@ const OrderCard = ({ order, onOrderUpdate }) => {
                     typeof firstItem.productId === "string"
                       ? firstItem.productId
                       : firstItem.productId._id || firstItem.productId;
-
-                  console.log("Selected product for review:", {
-                    productId: productIdString,
-                    productName: firstItem.productName,
-                    orderItems: order.items.map((item) => ({
-                      productId:
-                        typeof item.productId === "string"
-                          ? item.productId
-                          : item.productId._id || item.productId,
-                      productName: item.productName,
-                    })),
-                  });
                   setSelectedProductId(productIdString);
                   setShowReviewModal(true);
                 } else {
