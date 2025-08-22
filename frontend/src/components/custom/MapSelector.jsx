@@ -14,7 +14,10 @@ export default function MapSelector({
   const map = useRef(null);
   const marker = useRef(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [selectedLocation, setSelectedLocation] = useState(null);
+  const [selectedLocation, setSelectedLocation] = useState({
+    latitude: initialLatitude,
+    longitude: initialLongitude
+  });
 
   useEffect(() => {
     if (!mapContainer.current) return;
@@ -100,9 +103,8 @@ export default function MapSelector({
     marker.current.setLngLat([lng, lat]);
     setSelectedLocation({ longitude: lng, latitude: lat });
 
-    // Get address from coordinates
+    // Get address from coordinates (without loading state to prevent flickering)
     try {
-      setIsLoading(true);
       const response = await fetch(
         `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${import.meta.env.VITE_MAPBOX_API_KEY}&country=PH&limit=1`
       );
@@ -118,8 +120,6 @@ export default function MapSelector({
       }
     } catch (error) {
       console.error('Failed to get address:', error);
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -148,17 +148,15 @@ export default function MapSelector({
   };
 
   const handleConfirmLocation = () => {
-    if (!selectedLocation) {
-      toast.error('Please select a location on the map');
-      return;
-    }
-
     onLocationSelect(selectedLocation);
     toast.success('Location selected successfully');
   };
 
   const handleClearLocation = () => {
-    setSelectedLocation(null);
+    setSelectedLocation({
+      latitude: initialLatitude,
+      longitude: initialLongitude
+    });
     if (marker.current) {
       marker.current.setLngLat([initialLongitude, initialLatitude]);
     }
@@ -205,7 +203,7 @@ export default function MapSelector({
       )}
 
       {/* Action Buttons */}
-      <div className="mt-4 flex gap-2">
+      <div className="mt-4 flex flex-col gap-2">
         <Button
           variant="outline"
           size="sm"
@@ -220,7 +218,7 @@ export default function MapSelector({
           variant="yellow"
           size="sm"
           onClick={handleConfirmLocation}
-          disabled={!selectedLocation || isLoading}
+          disabled={isLoading}
           className="flex-1"
         >
           <MapPin className="w-4 h-4 mr-2" />

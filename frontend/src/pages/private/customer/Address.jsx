@@ -22,7 +22,7 @@ export default function Address() {
     });
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
-    const [showMap, setShowMap] = useState(false);
+    const [showMap, setShowMap] = useState(true);
 
     useEffect(() => {
         userAPI.getAddress()
@@ -69,25 +69,6 @@ export default function Address() {
             latitude: locationData.latitude,
             longitude: locationData.longitude
         });
-
-        // Try to extract address components from the selected location
-        if (locationData.address) {
-            const addressParts = locationData.address.split(', ');
-            // This is a simple parsing - you might want to improve this based on your needs
-            if (addressParts.length >= 3) {
-                const street = addressParts[0];
-                const barangay = addressParts[1];
-                const municipality = addressParts[2];
-
-                setForm(prev => ({
-                    ...prev,
-                    street: street || prev.street,
-                    barangay: barangay || prev.barangay,
-                    municipality: municipality || prev.municipality,
-                }));
-            }
-        }
-
         setShowMap(false);
     };
 
