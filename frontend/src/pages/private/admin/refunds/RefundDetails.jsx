@@ -21,6 +21,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import StatusBadge from "@/components/custom/StatusBadge";
 import ImageDisplay from "@/components/custom/ImageDisplay";
+import DeliveryNavigation from "@/components/custom/DeliveryNavigation";
 
 export default function RefundDetails() {
   const { orderId } = useParams();
@@ -519,7 +520,7 @@ export default function RefundDetails() {
                   Delivery Address
                 </h3>
               </div>
-              <div className="text-lg text-white">
+              <div className="text-lg text-white mb-6">
                 <p className="font-medium">
                   {order.address?.lotNo && `${order.address.lotNo}, `}
                   {order.address?.purok && `${order.address.purok}, `}
@@ -544,6 +545,21 @@ export default function RefundDetails() {
                   </p>
                 )}
               </div>
+
+              {/* Delivery Navigation */}
+              {order.address?.latitude && order.address?.longitude && (
+                <div className="mb-6">
+                  <DeliveryNavigation
+                    deliveryAddress={`${order.address?.lotNo ? order.address.lotNo + ', ' : ''}${order.address?.purok ? order.address.purok + ', ' : ''}${order.address?.street ? order.address.street + ', ' : ''}${order.address?.barangay ? order.address.barangay + ', ' : ''}${order.address?.municipality ? order.address.municipality + ', ' : ''}${order.address?.province || ''}`}
+                    deliveryCoordinates={{
+                      latitude: order.address.latitude,
+                      longitude: order.address.longitude
+                    }}
+                    restaurantCoordinates={{ latitude: 13.323830, longitude: 121.845809 }}
+                    className="bg-[#232323] border-[#444]"
+                  />
+                </div>
+              )}
             </div>
             {/* Payment Proof */}
             <ImageDisplay

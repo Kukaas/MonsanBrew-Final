@@ -22,6 +22,7 @@ import {
 } from "@/lib/utils";
 import StatusBadge from "@/components/custom/StatusBadge";
 import ImageDisplay from "@/components/custom/ImageDisplay";
+import DeliveryNavigation from "@/components/custom/DeliveryNavigation";
 
 export default function OrderDetails() {
   const { orderId } = useParams();
@@ -580,40 +581,55 @@ export default function OrderDetails() {
             )}
 
             <div className="border-t border-[#232323] my-4" />
-            {/* Delivery Address */}
-            <div>
-              <div className="flex items-center gap-3 mb-6">
-                <MapPin className="w-7 h-7 text-[#FFC107]" />
-                <h3 className="text-[#FFC107] text-2xl font-extrabold tracking-widest uppercase">
-                  Delivery Address
-                </h3>
-              </div>
-              <div className="text-lg text-white">
-                <p className="font-medium">
-                  {order.address?.lotNo && `${order.address.lotNo}, `}
-                  {order.address?.purok && `${order.address.purok}, `}
-                  {order.address?.street && `${order.address.street}, `}
-                  {order.address?.barangay && `${order.address.barangay}, `}
-                  {order.address?.municipality &&
-                    `${order.address.municipality}, `}
-                  {order.address?.province}
-                </p>
-                {order.address?.landmark && (
-                  <p className="mt-2 text-[#BDBDBD]">
-                    <span className="font-bold text-[#FFC107]">Landmark: </span>
-                    {order.address.landmark}
-                  </p>
-                )}
-                {order.deliveryInstructions && (
-                  <p className="mt-2 text-[#BDBDBD]">
-                    <span className="font-bold text-[#FFC107]">
-                      Instructions:{" "}
-                    </span>
-                    {order.deliveryInstructions}
-                  </p>
-                )}
-              </div>
-            </div>
+                         {/* Delivery Address */}
+             <div>
+               <div className="flex items-center gap-3 mb-6">
+                 <MapPin className="w-7 h-7 text-[#FFC107]" />
+                 <h3 className="text-[#FFC107] text-2xl font-extrabold tracking-widest uppercase">
+                   Delivery Address
+                 </h3>
+               </div>
+               <div className="text-lg text-white mb-6">
+                 <p className="font-medium">
+                   {order.address?.lotNo && `${order.address.lotNo}, `}
+                   {order.address?.purok && `${order.address.purok}, `}
+                   {order.address?.street && `${order.address.street}, `}
+                   {order.address?.barangay && `${order.address.barangay}, `}
+                   {order.address?.municipality &&
+                     `${order.address.municipality}, `}
+                   {order.address?.province}
+                 </p>
+                 {order.address?.landmark && (
+                   <p className="mt-2 text-[#BDBDBD]">
+                     <span className="font-bold text-[#FFC107]">Landmark: </span>
+                     {order.address.landmark}
+                   </p>
+                 )}
+                 {order.deliveryInstructions && (
+                   <p className="mt-2 text-[#BDBDBD]">
+                     <span className="font-bold text-[#FFC107]">
+                       Instructions:{" "}
+                     </span>
+                     {order.deliveryInstructions}
+                   </p>
+                 )}
+               </div>
+
+               {/* Delivery Navigation */}
+               {order.address?.latitude && order.address?.longitude && (
+                 <div className="mb-6">
+                   <DeliveryNavigation
+                     deliveryAddress={`${order.address?.lotNo ? order.address.lotNo + ', ' : ''}${order.address?.purok ? order.address.purok + ', ' : ''}${order.address?.street ? order.address.street + ', ' : ''}${order.address?.barangay ? order.address.barangay + ', ' : ''}${order.address?.municipality ? order.address.municipality + ', ' : ''}${order.address?.province || ''}`}
+                     deliveryCoordinates={{
+                       latitude: order.address.latitude,
+                       longitude: order.address.longitude
+                     }}
+                     restaurantCoordinates={{ latitude: 13.323830, longitude: 121.845809 }}
+                     className="bg-[#232323] border-[#444]"
+                   />
+                 </div>
+               )}
+             </div>
             {/* Payment Proof */}
             {order.paymentMethod === "gcash" && order.proofImage && (
               <ImageDisplay

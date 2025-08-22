@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { MapPin, Navigation, Clock, Route, X } from 'lucide-react';
+import { MapPin, Navigation, Clock, Route } from 'lucide-react';
 import { toast } from 'sonner';
 import PropTypes from 'prop-types';
 
@@ -14,7 +14,6 @@ export default function DeliveryNavigation({
   const map = useRef(null);
   const [routeData, setRouteData] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [showMap, setShowMap] = useState(true); // Default to showing map
 
   useEffect(() => {
     if (!mapContainer.current) return;
@@ -188,17 +187,9 @@ export default function DeliveryNavigation({
     <div className={`w-full ${className}`}>
       <Card className="bg-white shadow-lg">
         <CardHeader className="pb-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Navigation className="w-5 h-5 text-[#FFC107]" />
-              <CardTitle className="text-lg">Delivery Route</CardTitle>
-            </div>
-            <button
-              onClick={() => setShowMap(!showMap)}
-              className="text-gray-500 hover:text-gray-700"
-            >
-              {showMap ? <X className="w-4 h-4" /> : <MapPin className="w-4 h-4" />}
-            </button>
+          <div className="flex items-center gap-2">
+            <Navigation className="w-5 h-5 text-[#FFC107]" />
+            <CardTitle className="text-lg">Delivery Route</CardTitle>
           </div>
         </CardHeader>
 
@@ -241,23 +232,21 @@ export default function DeliveryNavigation({
           )}
 
           {/* Map Container */}
-          {showMap && (
-            <div className="mt-4">
-              <div
-                ref={mapContainer}
-                className="w-full h-64 rounded-lg border-2 border-gray-300 relative"
-                style={{ minHeight: '256px' }}
-              />
-              {isLoading && (
-                <div className="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center rounded-lg">
-                  <div className="text-center">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#FFC107] mx-auto mb-2"></div>
-                    <div className="text-sm text-gray-600">Loading route...</div>
-                  </div>
+          <div className="mt-4">
+            <div
+              ref={mapContainer}
+              className="w-full h-64 rounded-lg border-2 border-gray-300 relative"
+              style={{ minHeight: '256px' }}
+            />
+            {isLoading && (
+              <div className="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center rounded-lg">
+                <div className="text-center">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#FFC107] mx-auto mb-2"></div>
+                  <div className="text-sm text-gray-600">Loading route...</div>
                 </div>
-              )}
-            </div>
-          )}
+              </div>
+            )}
+          </div>
         </CardContent>
       </Card>
     </div>
