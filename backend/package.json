@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "nodemon src/index.js",
-    "seed:admin": "node src/migrations/admin.migration.js"
+    "seed:admin": "node src/migrations/admin.migration.js",
+    "seed:dnd-items": "node src/migrations/ingredient.seeder.js"
   },
   "keywords": [],
   "author": "",

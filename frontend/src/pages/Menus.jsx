@@ -1,11 +1,15 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import CustomerLayout from "../layouts/CustomerLayout";
 import { useQuery } from "@tanstack/react-query";
 import { categoryAPI, productAPI } from "../services/api";
 import ProductCard from "../components/ProductCard";
 import { Skeleton } from "../components/ui/skeleton";
+import { Button } from "../components/ui/button";
+import { Sparkles } from "lucide-react";
 
 export default function Menus() {
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
 
   // Fetch categories
@@ -82,9 +86,19 @@ export default function Menus() {
       <div className="bg-[#232323] min-h-screen w-full flex flex-col">
         <div className="flex-1 w-full flex flex-col items-center py-8">
           <div className="w-full max-w-6xl px-4 flex flex-col items-center">
-            <h1 className="text-4xl font-extrabold text-center text-white mb-6">
-              Menu
-            </h1>
+            <div className="flex flex-col sm:flex-row items-center justify-between w-full mb-6 gap-4">
+              <h1 className="text-4xl font-extrabold text-center text-white">
+                Menu
+              </h1>
+              <Button
+                variant="yellow"
+                onClick={() => navigate('/drink-customizer')}
+                className="flex items-center gap-2 px-6 py-3"
+              >
+                <Sparkles className="w-5 h-5" />
+                Customize Drink
+              </Button>
+            </div>
             <div className="mb-8 w-full">
               <div className="text-2xl font-bold text-[#FFC107] mb-1 w-full">
                 Special For You

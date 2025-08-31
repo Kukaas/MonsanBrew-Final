@@ -370,6 +370,30 @@ export const dashboardAPI = {
   },
 };
 
+// Drink Customization Dnd Items API functions
+export const dndItemsAPI = {
+  // Get all dnd items
+  getAll: async () => {
+    return await api.get("/dnd-items");
+  },
+  // Get dnd item by ID
+  getById: async (id) => {
+    return await api.get(`/dnd-items/${id}`);
+  },
+  // Create dnd item (admin only)
+  create: async (data) => {
+    return await api.post("/dnd-items", data);
+  },
+  // Update dnd item (admin only)
+  update: async (id, data) => {
+    return await api.put(`/dnd-items/${id}`, data);
+  },
+  // Delete dnd item (admin only)
+  delete: async (id) => {
+    return await api.delete(`/dnd-items/${id}`);
+  },
+};
+
 // Expenses API functions
 export const expensesAPI = {
   // Create expense

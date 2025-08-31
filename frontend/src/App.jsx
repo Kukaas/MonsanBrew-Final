@@ -38,6 +38,7 @@ import Checkout from "./pages/private/customer/Checkout.jsx";
 import Address from "./pages/private/customer/Address.jsx";
 import Orders from "./pages/private/customer/Orders.jsx";
 import OrderDetail from "./pages/private/customer/OrderDetail.jsx";
+import DrinkCustomizer from "./pages/private/customer/DrinkCustomizer.jsx";
 import ChangePassword from "./pages/public/ChangePassword.jsx";
 import Ingredients from "./pages/private/admin/ingredients/Ingredients.jsx";
 import CreateIngredient from "./pages/private/admin/ingredients/CreateIngredient.jsx";
@@ -379,6 +380,14 @@ function App() {
           element={
             <RequireAuth allowedRoles={["customer"]}>
               <OrderDetail />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/drink-customizer"
+          element={
+            <RequireAuth allowedRoles={["customer"]}>
+              <DrinkCustomizer />
             </RequireAuth>
           }
         />
