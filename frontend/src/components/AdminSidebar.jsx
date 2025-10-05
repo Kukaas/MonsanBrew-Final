@@ -45,6 +45,16 @@ const navMaintenance = [
     icon: <FolderArchiveIcon size={20} />,
     url: "/admin/ingredients",
   },
+  {
+    title: "D&D Ingredients",
+    icon: <FolderArchiveIcon size={20} />,
+    url: "/admin/dnd-ingredients",
+  },
+  {
+    title: "D&D Previews",
+    icon: <Folder size={20} />,
+    url: "/admin/dnd-previews",
+  },
   { title: "Products", icon: <Folder size={20} />, url: "/admin/products" },
   { title: "User Management", icon: <Users size={18} />, url: "/admin/users" },
 ];

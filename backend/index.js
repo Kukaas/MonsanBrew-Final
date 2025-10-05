@@ -15,7 +15,7 @@ import orderRoutes from "./src/routes/order.route.js";
 import reviewRoutes from "./src/routes/review.routes.js";
 import dashboardRoutes from "./src/routes/dashboard.route.js";
 import expenseRoutes from "./src/routes/expense.route.js";
-import dndItemsRoutes from "./src/routes/ingredient.route.js";
+import dndRoutes from "./src/routes/dnd.route.js";
 
 const app = express();
 
@@ -50,7 +50,7 @@ app.use("/api/orders", orderRoutes);
 app.use("/api/reviews", reviewRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/expenses", expenseRoutes);
-app.use("/api/dnd-items", dndItemsRoutes);
+app.use("/api/dnd", dndRoutes);
 
 app.listen(ENV.PORT, () => {
   console.log(`Server is running on port ${ENV.PORT}`);

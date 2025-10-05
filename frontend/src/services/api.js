@@ -394,6 +394,21 @@ export const dndItemsAPI = {
   },
 };
 
+// Drag & Drop Builder APIs
+export const dndAPI = {
+  // Ingredients
+  createIngredient: async (data) => api.post("/dnd/ingredients", data),
+  getIngredients: async () => api.get("/dnd/ingredients"),
+  updateIngredient: async (id, data) => api.put(`/dnd/ingredients/${id}`, data),
+  deleteIngredient: async (id) => api.delete(`/dnd/ingredients/${id}`),
+
+  // Previews
+  createPreview: async (data) => api.post("/dnd/previews", data),
+  getPreviews: async () => api.get("/dnd/previews"),
+  updatePreview: async (id, data) => api.put(`/dnd/previews/${id}`, data),
+  deletePreview: async (id) => api.delete(`/dnd/previews/${id}`),
+};
+
 // Expenses API functions
 export const expensesAPI = {
   // Create expense
