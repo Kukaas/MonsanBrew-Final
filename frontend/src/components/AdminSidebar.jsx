@@ -4,13 +4,17 @@ import {
   User,
   BarChart2,
   Users,
-  Folder,
   Database,
-  FileText,
   LogOut,
   RotateCcw,
-  FolderArchiveIcon,
   DollarSign,
+  ShoppingCart,
+  Plus,
+  Package,
+  ChefHat,
+  Layers,
+  Eye,
+  Coffee,
 } from "lucide-react";
 import { Sidebar, SidebarContent, SidebarSeparator } from "./ui/sidebar";
 import { Avatar, AvatarImage, AvatarFallback } from "./ui/avatar";
@@ -24,7 +28,7 @@ const navMain = [
     icon: <BarChart2 size={20} />,
     url: "/admin/dashboard",
   },
-  { title: "Orders", icon: <FileText size={20} />, url: "/admin/orders" },
+  { title: "Orders", icon: <ShoppingCart size={20} />, url: "/admin/orders" },
   { title: "Refunds", icon: <RotateCcw size={20} />, url: "/admin/refunds" },
   { title: "Expenses", icon: <DollarSign size={18} />, url: "/admin/expenses" },
 ];
@@ -34,28 +38,28 @@ const navMaintenance = [
     icon: <Database size={18} />,
     url: "/admin/categories",
   },
-  { title: "Add ons", icon: <FileText size={18} />, url: "/admin/add-ons" },
+  { title: "Add ons", icon: <Plus size={18} />, url: "/admin/add-ons" },
   {
     title: "Raw  Materials Inventory",
-    icon: <Folder size={20} />,
+    icon: <Package size={20} />,
     url: "/admin/raw-materials",
   },
   {
     title: "Ingredients",
-    icon: <FolderArchiveIcon size={20} />,
+    icon: <ChefHat size={20} />,
     url: "/admin/ingredients",
   },
   {
     title: "D&D Ingredients",
-    icon: <FolderArchiveIcon size={20} />,
+    icon: <Layers size={20} />,
     url: "/admin/dnd-ingredients",
   },
   {
     title: "D&D Previews",
-    icon: <Folder size={20} />,
+    icon: <Eye size={20} />,
     url: "/admin/dnd-previews",
   },
-  { title: "Products", icon: <Folder size={20} />, url: "/admin/products" },
+  { title: "Products", icon: <Coffee size={20} />, url: "/admin/products" },
   { title: "User Management", icon: <Users size={18} />, url: "/admin/users" },
 ];
 
@@ -120,11 +124,10 @@ export default function AdminSidebar() {
                 <Link
                   key={item.title}
                   to={item.url}
-                  className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors font-medium text-sm mb-1 ${
-                    location.pathname === item.url
-                      ? "bg-[#232323] text-[#FFC107]"
-                      : "hover:bg-[#232323] hover:text-[#FFC107] text-[#BDBDBD]"
-                  }`}
+                  className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors font-medium text-sm mb-1 ${location.pathname === item.url
+                    ? "bg-[#232323] text-[#FFC107]"
+                    : "hover:bg-[#232323] hover:text-[#FFC107] text-[#BDBDBD]"
+                    }`}
                 >
                   {item.icon}
                   {item.title}
@@ -140,11 +143,10 @@ export default function AdminSidebar() {
                 <Link
                   key={item.title}
                   to={item.url}
-                  className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors font-medium text-sm mb-1 ${
-                    location.pathname === item.url
-                      ? "bg-[#232323] text-[#FFC107]"
-                      : "hover:bg-[#232323] hover:text-[#FFC107] text-[#BDBDBD]"
-                  }`}
+                  className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors font-medium text-sm mb-1 ${location.pathname === item.url
+                    ? "bg-[#232323] text-[#FFC107]"
+                    : "hover:bg-[#232323] hover:text-[#FFC107] text-[#BDBDBD]"
+                    }`}
                 >
                   {item.icon}
                   {item.title}
@@ -164,12 +166,11 @@ export default function AdminSidebar() {
               <Link
                 key={item.title}
                 to={item.url}
-                className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors font-medium text-sm mb-1 ${
-                  item.title === "Profile" &&
+                className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors font-medium text-sm mb-1 ${item.title === "Profile" &&
                   location.pathname.startsWith("/profile")
-                    ? "bg-[#232323] text-[#FFC107]"
-                    : "hover:bg-[#232323] hover:text-[#FFC107] text-[#BDBDBD]"
-                }`}
+                  ? "bg-[#232323] text-[#FFC107]"
+                  : "hover:bg-[#232323] hover:text-[#FFC107] text-[#BDBDBD]"
+                  }`}
               >
                 {item.icon}
                 {item.title}
