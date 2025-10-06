@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Heart, ShoppingBag, User } from 'lucide-react';
+import { Home, Heart, ShoppingBag, User, Zap } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 export default function MobileNavBar() {
@@ -11,12 +11,17 @@ export default function MobileNavBar() {
     };
     const isFavoritesActive = location.pathname === '/favorites' || /^\/favorites(\/|$)/.test(location.pathname);
     const isOrdersActive = location.pathname.startsWith('/order');
+    const isCustomizerActive = location.pathname === '/drink-customizer';
 
     return (
         <nav className="fixed bottom-0 left-0 right-0 z-50 bg-[#232323] border-t border-gray-700 flex justify-around items-center h-16 md:hidden">
             <Link to="/" className="flex flex-col items-center justify-center text-xs gap-1 px-2 py-1 focus:outline-none group">
-                <Home size={24} className={isActive('/') && !isOrdersActive && !isFavoritesActive ? 'text-[#FFC107]' : 'text-white group-hover:text-[#FFC107]'} />
-                <span className={isActive('/') && !isOrdersActive && !isFavoritesActive ? 'text-[#FFC107] font-bold' : 'text-white'}>Menu</span>
+                <Home size={24} className={isActive('/') && !isOrdersActive && !isFavoritesActive && !isCustomizerActive ? 'text-[#FFC107]' : 'text-white group-hover:text-[#FFC107]'} />
+                <span className={isActive('/') && !isOrdersActive && !isFavoritesActive && !isCustomizerActive ? 'text-[#FFC107] font-bold' : 'text-white'}>Menu</span>
+            </Link>
+            <Link to="/drink-customizer" className="flex flex-col items-center justify-center text-xs gap-1 px-2 py-1 focus:outline-none group">
+                <Zap size={24} className={isCustomizerActive ? 'text-[#FFC107]' : 'text-white group-hover:text-[#FFC107]'} />
+                <span className={isCustomizerActive ? 'text-[#FFC107] font-bold' : 'text-white'}>Custom</span>
             </Link>
             <Link to={user ? `/favorites/${user._id}` : '/favorites'} className="flex flex-col items-center justify-center text-xs gap-1 px-2 py-1 focus:outline-none group">
                 <Heart size={24} className={isFavoritesActive ? 'text-[#FFC107]' : 'text-white group-hover:text-[#FFC107]'} />

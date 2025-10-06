@@ -45,6 +45,7 @@ import ViewIngredient from "./pages/private/admin/ingredients/ViewIngredient.jsx
 import Expenses from "./pages/private/admin/expenses/Expenses.jsx";
 import DnDIngredients from "./pages/private/admin/dnd/DnDIngredients.jsx";
 import DnDPreviews from "./pages/private/admin/dnd/DnDPreviews.jsx";
+import DrinkCustomizer from "./pages/private/customer/DrinkCustomizer.jsx";
 
 function RootRedirect() {
   const { user, loading } = useAuth();
@@ -352,6 +353,14 @@ function App() {
           }
         />
         <Route path="/product/:id" element={<ProductDetail />} />
+        <Route
+          path="/drink-customizer"
+          element={
+            <RequireAuth allowedRoles={["customer"]}>
+              <DrinkCustomizer />
+            </RequireAuth>
+          }
+        />
         <Route
           path="/cart"
           element={

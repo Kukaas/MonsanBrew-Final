@@ -48,7 +48,8 @@ export default function Header() {
             </div>
             {isAuthenticated ? (
                 <nav className="flex items-center gap-8 text-lg font-semibold">
-                    <Link to="/" className={isActive('/') && !isActive('/order') && !isActive('/favorites') && !isActive('/cart') && !isActive('/notifications') ? 'text-[#FFC107] font-bold' : 'hover:text-[#FFC107]'}>Menu</Link>
+                    <Link to="/" className={isActive('/') && !isActive('/order') && !isActive('/favorites') && !isActive('/cart') && !isActive('/notifications') && !isActive('/drink-customizer') ? 'text-[#FFC107] font-bold' : 'hover:text-[#FFC107]'}>Menu</Link>
+                    <Link to="/drink-customizer" className={isActive('/drink-customizer', true) ? 'text-[#FFC107] font-bold' : 'hover:text-[#FFC107]'}>Custom Drink</Link>
                     <Link to={user ? `/order/user/${user._id}` : '/order'} className={isActive('/order', false) ? 'text-[#FFC107] font-bold' : 'hover:text-[#FFC107]'}>My Purchases</Link>
                     <Link to={user ? `/favorites/${user._id}` : '/favorites'} className={isActive('/favorites', false) ? 'text-[#FFC107] font-bold' : 'hover:text-[#FFC107]'}>Favorites</Link>
                     <Link to={user ? `/cart?user=${user._id}` : '/cart'} className={isActive('/cart', true) ? 'text-[#FFC107]' : 'hover:text-[#FFC107]'} aria-label="Cart">
