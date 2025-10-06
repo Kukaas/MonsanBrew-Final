@@ -64,13 +64,35 @@ export default function OrderDetails() {
     refetchOnWindowFocus: false,
   });
 
+  // Helper function to get size price
+  const getSizePrice = (size) => {
+    const sizePrices = {
+      "Small": 10,
+      "Medium": 20,
+      "Large": 25,
+      "Extra Large": 35
+    };
+    return sizePrices[size] || 20; // Default to Medium price if size not found
+  };
+
   // Calculate Items Total (sum of all items and add-ons)
   const calculateItemsTotal = () => {
     if (!order?.items) return 0;
     return order.items.reduce((sum, item) => {
-      const addonPrice =
-        item.addOns?.reduce((a, addon) => a + (addon.price || 0), 0) || 0;
-      return sum + (item.price + addonPrice) * item.quantity;
+      if (item.isCustomDrink) {
+        // For custom drinks, calculate from custom ingredients + size price
+        const ingredientsTotal = Array.isArray(item.customIngredients)
+          ? item.customIngredients.reduce((ingSum, ingredient) =>
+              ingSum + (Number(ingredient.price) * Number(ingredient.quantity) || 0), 0)
+          : 0;
+        const sizePrice = getSizePrice(item.customSize || item.size);
+        return sum + (ingredientsTotal + sizePrice) * item.quantity;
+      } else {
+        // For regular products, calculate base + add-ons
+        const addonPrice =
+          item.addOns?.reduce((a, addon) => a + (addon.price || 0), 0) || 0;
+        return sum + (item.price + addonPrice) * item.quantity;
+      }
     }, 0);
   };
   // Delivery Fee is hardcoded to 15 pesos
@@ -206,10 +228,10 @@ export default function OrderDetails() {
                       className="bg-[#1a1a1a]/80 rounded-2xl p-8 border-2 border-[#333] hover:border-[#FFC107]/50 transition-all duration-300 shadow-xl backdrop-blur-sm"
                     >
                       <div className="flex items-start gap-6">
-                        {item.productId?.image && (
+                        {(item.isCustomDrink ? (item.customImage || item.image) : (item.productId?.image || item.image)) && (
                           <div className="flex-shrink-0">
                             <img
-                              src={item.productId.image}
+                              src={item.isCustomDrink ? (item.customImage || item.image) : (item.productId?.image || item.image)}
                               alt={item.productName || item.productId?.name}
                               className="w-24 h-24 object-cover rounded-xl border-3 border-[#FFC107] shadow-lg"
                             />
@@ -222,19 +244,31 @@ export default function OrderDetails() {
                             </h4>
                             <div className="text-right">
                               <div className="bg-[#FFC107] text-black px-4 py-2 rounded-full font-bold text-xl shadow-lg">
-                                ₱{item.price?.toFixed(2)}
+                                ₱{item.isCustomDrink ? (
+                                  // For custom drinks, calculate from custom ingredients + size price
+                                  (() => {
+                                    const ingredientsTotal = Array.isArray(item.customIngredients)
+                                      ? item.customIngredients.reduce((sum, ingredient) =>
+                                          sum + (Number(ingredient.price) * Number(ingredient.quantity) || 0), 0)
+                                      : 0;
+                                    const sizePrice = getSizePrice(item.customSize || item.size);
+                                    return ingredientsTotal + sizePrice;
+                                  })()
+                                ).toFixed(2) : (
+                                  item.price?.toFixed(2)
+                                )}
                               </div>
                             </div>
                           </div>
 
                           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                            {item.size && (
+                            {(item.size || (item.isCustomDrink && item.customSize)) && (
                               <div className="bg-[#232323] rounded-lg p-3 border border-[#444]">
                                 <span className="text-[#FFC107] font-semibold text-sm uppercase tracking-wide block">
                                   Size
                                 </span>
                                 <span className="text-white font-medium text-lg">
-                                  {item.size}
+                                  {item.isCustomDrink ? item.customSize : item.size}
                                 </span>
                               </div>
                             )}
@@ -251,12 +285,42 @@ export default function OrderDetails() {
                                 Total
                               </span>
                               <span className="text-white font-medium text-lg">
-                                ₱{(item.price * item.quantity)?.toFixed(2)}
+                                ₱{item.isCustomDrink ? (
+                                  // For custom drinks, calculate from custom ingredients + size price
+                                  (() => {
+                                    const ingredientsTotal = Array.isArray(item.customIngredients)
+                                      ? item.customIngredients.reduce((sum, ingredient) =>
+                                          sum + (Number(ingredient.price) * Number(ingredient.quantity) || 0), 0)
+                                      : 0;
+                                    const sizePrice = getSizePrice(item.customSize || item.size);
+                                    return (ingredientsTotal + sizePrice) * item.quantity;
+                                  })()
+                                ).toFixed(2) : (
+                                  (item.price * item.quantity)?.toFixed(2)
+                                )}
                               </span>
                             </div>
                           </div>
 
-                          {item.addOns && item.addOns.length > 0 && (
+                          {item.isCustomDrink && item.customIngredients && item.customIngredients.length > 0 && (
+                            <div className="bg-[#232323]/60 rounded-lg p-4 border border-[#444]">
+                              <span className="text-[#FFC107] font-semibold text-sm uppercase tracking-wide block mb-2">
+                                Custom Ingredients
+                              </span>
+                              <div className="flex flex-wrap gap-2">
+                                {item.customIngredients.map((ingredient, ingIdx) => (
+                                  <span
+                                    key={ingIdx}
+                                    className="bg-[#FFC107]/20 text-[#FFC107] px-3 py-1 rounded-full text-sm font-medium border border-[#FFC107]/30"
+                                  >
+                                    {ingredient.name} x{ingredient.quantity} (+₱{Number(ingredient.price * ingredient.quantity).toFixed(2)})
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+
+                          {!item.isCustomDrink && item.addOns && item.addOns.length > 0 && (
                             <div className="bg-[#232323]/60 rounded-lg p-4 border border-[#444]">
                               <span className="text-[#FFC107] font-semibold text-sm uppercase tracking-wide block mb-2">
                                 Add-ons

@@ -9,7 +9,9 @@ const cartItemSchema = new mongoose.Schema({
     product: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Product',
-        required: true
+        required: function() {
+            return !this.isCustomDrink;
+        }
     },
     productName: String, // snapshot
     image: String, // snapshot
@@ -32,7 +34,31 @@ const cartItemSchema = new mongoose.Schema({
             price: Number,
             image: String
         }
-    ]
+    ],
+    // Custom drink fields
+    isCustomDrink: {
+        type: Boolean,
+        default: false
+    },
+    customIngredients: [
+        {
+            ingredientId: {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: 'DndItems'
+            },
+            name: String,
+            price: Number,
+            image: String,
+            quantity: {
+                type: Number,
+                default: 1
+            }
+        }
+    ],
+    customImage: String, // preview image for custom drink
+    customBlendImage: String, // blend preview image for custom drink
+    customDrinkName: String, // generated name for custom drink
+    customSize: String // size for custom drinks (Small, Medium, Large, Extra Large)
 }, { timestamps: true });
 
 const CartItem = mongoose.model('CartItem', cartItemSchema);

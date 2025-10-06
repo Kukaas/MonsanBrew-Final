@@ -12,7 +12,9 @@ const OrderSchema = new mongoose.Schema(
         productId: {
           type: mongoose.Schema.Types.ObjectId,
           ref: "Product",
-          required: true,
+          required: function() {
+            return !this.isCustomDrink;
+          }
         },
         productName: String,
         image: String,
@@ -26,6 +28,30 @@ const OrderSchema = new mongoose.Schema(
         ],
         quantity: { type: Number, required: true },
         price: { type: Number, required: true },
+        // Custom drink fields
+        isCustomDrink: {
+          type: Boolean,
+          default: false
+        },
+        customIngredients: [
+          {
+            ingredientId: {
+              type: mongoose.Schema.Types.ObjectId,
+              ref: "DndItems"
+            },
+            name: String,
+            price: Number,
+            image: String,
+            quantity: {
+              type: Number,
+              default: 1
+            }
+          }
+        ],
+        customImage: String,
+        customBlendImage: String,
+        customDrinkName: String,
+        customSize: String // size for custom drinks (Small, Medium, Large, Extra Large)
       },
     ],
     address: {

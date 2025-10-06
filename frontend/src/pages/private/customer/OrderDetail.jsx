@@ -89,18 +89,54 @@ export default function OrderDetail() {
   };
 
   const calculateItemTotal = (item) => {
-    const addonPrice =
-      item.addOns?.reduce((sum, addon) => sum + addon.price, 0) || 0;
-    return (item.price + addonPrice) * item.quantity;
+    if (item.isCustomDrink) {
+      // For custom drinks, calculate from custom ingredients + size price
+      const ingredientsTotal = Array.isArray(item.customIngredients)
+        ? item.customIngredients.reduce((sum, ingredient) =>
+            sum + (Number(ingredient.price) * Number(ingredient.quantity) || 0), 0)
+        : 0;
+
+      // Add size price based on custom size
+      const sizePrice = getSizePrice(item.customSize || item.size);
+
+      return (ingredientsTotal + sizePrice) * item.quantity;
+    } else {
+      // For regular products, calculate base + add-ons
+      const addonPrice =
+        item.addOns?.reduce((sum, addon) => sum + addon.price, 0) || 0;
+      return (item.price + addonPrice) * item.quantity;
+    }
+  };
+
+  // Helper function to get size price
+  const getSizePrice = (size) => {
+    const sizePrices = {
+      "Small": 10,
+      "Medium": 20,
+      "Large": 25,
+      "Extra Large": 35
+    };
+    return sizePrices[size] || 20; // Default to Medium price if size not found
   };
 
   // Calculate Items Total (sum of all items and add-ons)
   const calculateItemsTotal = () => {
     if (!order?.items) return 0;
     return order.items.reduce((sum, item) => {
-      const addonPrice =
-        item.addOns?.reduce((a, addon) => a + addon.price, 0) || 0;
-      return sum + (item.price + addonPrice) * item.quantity;
+      if (item.isCustomDrink) {
+        // For custom drinks, calculate from custom ingredients + size price
+        const ingredientsTotal = Array.isArray(item.customIngredients)
+          ? item.customIngredients.reduce((ingSum, ingredient) =>
+              ingSum + (Number(ingredient.price) * Number(ingredient.quantity) || 0), 0)
+          : 0;
+        const sizePrice = getSizePrice(item.customSize || item.size);
+        return sum + (ingredientsTotal + sizePrice) * item.quantity;
+      } else {
+        // For regular products, calculate base + add-ons
+        const addonPrice =
+          item.addOns?.reduce((a, addon) => a + addon.price, 0) || 0;
+        return sum + (item.price + addonPrice) * item.quantity;
+      }
     }, 0);
   };
   // Delivery Fee is hardcoded to 15 pesos
@@ -444,7 +480,7 @@ export default function OrderDetail() {
               className="bg-gray-50 rounded-xl p-4 border-1 border-[#FFC107] flex flex-row items-center gap-4 shadow justify-between"
             >
               <img
-                src={item.image || "/placeholder.png"}
+                src={item.isCustomDrink ? (item.customImage || item.image || "/placeholder.png") : (item.image || "/placeholder.png")}
                 alt={item.productName}
                 className="w-20 h-20 object-contain rounded-xl bg-white shadow flex-shrink-0"
               />
@@ -453,12 +489,17 @@ export default function OrderDetail() {
                   {item.productName}
                 </span>
                 <div className="flex flex-wrap gap-2 mt-1">
-                  {item.size && (
+                  {(item.size || (item.isCustomDrink && item.customSize)) && (
                     <span className="text-xs bg-[#FFC107]/20 text-[#FFC107] font-semibold px-2 py-0.5 rounded">
-                      Size: {item.size}
+                      Size: {item.isCustomDrink ? item.customSize : item.size}
                     </span>
                   )}
-                  {item.addOns && item.addOns.length > 0 && (
+                  {item.isCustomDrink && item.customIngredients && item.customIngredients.length > 0 && (
+                    <span className="text-xs bg-[#FFC107]/20 text-[#FFC107] font-semibold px-2 py-0.5 rounded">
+                      Custom: {item.customIngredients.map(ing => ing.name).join(", ")}
+                    </span>
+                  )}
+                  {!item.isCustomDrink && item.addOns && item.addOns.length > 0 && (
                     <span className="text-xs bg-[#FFC107]/20 text-[#FFC107] font-semibold px-2 py-0.5 rounded">
                       Add-ons:{" "}
                       {item.addOns.map((addon) => addon.name).join(", ")}

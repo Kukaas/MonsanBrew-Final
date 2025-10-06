@@ -137,13 +137,35 @@ export default function Orders() {
     });
   };
 
+  // Helper function to get size price
+  const getSizePrice = (size) => {
+    const sizePrices = {
+      "Small": 10,
+      "Medium": 20,
+      "Large": 25,
+      "Extra Large": 35
+    };
+    return sizePrices[size] || 20; // Default to Medium price if size not found
+  };
+
   // Helper to calculate items total for an order
   const calculateItemsTotal = (order) => {
     if (!order?.items) return 0;
     return order.items.reduce((sum, item) => {
-      const addonPrice =
-        item.addOns?.reduce((a, addon) => a + (addon.price || 0), 0) || 0;
-      return sum + (item.price + addonPrice) * item.quantity;
+      if (item.isCustomDrink) {
+        // For custom drinks, calculate from custom ingredients + size price
+        const ingredientsTotal = Array.isArray(item.customIngredients)
+          ? item.customIngredients.reduce((ingSum, ingredient) =>
+              ingSum + (Number(ingredient.price) * Number(ingredient.quantity) || 0), 0)
+          : 0;
+        const sizePrice = getSizePrice(item.customSize || item.size);
+        return sum + (ingredientsTotal + sizePrice) * item.quantity;
+      } else {
+        // For regular products, calculate base + add-ons
+        const addonPrice =
+          item.addOns?.reduce((a, addon) => a + (addon.price || 0), 0) || 0;
+        return sum + (item.price + addonPrice) * item.quantity;
+      }
     }, 0);
   };
   const deliveryFee = 15;
@@ -206,7 +228,7 @@ export default function Orders() {
                   className="bg-gray-50 rounded-xl p-4 border-2 border-[#FFC107] flex flex-col sm:flex-row sm:items-center gap-4 shadow"
                 >
                   <img
-                    src={item.image || "/placeholder.png"}
+                    src={item.isCustomDrink ? (item.customImage || item.image || "/placeholder.png") : (item.image || "/placeholder.png")}
                     alt={item.productName}
                     className="w-20 h-20 object-contain rounded-xl bg-white mb-2 sm:mb-0 shadow"
                   />
@@ -216,12 +238,17 @@ export default function Orders() {
                         {item.productName}
                       </span>
                       <div className="flex flex-wrap gap-2 mt-1">
-                        {item.size && (
+                        {(item.size || (item.isCustomDrink && item.customSize)) && (
                           <span className="text-xs bg-[#FFF9E5] text-[#FFC107] font-semibold px-2 py-0.5 rounded">
-                            Size: {item.size}
+                            Size: {item.isCustomDrink ? item.customSize : item.size}
                           </span>
                         )}
-                        {item.addOns && item.addOns.length > 0 && (
+                        {item.isCustomDrink && item.customIngredients && item.customIngredients.length > 0 && (
+                          <span className="text-xs bg-[#FFF9E5] text-[#FFC107] font-semibold px-2 py-0.5 rounded">
+                            Custom: {item.customIngredients.map(ing => ing.name).join(", ")}
+                          </span>
+                        )}
+                        {!item.isCustomDrink && item.addOns && item.addOns.length > 0 && (
                           <span className="text-xs bg-[#FFF9E5] text-[#FFC107] font-semibold px-2 py-0.5 rounded">
                             Add-ons:{" "}
                             {item.addOns
@@ -240,12 +267,23 @@ export default function Orders() {
                   </div>
                   <span className="text-base sm:text-lg font-extrabold text-[#232323] mt-2 sm:mt-0 whitespace-nowrap ml-auto">
                     ₱
-                    {(
-                      item.price +
-                      (item.addOns?.reduce(
-                        (a, addon) => a + (addon.price || 0),
-                        0
-                      ) || 0)
+                    {item.isCustomDrink ? (
+                      // For custom drinks, calculate from custom ingredients + size price
+                      (() => {
+                        const ingredientsTotal = Array.isArray(item.customIngredients)
+                          ? item.customIngredients.reduce((sum, ingredient) =>
+                              sum + (Number(ingredient.price) * Number(ingredient.quantity) || 0), 0)
+                          : 0;
+                        const sizePrice = getSizePrice(item.customSize || item.size);
+                        return ingredientsTotal + sizePrice;
+                      })()
+                    ).toFixed(2) : (
+                      // For regular products, calculate base + add-ons
+                      (item.price +
+                        (item.addOns?.reduce(
+                          (a, addon) => a + (addon.price || 0),
+                          0
+                        ) || 0))
                     ).toFixed(2)}
                   </span>
                 </div>

@@ -20,6 +20,16 @@ export default function DrinkCustomizer() {
   const [isDragOver, setIsDragOver] = useState(false);
   const [showBlendPreview, setShowBlendPreview] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
+  const [selectedSize, setSelectedSize] = useState("Medium");
+  const [ingredientUsageCount, setIngredientUsageCount] = useState({});
+
+  // Size options with pricing
+  const sizeOptions = [
+    { name: "Small", price: 10 },
+    { name: "Medium", price: 20 },
+    { name: "Large", price: 25 },
+    { name: "Extra Large", price: 35 }
+  ];
 
   // Fetch DnD ingredients
   const { data: ingredients, isLoading: ingredientsLoading } = useQuery({
@@ -42,16 +52,7 @@ export default function DrinkCustomizer() {
   // Add to cart mutation
   const { mutate: addToCart, isPending: addingToCart } = useMutation({
     mutationFn: async (customDrink) => {
-      return cartAPI.addToCart(user._id, {
-        productId: "custom-drink",
-        productName: customDrink.name,
-        price: customDrink.totalPrice,
-        quantity: 1,
-        size: "Custom",
-        addOns: [],
-        customIngredients: customDrink.ingredients,
-        customImage: customDrink.previewImage,
-      });
+      return cartAPI.addCustomDrinkToCart(user._id, customDrink);
     },
     onSuccess: () => {
       queryClient.invalidateQueries(["cart", user._id]);
@@ -91,13 +92,18 @@ export default function DrinkCustomizer() {
     try {
       const ingredientData = JSON.parse(e.dataTransfer.getData("application/json"));
       addIngredient(ingredientData);
-    } catch (error) {
+      } catch (error) {
       console.error("Error parsing dropped data:", error);
     }
   };
 
   // Ingredient management
   const addIngredient = (ingredient) => {
+    // Update usage count
+    const currentCount = ingredientUsageCount[ingredient._id] || 0;
+    const newCount = currentCount + 1;
+    setIngredientUsageCount(prev => ({ ...prev, [ingredient._id]: newCount }));
+
     const existingIngredient = selectedIngredients.find(ing => ing._id === ingredient._id);
     if (existingIngredient) {
       setSelectedIngredients(selectedIngredients.map(ing =>
@@ -109,6 +115,34 @@ export default function DrinkCustomizer() {
       setSelectedIngredients([...selectedIngredients, { ...ingredient, quantity: 1 }]);
     }
     toast.success(`${ingredient.name} added!`);
+  };
+
+  // Check if ingredient should be hidden from draggable items
+  const shouldHideIngredient = (ingredient) => {
+    const usageCount = ingredientUsageCount[ingredient._id] || 0;
+    const ingredientName = ingredient.name.toLowerCase();
+
+    // Flavor ingredients - hide after 1 use
+    if (ingredientName.includes('flavor') || ingredientName.includes('caramel') || ingredientName.includes('strawberry')) {
+      return usageCount >= 1;
+    }
+
+    // Ice - hide after 2 uses
+    if (ingredientName.includes('ice')) {
+      return usageCount >= 2;
+    }
+
+    // Milk shot - hide after 3 uses
+    if (ingredientName.includes('milk')) {
+      return usageCount >= 3;
+    }
+
+    // Jam - hide after 2 uses
+    if (ingredientName.includes('jam')) {
+      return usageCount >= 2;
+    }
+
+    return false; // Default: don't hide
   };
 
   const handleIngredientClick = (ingredient) => {
@@ -137,11 +171,17 @@ export default function DrinkCustomizer() {
   const resetCustomizer = () => {
     setSelectedIngredients([]);
     setShowBlendPreview(false);
+    setSelectedSize("Medium");
+    setIngredientUsageCount({});
   };
 
   // Calculate total price
   const calculateTotalPrice = () => {
-    return selectedIngredients.reduce((total, ing) => total + (ing.price * ing.quantity), 0);
+    const ingredientsTotal = selectedIngredients.reduce((total, ing) => total + (ing.price * ing.quantity), 0);
+    const currentSize = sizeOptions.find(size => size.name === selectedSize);
+    const sizePrice = currentSize?.price || 0;
+
+    return ingredientsTotal + sizePrice;
   };
 
   // Generate drink name - more minimal
@@ -201,6 +241,22 @@ export default function DrinkCustomizer() {
 
     if (partialMatch) return partialMatch;
 
+    // Special case: Look for specific preview ID for Caramel + Strawberry Jam
+    const hasCaramel = selectedIngredients.some(ing =>
+      ing.name.toLowerCase().includes('caramel') || ing.name.toLowerCase().includes('caramel powder')
+    );
+    const hasStrawberry = selectedIngredients.some(ing =>
+      ing.name.toLowerCase().includes('strawberry') || ing.name.toLowerCase().includes('jam')
+    );
+
+    if (hasCaramel && hasStrawberry) {
+      // Look for the specific preview ID for Caramel + Strawberry Jam
+      const caramelStrawberryPreview = previews.find(preview =>
+        preview._id === '68e33717a4a335e157486b50'
+      );
+      if (caramelStrawberryPreview) return caramelStrawberryPreview;
+    }
+
     return null;
   };
 
@@ -210,7 +266,6 @@ export default function DrinkCustomizer() {
   const handleBlendClick = () => {
     if (matchingPreview && matchingPreview.blendImage) {
       setShowBlendPreview(!showBlendPreview);
-      toast.success(showBlendPreview ? "Blend preview hidden" : "Blend preview shown!");
     } else {
       toast.error("No blend preview available for this combination");
     }
@@ -227,7 +282,8 @@ export default function DrinkCustomizer() {
       name: generateDrinkName(),
       totalPrice: calculateTotalPrice(),
       ingredients: selectedIngredients,
-      previewImage: matchingPreview?.image || null,
+      size: selectedSize,
+      previewImage: matchingPreview?.blendImage || null, // Use blendImage (finished product) for cart display
       blendImage: matchingPreview?.blendImage || null,
     };
 
@@ -322,7 +378,7 @@ export default function DrinkCustomizer() {
         </div>
 
         {/* Main Content */}
-        <div className="flex-1 w-full px-4 pb-24 md:pb-8">
+        <div className="flex-1 w-full px-4 pb-32 md:pb-8">
           <div className="max-w-6xl mx-auto">
             {/* Desktop Layout */}
             <div className="hidden lg:grid lg:grid-cols-3 gap-8">
@@ -333,7 +389,7 @@ export default function DrinkCustomizer() {
                     <h2 className="text-2xl font-bold text-white">Available Ingredients</h2>
                   </div>
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                    {ingredients?.map((ingredient) => (
+                    {ingredients?.filter(ingredient => !shouldHideIngredient(ingredient)).map((ingredient) => (
                       <div
                         key={ingredient._id}
                         draggable
@@ -465,7 +521,7 @@ export default function DrinkCustomizer() {
                           </div>
                         ))}
                       </div>
-                    </div>
+      </div>
 
                      {/* Show actual preview from database */}
                      {matchingPreview && (
@@ -483,7 +539,7 @@ export default function DrinkCustomizer() {
 
                     {/* Show blend preview when blend button is clicked */}
                     {showBlendPreview && matchingPreview && matchingPreview.blendImage && (
-                      <div className="text-center mb-4">
+            <div className="text-center mb-4">
                         <img
                           src={matchingPreview.blendImage}
                           alt="Blend Preview"
@@ -496,7 +552,7 @@ export default function DrinkCustomizer() {
                     {/* Show message if no preview found */}
                     {!matchingPreview && (
                       <div className="text-center mb-4 p-4 bg-gray-50 rounded-lg">
-                        <p className="text-sm text-gray-600">
+              <p className="text-sm text-gray-600">
                           No preview available for this combination
                         </p>
                         <p className="text-xs text-gray-500 mt-1">
@@ -530,6 +586,31 @@ export default function DrinkCustomizer() {
                   </div>
                 )}
 
+                {/* Size Selection */}
+                <div className="space-y-3">
+                  <h3 className="text-lg font-bold text-[#232323]">Size</h3>
+                  <div className="grid grid-cols-2 gap-2">
+                    {sizeOptions.map((size) => (
+        <button
+                        key={size.name}
+                        onClick={() => setSelectedSize(size.name)}
+                        className={`p-3 rounded-xl border-2 transition-all duration-200 ${
+                          selectedSize === size.name
+                            ? "border-[#FFC107] bg-[#FFC107]/20 text-[#FFC107] font-bold"
+                            : "border-gray-300 bg-white hover:border-[#FFC107]/50 text-gray-800 hover:bg-gray-50"
+                        }`}
+                      >
+                        <div className="text-sm font-semibold">{size.name}</div>
+                        <div className={`text-xs ${
+                          selectedSize === size.name ? "text-[#FFC107]/80" : "text-gray-600"
+                        }`}>
+                          +₱{size.price}
+                        </div>
+        </button>
+                    ))}
+                  </div>
+      </div>
+
                 {/* Action Buttons - Desktop */}
                 <div className="space-y-4">
                   <Button
@@ -554,7 +635,7 @@ export default function DrinkCustomizer() {
             </div>
 
             {/* Mobile Layout */}
-            <div className="lg:hidden space-y-6">
+            <div className="lg:hidden space-y-6 pb-32">
               {/* Drop Zone - Mobile */}
               <div className="bg-white rounded-lg shadow-md p-4">
                 <h2 className="text-lg font-semibold mb-4 text-gray-900">Your Custom Drink</h2>
@@ -645,8 +726,8 @@ export default function DrinkCustomizer() {
                             {ingredient.name} x{ingredient.quantity}
                           </p>
                         </div>
-                      ))}
-                    </div>
+                  ))}
+                </div>
                   </div>
 
                    {/* Show actual preview from database */}
@@ -660,8 +741,8 @@ export default function DrinkCustomizer() {
                        <p className="text-sm text-gray-600 mt-2">
                          {matchingPreview.name}
                        </p>
-                     </div>
-                   )}
+              </div>
+            )}
 
                   {/* Show blend preview when blend button is clicked */}
                   {showBlendPreview && matchingPreview && matchingPreview.blendImage && (
@@ -712,6 +793,31 @@ export default function DrinkCustomizer() {
                 </div>
               )}
 
+              {/* Size Selection - Mobile */}
+              <div className="space-y-3">
+                <h3 className="text-lg font-bold text-[#232323]">Size</h3>
+                <div className="grid grid-cols-2 gap-2">
+                  {sizeOptions.map((size) => (
+                    <button
+                      key={size.name}
+                      onClick={() => setSelectedSize(size.name)}
+                      className={`p-3 rounded-xl border-2 transition-all duration-200 ${
+                        selectedSize === size.name
+                          ? "border-[#FFC107] bg-[#FFC107]/20 text-[#FFC107] font-bold"
+                          : "border-gray-300 bg-white hover:border-[#FFC107]/50 text-gray-800 hover:bg-gray-50"
+                      }`}
+                    >
+                      <div className="text-sm font-semibold">{size.name}</div>
+                      <div className={`text-xs ${
+                        selectedSize === size.name ? "text-[#FFC107]/80" : "text-gray-600"
+                      }`}>
+                        +₱{size.price}
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               {/* Action Buttons - Mobile */}
               <div className="space-y-3">
                 <Button
@@ -746,7 +852,7 @@ export default function DrinkCustomizer() {
               <div className="text-xs text-[#BDBDBD] bg-white/10 px-2 py-1 rounded-full">Tap to add</div>
             </div>
             <div className="flex gap-3 overflow-x-auto pb-2 custom-scrollbar">
-              {ingredients?.map((ingredient) => (
+              {ingredients?.filter(ingredient => !shouldHideIngredient(ingredient)).map((ingredient) => (
                 <div
                   key={ingredient._id}
                   draggable
@@ -773,8 +879,8 @@ export default function DrinkCustomizer() {
               ))}
             </div>
           </div>
-        </div>
       </div>
+    </div>
     </CustomerLayout>
   );
 }

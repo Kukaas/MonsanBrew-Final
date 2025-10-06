@@ -59,7 +59,21 @@ export default function Cart() {
               .sort()
               .join(",")
           : "";
-      const key = `${item.product}|${item.size || ""}|${addOnsKey}`;
+
+      // For custom drinks, use customDrinkName and customIngredients for grouping
+      let key;
+      if (item.isCustomDrink) {
+        const customIngredientsKey = Array.isArray(item.customIngredients) && item.customIngredients.length > 0
+          ? item.customIngredients
+              .map((ing) => ing.ingredientId || ing.name)
+              .sort()
+              .join(",")
+          : "";
+        key = `custom|${item.customDrinkName || item.productName}|${customIngredientsKey}|${item.customSize || item.size || ""}`;
+      } else {
+        key = `${item.product}|${item.size || ""}|${addOnsKey}`;
+      }
+
       if (!groups[key]) {
         groups[key] = { ...item, quantity: 0, _originalIds: [] };
       }
@@ -80,15 +94,25 @@ export default function Cart() {
 
   // Helper to get group key for a cart item
   function getGroupKey(item) {
-    return (
-      item._id +
-      (item.size || "") +
-      (item.addOns &&
-        item.addOns
-          .map((a) => a.addonId || a._id || a.name)
-          .sort()
-          .join(","))
-    );
+    if (item.isCustomDrink) {
+      const customIngredientsKey = Array.isArray(item.customIngredients) && item.customIngredients.length > 0
+        ? item.customIngredients
+            .map((ing) => ing.ingredientId || ing.name)
+            .sort()
+            .join(",")
+        : "";
+      return `custom|${item.customDrinkName || item.productName}|${customIngredientsKey}|${item.customSize || item.size || ""}`;
+    } else {
+      return (
+        item._id +
+        (item.size || "") +
+        (item.addOns &&
+          item.addOns
+            .map((a) => a.addonId || a._id || a.name)
+            .sort()
+            .join(","))
+      );
+    }
   }
 
   // Select all logic
@@ -157,11 +181,36 @@ export default function Cart() {
 
   // Helper to calculate total price for a cart item (base + add-ons)
   function getItemUnitTotal(item) {
-    const base = Number(item.price) || 0;
-    const addons = Array.isArray(item.addOns)
-      ? item.addOns.reduce((sum, a) => sum + (Number(a.price) || 0), 0)
-      : 0;
-    return base + addons;
+    if (item.isCustomDrink) {
+      // For custom drinks, calculate from custom ingredients + size price
+      const ingredientsTotal = Array.isArray(item.customIngredients)
+        ? item.customIngredients.reduce((sum, ingredient) =>
+            sum + (Number(ingredient.price) * Number(ingredient.quantity) || 0), 0)
+        : 0;
+
+      // Add size price based on custom size
+      const sizePrice = getSizePrice(item.customSize || item.size);
+
+      return ingredientsTotal + sizePrice;
+    } else {
+      // For regular products, calculate base + add-ons
+      const base = Number(item.price) || 0;
+      const addons = Array.isArray(item.addOns)
+        ? item.addOns.reduce((sum, a) => sum + (Number(a.price) || 0), 0)
+        : 0;
+      return base + addons;
+    }
+  }
+
+  // Helper function to get size price
+  function getSizePrice(size) {
+    const sizePrices = {
+      "Small": 10,
+      "Medium": 20,
+      "Large": 25,
+      "Extra Large": 35
+    };
+    return sizePrices[size] || 20; // Default to Medium price if size not found
   }
 
   // Only include selected items in totals
@@ -306,7 +355,7 @@ export default function Cart() {
                     {/* Left: Image and Info */}
                     <div className="flex flex-col items-center justify-center mr-4">
                       <img
-                        src={item.image || "/placeholder.png"}
+                        src={item.isCustomDrink ? (item.customImage || item.image || "/placeholder.png") : (item.image || "/placeholder.png")}
                         alt={item.productName}
                         className="w-20 h-20 object-cover rounded-xl bg-white"
                       />
@@ -316,12 +365,36 @@ export default function Cart() {
                       <div className="font-bold text-lg text-[#232323] truncate">
                         {item.productName}
                       </div>
-                      {item.size && (
+                      {(item.size || (item.isCustomDrink && item.customSize)) && (
                         <div className="text-xs text-gray-500 font-semibold">
-                          {item.size}
+                          {item.isCustomDrink ? item.customSize : item.size}
                         </div>
                       )}
-                      {item.addOns && item.addOns.length > 0 && (
+
+                      {/* Custom Drink Ingredients */}
+                      {item.isCustomDrink && item.customIngredients && item.customIngredients.length > 0 && (
+                        <div className="mt-1">
+                          <div className="text-xs text-[#FFC107] font-bold">
+                            Custom Ingredients:
+                          </div>
+                          <ul className="text-xs text-[#232323]">
+                            {item.customIngredients.map((ingredient, idx) => (
+                              <li
+                                key={ingredient.ingredientId || idx}
+                                className="flex justify-between"
+                              >
+                                <span>{ingredient.name} x{ingredient.quantity}</span>
+                                <span>
+                                  ₱ {Number(ingredient.price * ingredient.quantity).toLocaleString()}
+                                </span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+
+                      {/* Regular Add-ons */}
+                      {!item.isCustomDrink && item.addOns && item.addOns.length > 0 && (
                         <div className="mt-1">
                           <div className="text-xs text-[#FFC107] font-bold">
                             Add-ons:
@@ -347,21 +420,31 @@ export default function Cart() {
                           getItemUnitTotal(item) * item.quantity
                         ).toLocaleString()}
                         <span className="block text-xs font-normal text-gray-400 mt-1">
-                          (₱ {Number(item.price).toLocaleString()} base
-                          {item.addOns && item.addOns.length > 0 && (
+                          {item.isCustomDrink ? (
                             <>
-                              {" "}
-                              + ₱{" "}
-                              {item.addOns
-                                .reduce(
-                                  (sum, a) => sum + (Number(a.price) || 0),
-                                  0
-                                )
-                                .toLocaleString()}{" "}
-                              add-ons
+                              (₱ {Array.isArray(item.customIngredients)
+                                ? item.customIngredients.reduce((sum, ing) => sum + (Number(ing.price) * Number(ing.quantity) || 0), 0).toLocaleString()
+                                : 0} ingredients + ₱ {getSizePrice(item.customSize || item.size).toLocaleString()} size) × {item.quantity}
+                            </>
+                          ) : (
+                            <>
+                              (₱ {Number(item.price).toLocaleString()} base
+                              {item.addOns && item.addOns.length > 0 && (
+                                <>
+                                  {" "}
+                                  + ₱{" "}
+                                  {item.addOns
+                                    .reduce(
+                                      (sum, a) => sum + (Number(a.price) || 0),
+                                      0
+                                    )
+                                    .toLocaleString()}{" "}
+                                  add-ons
+                                </>
+                              )}
+                              ) × {item.quantity}
                             </>
                           )}
-                          ) × {item.quantity}
                         </span>
                       </div>
                     </div>
@@ -469,6 +552,8 @@ export default function Cart() {
           className="w-full max-w-md text-xl font-bold py-4"
           disabled={selectedCart.length === 0}
           onClick={() => {
+            console.log("Selected cart items:", selectedCart);
+            console.log("Selected cart length:", selectedCart.length);
             localStorage.setItem("selectedCart", JSON.stringify(selectedCart));
             navigate(`/checkout/${userId}`, { state: { selectedCart } });
           }}

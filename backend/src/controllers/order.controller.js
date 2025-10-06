@@ -390,50 +390,46 @@ export const updateOrderStatus = async (req, res) => {
         .json({ error: "Cannot update completed or cancelled orders." });
     }
 
-    // Check if status is changing to "waiting_for_rider" and deduct ingredients
-    if (
-      status === "waiting_for_rider" &&
-      order.status !== "waiting_for_rider"
-    ) {
-      try {
-        // Get all product details for the order items
-        const productIds = order.items.map((item) => item.productId);
-        const products = await Product.find({
-          _id: { $in: productIds },
-        }).populate("ingredients.ingredientId");
+        // Check if status is changing to "waiting_for_rider" and deduct ingredients
+        if (
+          status === "waiting_for_rider" &&
+          order.status !== "waiting_for_rider"
+        ) {
+          try {
+            let totalIngredientsToDeduct = [];
 
-        let totalIngredientsToDeduct = [];
+            // Process each order item (only regular products for ingredient deduction)
+            for (let i = 0; i < order.items.length; i++) {
+              const orderItem = order.items[i];
 
-        // Process each order item
-        for (let i = 0; i < order.items.length; i++) {
-          const orderItem = order.items[i];
+              // Skip custom drinks for ingredient deduction
+              if (orderItem.isCustomDrink) {
+                continue;
+              }
 
-          const product = products.find(
-            (p) => p._id.toString() === orderItem.productId.toString()
-          );
+              // Handle regular products only
+              const product = await Product.findById(orderItem.productId).populate("ingredients.ingredientId");
 
-          if (product) {
-            if (product.ingredients && product.ingredients.length > 0) {
-              // Process each ingredient in the product
-              for (let j = 0; j < product.ingredients.length; j++) {
-                const ingredient = product.ingredients[j];
-                const quantityNeeded = ingredient.quantity * orderItem.quantity;
+              if (product && product.ingredients && product.ingredients.length > 0) {
+                // Process each ingredient in the product
+                for (let j = 0; j < product.ingredients.length; j++) {
+                  const ingredient = product.ingredients[j];
+                  const quantityNeeded = ingredient.quantity * orderItem.quantity;
 
-                // Add to deduction list
-                totalIngredientsToDeduct.push({
-                  productName: orderItem.productName,
-                  ingredientId: ingredient.ingredientId,
-                  ingredientName:
-                    ingredient.ingredientId?.ingredientName ||
-                    "Unknown Ingredient",
-                  quantityNeeded,
-                  unit:
-                    ingredient.unit || ingredient.ingredientId?.unit || "units",
-                });
+                  // Add to deduction list
+                  totalIngredientsToDeduct.push({
+                    productName: orderItem.productName,
+                    ingredientId: ingredient.ingredientId,
+                    ingredientName:
+                      ingredient.ingredientId?.ingredientName ||
+                      "Unknown Ingredient",
+                    quantityNeeded,
+                    unit:
+                      ingredient.unit || ingredient.ingredientId?.unit || "units",
+                  });
+                }
               }
             }
-          }
-        }
 
         // Now validate and deduct ingredients
         for (const deductionItem of totalIngredientsToDeduct) {

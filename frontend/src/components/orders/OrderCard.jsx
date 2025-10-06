@@ -21,6 +21,17 @@ const OrderCard = ({ order, onOrderUpdate }) => {
   const [selectedProductId, setSelectedProductId] = useState(null);
   const [showRefundModal, setShowRefundModal] = useState(false);
 
+  // Helper function to get size price
+  const getSizePrice = (size) => {
+    const sizePrices = {
+      "Small": 10,
+      "Medium": 20,
+      "Large": 25,
+      "Extra Large": 35
+    };
+    return sizePrices[size] || 20; // Default to Medium price if size not found
+  };
+
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString("en-US", {
       year: "numeric",
@@ -117,7 +128,7 @@ const OrderCard = ({ order, onOrderUpdate }) => {
               className="flex flex-col sm:flex-row items-center gap-6 bg-gray-50 p-4 shadow border-1 border-[#FFC107] rounded-xl"
             >
               <img
-                src={item.image || "/placeholder.png"}
+                src={item.isCustomDrink ? (item.customImage || item.image || "/placeholder.png") : (item.image || "/placeholder.png")}
                 alt={item.productName}
                 className="w-20 h-20 object-contain rounded-xl bg-white mb-2 sm:mb-0 shadow"
               />
@@ -127,12 +138,17 @@ const OrderCard = ({ order, onOrderUpdate }) => {
                     {item.productName}
                   </span>
                   <div className="flex flex-wrap gap-2 mt-1">
-                    {item.size && (
+                    {(item.size || (item.isCustomDrink && item.customSize)) && (
                       <span className="text-xs bg-[#FFC107]/20 text-[#FFC107] font-semibold px-2 py-0.5 rounded">
-                        Size: {item.size}
+                        Size: {item.isCustomDrink ? item.customSize : item.size}
                       </span>
                     )}
-                    {item.addOns && item.addOns.length > 0 && (
+                    {item.isCustomDrink && item.customIngredients && item.customIngredients.length > 0 && (
+                      <span className="text-xs bg-[#FFC107]/20 text-[#FFC107] font-semibold px-2 py-0.5 rounded">
+                        Custom: {item.customIngredients.map(ing => ing.name).join(", ")}
+                      </span>
+                    )}
+                    {!item.isCustomDrink && item.addOns && item.addOns.length > 0 && (
                       <span className="text-xs bg-[#FFC107]/20 text-[#FFC107] font-semibold px-2 py-0.5 rounded">
                         Add-ons:{" "}
                         {item.addOns
@@ -153,7 +169,18 @@ const OrderCard = ({ order, onOrderUpdate }) => {
               </div>
               <div className="text-base sm:text-lg font-extrabold text-[#232323] mt-2 sm:mt-0 whitespace-nowrap">
                 ₱
-                {(
+                {item.isCustomDrink ? (
+                  // For custom drinks, calculate from custom ingredients + size price
+                  (() => {
+                    const ingredientsTotal = Array.isArray(item.customIngredients)
+                      ? item.customIngredients.reduce((sum, ingredient) =>
+                          sum + (Number(ingredient.price) * Number(ingredient.quantity) || 0), 0)
+                      : 0;
+                    const sizePrice = getSizePrice(item.customSize || item.size);
+                    return (ingredientsTotal + sizePrice) * item.quantity;
+                  })()
+                ).toFixed(2) : (
+                  // For regular products, calculate base + add-ons
                   (item.price +
                     (item.addOns?.reduce(
                       (sum, addon) => sum + addon.price,

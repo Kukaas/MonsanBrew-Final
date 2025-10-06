@@ -187,7 +187,7 @@ export default function Checkout() {
                 // Cart order
                 const validItems = selectedCart.filter(item =>
                     item &&
-                    item.product &&
+                    (item.product || item.isCustomDrink) && // Allow either regular products or custom drinks
                     item.productName &&
                     typeof item.price === 'number' &&
                     typeof item.quantity === 'number' &&
@@ -202,13 +202,20 @@ export default function Checkout() {
                 orderData = {
                     userId: user?._id || userId,
                     items: validItems.map(item => ({
-                        productId: item.product,
+                        productId: item.isCustomDrink ? undefined : item.product, // Only include productId for regular products
                         productName: item.productName,
-                        image: item.image,
+                        image: item.isCustomDrink ? item.customImage : item.image, // Use customImage for custom drinks
                         size: item.size,
-                        addOns: item.addOns,
+                        addOns: item.isCustomDrink ? undefined : item.addOns, // Only include addOns for regular products
                         quantity: item.quantity,
-                        price: item.price
+                        price: item.price,
+                        // Custom drink fields
+                        isCustomDrink: item.isCustomDrink || false,
+                        customIngredients: item.isCustomDrink ? item.customIngredients : undefined,
+                        customImage: item.isCustomDrink ? item.customImage : undefined,
+                        customBlendImage: item.isCustomDrink ? item.customBlendImage : undefined,
+                        customDrinkName: item.isCustomDrink ? item.customDrinkName : undefined,
+                        customSize: item.isCustomDrink ? item.customSize : undefined
                     })),
                     address: {
                         ...address,

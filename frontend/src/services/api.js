@@ -192,6 +192,19 @@ export const cartAPI = {
   addToCart: async (data) => {
     return await api.post("/cart", data);
   },
+  addCustomDrinkToCart: async (userId, customDrinkData) => {
+    return await api.post("/cart", {
+      user: userId,
+      isCustomDrink: true,
+      customIngredients: customDrinkData.ingredients,
+      customImage: customDrinkData.previewImage,
+      customBlendImage: customDrinkData.blendImage,
+      customDrinkName: customDrinkData.name,
+      customTotalPrice: customDrinkData.totalPrice,
+      customSize: customDrinkData.size,
+      quantity: 1
+    });
+  },
   getCart: async (userId) => {
     return await api.get(`/cart?user=${userId}`);
   },

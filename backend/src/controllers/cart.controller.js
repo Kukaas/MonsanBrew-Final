@@ -5,10 +5,55 @@ import Addon from '../models/addons.model.js';
 // Add item to cart
 export const addToCart = async (req, res) => {
     try {
-        const { user, product, size, quantity, addOns } = req.body;
+        const {
+            user,
+            product,
+            size,
+            quantity,
+            addOns,
+            // Custom drink fields
+            isCustomDrink,
+            customIngredients,
+            customImage,
+            customBlendImage,
+            customDrinkName,
+            customTotalPrice,
+            customSize
+        } = req.body;
+
+        // Handle custom drink
+        if (isCustomDrink) {
+            if (!customIngredients || !Array.isArray(customIngredients) || customIngredients.length === 0) {
+                return res.status(400).json({ message: 'Custom drink must have ingredients' });
+            }
+
+            const cartItem = new CartItem({
+                user,
+                isCustomDrink: true,
+                productName: customDrinkName || 'Custom Drink',
+                image: customImage,
+                price: customTotalPrice || 0,
+                size: customSize || 'Medium',
+                quantity,
+                customIngredients,
+                customImage,
+                customBlendImage,
+                customDrinkName,
+                customSize
+            });
+            await cartItem.save();
+            return res.status(201).json(cartItem);
+        }
+
+        // Handle regular product
+        if (!product) {
+            return res.status(400).json({ message: 'Product ID is required for regular items' });
+        }
+
         // Get product snapshot
         const prod = await Product.findById(product);
         if (!prod) return res.status(404).json({ message: 'Product not found' });
+
         // Determine price based on size
         let price = prod.price;
         let sizeLabel = size;
@@ -16,6 +61,7 @@ export const addToCart = async (req, res) => {
             const foundSize = prod.sizes.find(s => s.label === size);
             if (foundSize) price = foundSize.price;
         }
+
         // Get addOns snapshot
         let addOnsSnapshot = [];
         if (Array.isArray(addOns) && addOns.length > 0) {
@@ -27,6 +73,7 @@ export const addToCart = async (req, res) => {
                 image: a.image
             }));
         }
+
         const cartItem = new CartItem({
             user,
             product,
