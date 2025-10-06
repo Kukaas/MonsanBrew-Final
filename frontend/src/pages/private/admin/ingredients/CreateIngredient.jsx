@@ -26,6 +26,7 @@ const unitOptions = [
   { value: "trays", label: "Trays" },
   { value: "sachets", label: "Sachets" },
   { value: "dozens", label: "Dozens" },
+  { value: "cup", label: "Cup" }
 ];
 
 export default function CreateIngredient() {
@@ -403,9 +404,9 @@ export default function CreateIngredient() {
                             loadingRawMaterials
                               ? []
                               : rawMaterials?.map((rm) => ({
-                                  value: rm._id,
-                                  label: `${rm.productName} (${rm.stock} ${rm.unit})`,
-                                })) || []
+                                value: rm._id,
+                                label: `${rm.productName} (${rm.stock} ${rm.unit})`,
+                              })) || []
                           }
                           placeholder="Select raw material"
                           name={`recipe-rawMaterialId-${idx}`}
@@ -508,8 +509,8 @@ export default function CreateIngredient() {
                       ? "Updating..."
                       : "Creating..."
                     : existingIngredient
-                    ? "Update Ingredient"
-                    : "Create Ingredient"}
+                      ? "Update Ingredient"
+                      : "Create Ingredient"}
                 </Button>
               </div>
             )}

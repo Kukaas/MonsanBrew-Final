@@ -41,6 +41,7 @@ const ingredientSchema = new mongoose.Schema(
         "trays",
         "sachets",
         "dozens",
+        "cup"
       ],
     },
 
