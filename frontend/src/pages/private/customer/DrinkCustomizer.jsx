@@ -56,7 +56,7 @@ export default function DrinkCustomizer() {
     onSuccess: () => {
       queryClient.invalidateQueries(["cart", user._id]);
       toast.success("Custom drink added to cart!");
-      navigate("/cart");
+      navigate(`/cart?user=${user._id}`);
     },
     onError: (err) => {
       toast.error(err?.response?.data?.message || "Failed to add to cart");
