@@ -21,7 +21,6 @@ export default function DrinkCustomizer() {
   const [showBlendPreview, setShowBlendPreview] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [selectedSize, setSelectedSize] = useState("Medium");
-  const [ingredientUsageCount, setIngredientUsageCount] = useState({});
 
   // Size options with pricing
   const sizeOptions = [
@@ -99,11 +98,6 @@ export default function DrinkCustomizer() {
 
   // Ingredient management
   const addIngredient = (ingredient) => {
-    // Update usage count
-    const currentCount = ingredientUsageCount[ingredient._id] || 0;
-    const newCount = currentCount + 1;
-    setIngredientUsageCount(prev => ({ ...prev, [ingredient._id]: newCount }));
-
     const existingIngredient = selectedIngredients.find(ing => ing._id === ingredient._id);
     if (existingIngredient) {
       setSelectedIngredients(selectedIngredients.map(ing =>
@@ -119,30 +113,25 @@ export default function DrinkCustomizer() {
 
   // Check if ingredient should be hidden from draggable items
   const shouldHideIngredient = (ingredient) => {
-    const usageCount = ingredientUsageCount[ingredient._id] || 0;
+    const ingredientCategory = ingredient.category?.toLowerCase();
     const ingredientName = ingredient.name.toLowerCase();
 
-    // Flavor ingredients - hide after 1 use
-    if (ingredientName.includes('flavor') || ingredientName.includes('caramel') || ingredientName.includes('strawberry')) {
-      return usageCount >= 1;
-    }
+    // Check if any ingredient from the same category is selected
+    const hasCategorySelected = selectedIngredients.some(selectedIng => {
+      const selectedCategory = selectedIng.category?.toLowerCase();
+      const selectedName = selectedIng.name.toLowerCase();
 
-    // Ice - hide after 2 uses
-    if (ingredientName.includes('ice')) {
-      return usageCount >= 2;
-    }
+      // For powder ingredients - hide all powders if any powder is selected
+      // Since powder ingredients are categorized as "flavor" but have "powder" in their name
+      if ((ingredientName.includes('powder') && selectedName.includes('powder')) ||
+        (ingredientCategory === 'powder' && selectedCategory === 'powder')) {
+        return true;
+      }
 
-    // Milk shot - hide after 3 uses
-    if (ingredientName.includes('milk')) {
-      return usageCount >= 3;
-    }
+      return false;
+    });
 
-    // Jam - hide after 2 uses
-    if (ingredientName.includes('jam')) {
-      return usageCount >= 2;
-    }
-
-    return false; // Default: don't hide
+    return hasCategorySelected;
   };
 
   const handleIngredientClick = (ingredient) => {
@@ -172,7 +161,6 @@ export default function DrinkCustomizer() {
     setSelectedIngredients([]);
     setShowBlendPreview(false);
     setSelectedSize("Medium");
-    setIngredientUsageCount({});
   };
 
   // Calculate total price
