@@ -618,7 +618,7 @@ export default function DrinkCustomizer() {
             </div>
 
             {/* Mobile Layout */}
-            <div className="lg:hidden space-y-6 pb-32">
+            <div className="lg:hidden space-y-6 pb-48">
               {/* Drop Zone - Mobile */}
               <div className="bg-white rounded-lg shadow-md p-6">
                 <h2 className="text-xl font-bold mb-6 text-gray-900">Your Custom Drink</h2>
@@ -823,13 +823,13 @@ export default function DrinkCustomizer() {
         </div>
 
         {/* Floating Ingredients Panel - Mobile Only */}
-        <div className="lg:hidden fixed bottom-4 left-4 right-4 z-50">
-          <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-xl p-3 border border-white/20">
-            <div className="flex items-center gap-2 mb-3">
-              <h3 className="text-base font-bold text-gray-900">Ingredients</h3>
+        <div className="lg:hidden fixed bottom-20 left-4 right-4 z-50">
+          <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-xl p-2 border border-white/20">
+            <div className="flex items-center gap-2 mb-2">
+              <h3 className="text-sm font-bold text-gray-900">Ingredients</h3>
               <div className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">Tap to add</div>
             </div>
-            <div className="grid grid-cols-2 gap-2 max-h-32 overflow-y-auto custom-scrollbar">
+            <div className="flex gap-2 overflow-x-auto pb-2 custom-scrollbar">
               {ingredients?.filter(ingredient => !shouldHideIngredient(ingredient)).map((ingredient) => (
                 <div
                   key={ingredient._id}
@@ -837,21 +837,23 @@ export default function DrinkCustomizer() {
                   onDragStart={(e) => handleDragStart(e, ingredient)}
                   onDragEnd={handleDragEnd}
                   onClick={() => handleIngredientClick(ingredient)}
-                  className="group bg-white rounded-lg shadow-md p-2 cursor-grab hover:shadow-lg transition-all duration-300 border-2 border-transparent hover:border-[#FFC107] hover:-translate-y-1 active:cursor-grabbing"
+                  className="flex-shrink-0 group bg-white rounded-lg shadow-md p-1 cursor-grab hover:shadow-lg transition-all duration-300 border-2 border-transparent hover:border-[#FFC107] hover:-translate-y-1 w-[120px] h-[80px] active:cursor-grabbing"
                 >
-                  <div className="text-center">
-                    <div className="relative mb-1">
+                  <div className="text-center h-full flex flex-col justify-between">
+                    <div className="relative">
                       <img
                         src={ingredient.image}
                         alt={ingredient.name}
-                        className="w-10 h-10 object-cover rounded-full mx-auto border-2 border-[#FFC107] max-w-full group-hover:scale-110 transition-transform duration-300"
+                        className="w-7 h-7 object-cover rounded-full mx-auto border-2 border-[#FFC107] max-w-full group-hover:scale-110 transition-transform duration-300"
                       />
                       <div className="absolute -top-1 -right-1 w-3 h-3 bg-gradient-to-r from-[#FFC107] to-[#FFB300] rounded-full flex items-center justify-center">
                         <span className="text-black text-xs font-bold">+</span>
                       </div>
                     </div>
-                    <h4 className="font-bold text-gray-900 text-xs mb-1 leading-tight">{ingredient.name}</h4>
-                    <p className="text-xs font-semibold text-[#FFC107]">₱{ingredient.price}</p>
+                    <div className="flex-1 flex flex-col justify-center px-1">
+                      <h4 className="font-bold text-gray-900 text-xs leading-tight break-words hyphens-auto line-clamp-2">{ingredient.name}</h4>
+                      <p className="text-xs font-semibold text-[#FFC107] mt-1">₱{ingredient.price}</p>
+                    </div>
                   </div>
                 </div>
               ))}
