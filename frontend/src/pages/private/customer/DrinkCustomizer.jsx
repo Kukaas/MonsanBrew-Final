@@ -92,7 +92,7 @@ export default function DrinkCustomizer() {
     try {
       const ingredientData = JSON.parse(e.dataTransfer.getData("application/json"));
       addIngredient(ingredientData);
-      } catch (error) {
+    } catch (error) {
       console.error("Error parsing dropped data:", error);
     }
   };
@@ -381,62 +381,23 @@ export default function DrinkCustomizer() {
         <div className="flex-1 w-full px-4 pb-32 md:pb-8">
           <div className="max-w-6xl mx-auto">
             {/* Desktop Layout */}
-            <div className="hidden lg:grid lg:grid-cols-3 gap-8">
-              {/* Ingredients Panel - Desktop */}
-              <div className="lg:col-span-2">
-                <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-6 border border-white/10">
-                  <div className="flex items-center gap-3 mb-6">
-                    <h2 className="text-2xl font-bold text-white">Available Ingredients</h2>
-                  </div>
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                    {ingredients?.filter(ingredient => !shouldHideIngredient(ingredient)).map((ingredient) => (
-                      <div
-                        key={ingredient._id}
-                        draggable
-                        onDragStart={(e) => handleDragStart(e, ingredient)}
-                        onDragEnd={handleDragEnd}
-                        className="group bg-white rounded-xl shadow-lg p-4 cursor-grab hover:shadow-xl transition-all duration-300 border-2 border-transparent hover:border-[#FFC107] hover:-translate-y-1 active:cursor-grabbing"
-                      >
-                        <div className="text-center">
-                          <div className="relative mb-3">
-                            <img
-                              src={ingredient.image}
-                              alt={ingredient.name}
-                              className="w-16 h-16 object-cover rounded-full mx-auto border-3 border-[#FFC107] max-w-full group-hover:scale-110 transition-transform duration-300"
-                            />
-                            <div className="absolute -top-1 -right-1 w-6 h-6 bg-gradient-to-r from-[#FFC107] to-[#FFB300] rounded-full flex items-center justify-center">
-                              <span className="text-black text-xs font-bold">+</span>
-                            </div>
-                          </div>
-                          <h3 className="font-bold text-gray-900 text-sm mb-1">{ingredient.name}</h3>
-                          <p className="text-sm font-semibold text-[#FFC107] mb-1">₱{ingredient.price}</p>
-                          <span className="inline-block px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full capitalize">
-                            {ingredient.category}
-                          </span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              {/* Customizer Panel - Desktop */}
-              <div className="space-y-6">
+            <div className="hidden lg:block">
+              {/* Customizer Panel - Desktop - Full Width */}
+              <div className="max-w-4xl mx-auto space-y-6">
                 {/* Drop Zone */}
-                <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-xl p-6 border border-white/20">
+                <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-xl p-8 border border-white/20">
                   <div className="mb-6">
-                    <h2 className="text-xl font-bold text-gray-900">Your Custom Drink</h2>
+                    <h2 className="text-2xl font-bold text-gray-900">Your Custom Drink</h2>
                   </div>
                   <div
                     ref={dropZoneRef}
                     onDragOver={handleDragOver}
                     onDragLeave={handleDragLeave}
                     onDrop={handleDrop}
-                    className={`min-h-48 border-2 border-dashed rounded-xl p-6 text-center transition-all duration-300 ${
-                      isDragOver
-                        ? "border-[#FFC107] bg-gradient-to-br from-yellow-50 to-yellow-100 scale-105"
-                        : "border-gray-300 bg-gradient-to-br from-gray-50 to-gray-100 hover:border-[#FFC107]/50"
-                    }`}
+                    className={`min-h-64 border-2 border-dashed rounded-xl p-8 text-center transition-all duration-300 ${isDragOver
+                      ? "border-[#FFC107] bg-gradient-to-br from-yellow-50 to-yellow-100 scale-105"
+                      : "border-gray-300 bg-gradient-to-br from-gray-50 to-gray-100 hover:border-[#FFC107]/50"
+                      }`}
                   >
                     {selectedIngredients.length === 0 ? (
                       <div className="text-gray-500 flex flex-col items-center justify-center h-full">
@@ -484,25 +445,25 @@ export default function DrinkCustomizer() {
 
                 {/* Preview Section - Desktop */}
                 {selectedIngredients.length > 0 && (
-                  <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-xl p-6 border border-white/20">
-                     <div className="mb-6">
-                       <div className="mb-4">
-                         <h3 className="text-xl font-bold text-gray-900">Preview</h3>
-                       </div>
-                       <div className="flex gap-3 flex-wrap">
-                         {matchingPreview && matchingPreview.blendImage && (
-                           <Button
-                             variant="outline"
-                             size="sm"
-                             onClick={handleBlendClick}
-                             className="bg-gradient-to-r from-[#FFC107] to-[#FFB300] hover:from-[#FFB300] hover:to-[#FFA000] text-black border-[#FFC107] font-semibold"
-                           >
-                             <Zap className="h-4 w-4 mr-2" />
-                             {showBlendPreview ? 'Hide' : 'Show'} Blend
-                           </Button>
-                         )}
-                       </div>
-                     </div>
+                  <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-xl p-8 border border-white/20">
+                    <div className="mb-8">
+                      <div className="mb-6">
+                        <h3 className="text-2xl font-bold text-gray-900">Preview</h3>
+                      </div>
+                      <div className="flex gap-3 flex-wrap">
+                        {matchingPreview && matchingPreview.blendImage && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={handleBlendClick}
+                            className="bg-gradient-to-r from-[#FFC107] to-[#FFB300] hover:from-[#FFB300] hover:to-[#FFA000] text-black border-[#FFC107] font-semibold"
+                          >
+                            <Zap className="h-4 w-4 mr-2" />
+                            {showBlendPreview ? 'Hide' : 'Show'} Blend
+                          </Button>
+                        )}
+                      </div>
+                    </div>
 
                     {/* Show individual ingredient images */}
                     <div className="mb-4">
@@ -521,38 +482,38 @@ export default function DrinkCustomizer() {
                           </div>
                         ))}
                       </div>
-      </div>
+                    </div>
 
-                     {/* Show actual preview from database */}
-                     {matchingPreview && (
-                       <div className="text-center mb-4">
-                         <img
-                           src={matchingPreview.image}
-                           alt="Preview"
-                           className="w-32 h-32 object-contain rounded-lg mx-auto border-2 border-[#FFC107] max-w-full"
-                         />
-                         <p className="text-sm text-gray-600 mt-2">
-                           {matchingPreview.name}
-                         </p>
-                       </div>
-                     )}
+                    {/* Show actual preview from database */}
+                    {matchingPreview && (
+                      <div className="text-center mb-6">
+                        <img
+                          src={matchingPreview.image}
+                          alt="Preview"
+                          className="w-48 h-48 object-contain rounded-lg mx-auto border-2 border-[#FFC107] max-w-full"
+                        />
+                        <p className="text-lg text-gray-600 mt-3 font-medium">
+                          {matchingPreview.name}
+                        </p>
+                      </div>
+                    )}
 
                     {/* Show blend preview when blend button is clicked */}
                     {showBlendPreview && matchingPreview && matchingPreview.blendImage && (
-            <div className="text-center mb-4">
+                      <div className="text-center mb-6">
                         <img
                           src={matchingPreview.blendImage}
                           alt="Blend Preview"
-                          className="w-32 h-32 object-contain rounded-lg mx-auto border-2 border-[#FFC107] max-w-full"
+                          className="w-48 h-48 object-contain rounded-lg mx-auto border-2 border-[#FFC107] max-w-full"
                         />
-                        <p className="text-sm text-gray-600 mt-2">How your drink will look when blended</p>
+                        <p className="text-lg text-gray-600 mt-3 font-medium">How your drink will look when blended</p>
                       </div>
                     )}
 
                     {/* Show message if no preview found */}
                     {!matchingPreview && (
                       <div className="text-center mb-4 p-4 bg-gray-50 rounded-lg">
-              <p className="text-sm text-gray-600">
+                        <p className="text-sm text-gray-600">
                           No preview available for this combination
                         </p>
                         <p className="text-xs text-gray-500 mt-1">
@@ -587,49 +548,83 @@ export default function DrinkCustomizer() {
                 )}
 
                 {/* Size Selection */}
-                <div className="space-y-3">
-                  <h3 className="text-lg font-bold text-[#232323]">Size</h3>
-                  <div className="grid grid-cols-2 gap-2">
+                <div className="space-y-4">
+                  <h3 className="text-xl font-bold text-[#232323]">Size</h3>
+                  <div className="grid grid-cols-4 gap-3">
                     {sizeOptions.map((size) => (
-        <button
+                      <button
                         key={size.name}
                         onClick={() => setSelectedSize(size.name)}
-                        className={`p-3 rounded-xl border-2 transition-all duration-200 ${
-                          selectedSize === size.name
-                            ? "border-[#FFC107] bg-[#FFC107]/20 text-[#FFC107] font-bold"
-                            : "border-gray-300 bg-white hover:border-[#FFC107]/50 text-gray-800 hover:bg-gray-50"
-                        }`}
+                        className={`p-4 rounded-xl border-2 transition-all duration-200 ${selectedSize === size.name
+                          ? "border-[#FFC107] bg-[#FFC107]/20 text-[#FFC107] font-bold"
+                          : "border-gray-300 bg-white hover:border-[#FFC107]/50 text-gray-800 hover:bg-gray-50"
+                          }`}
                       >
-                        <div className="text-sm font-semibold">{size.name}</div>
-                        <div className={`text-xs ${
-                          selectedSize === size.name ? "text-[#FFC107]/80" : "text-gray-600"
-                        }`}>
+                        <div className="text-base font-semibold">{size.name}</div>
+                        <div className={`text-sm ${selectedSize === size.name ? "text-[#FFC107]/80" : "text-gray-600"
+                          }`}>
                           +₱{size.price}
                         </div>
-        </button>
+                      </button>
                     ))}
                   </div>
-      </div>
+                </div>
 
                 {/* Action Buttons - Desktop */}
                 <div className="space-y-4">
                   <Button
                     onClick={handleAddToCart}
                     disabled={selectedIngredients.length === 0 || addingToCart}
-                    className="w-full bg-gradient-to-r from-[#FFC107] to-[#FFB300] hover:from-[#FFB300] hover:to-[#FFA000] text-black font-bold h-12 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full bg-gradient-to-r from-[#FFC107] to-[#FFB300] hover:from-[#FFB300] hover:to-[#FFA000] text-black font-bold h-14 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed text-lg"
                   >
-                    <ShoppingCart className="h-5 w-5 mr-2" />
+                    <ShoppingCart className="h-6 w-6 mr-2" />
                     {addingToCart ? "Adding..." : "Add to Cart"}
                   </Button>
 
                   <Button
                     variant="outline"
                     onClick={resetCustomizer}
-                    className="w-full h-12 rounded-xl border-2 border-gray-300 hover:border-[#FFC107] hover:bg-[#FFC107]/10 transition-all duration-300"
+                    className="w-full h-14 rounded-xl border-2 border-gray-300 hover:border-[#FFC107] hover:bg-[#FFC107]/10 transition-all duration-300 text-lg"
                   >
-                    <RotateCcw className="h-5 w-5 mr-2" />
+                    <RotateCcw className="h-6 w-6 mr-2" />
                     Reset
                   </Button>
+                </div>
+              </div>
+            </div>
+
+            {/* Floating Ingredients Panel - Desktop */}
+            <div className="hidden lg:block fixed top-1/2 right-4 transform -translate-y-1/2 z-40">
+              <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-xl p-4 border border-white/20 max-w-xs">
+                <div className="flex items-center gap-3 mb-4">
+                  <h3 className="text-lg font-bold text-gray-900">Ingredients</h3>
+                  <div className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">Drag & Drop</div>
+                </div>
+                <div className="grid grid-cols-2 gap-3 max-h-96 overflow-y-auto custom-scrollbar">
+                  {ingredients?.filter(ingredient => !shouldHideIngredient(ingredient)).map((ingredient) => (
+                    <div
+                      key={ingredient._id}
+                      draggable
+                      onDragStart={(e) => handleDragStart(e, ingredient)}
+                      onDragEnd={handleDragEnd}
+                      className="group bg-white rounded-xl shadow-md p-3 cursor-grab hover:shadow-lg transition-all duration-300 border-2 border-transparent hover:border-[#FFC107] hover:-translate-y-1 active:cursor-grabbing"
+                    >
+                      <div className="text-center">
+                        <div className="relative mb-2">
+                          <img
+                            src={ingredient.image}
+                            alt={ingredient.name}
+                            className="w-12 h-12 object-cover rounded-full mx-auto border-2 border-[#FFC107] max-w-full group-hover:scale-110 transition-transform duration-300"
+                          />
+                          <div className="absolute -top-1 -right-1 w-4 h-4 bg-gradient-to-r from-[#FFC107] to-[#FFB300] rounded-full flex items-center justify-center">
+                            <span className="text-black text-xs font-bold">+</span>
+                          </div>
+                        </div>
+                        <h4 className="font-bold text-gray-900 text-xs mb-1">{ingredient.name}</h4>
+                        <p className="text-xs font-semibold text-[#FFC107]">₱{ingredient.price}</p>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>
@@ -637,18 +632,17 @@ export default function DrinkCustomizer() {
             {/* Mobile Layout */}
             <div className="lg:hidden space-y-6 pb-32">
               {/* Drop Zone - Mobile */}
-              <div className="bg-white rounded-lg shadow-md p-4">
-                <h2 className="text-lg font-semibold mb-4 text-gray-900">Your Custom Drink</h2>
+              <div className="bg-white rounded-lg shadow-md p-6">
+                <h2 className="text-xl font-bold mb-6 text-gray-900">Your Custom Drink</h2>
                 <div
                   ref={dropZoneRef}
                   onDragOver={handleDragOver}
                   onDragLeave={handleDragLeave}
                   onDrop={handleDrop}
-                  className={`min-h-32 border-2 border-dashed rounded-lg p-4 text-center transition-colors ${
-                    isDragOver
-                      ? "border-[#FFC107] bg-yellow-50"
-                      : "border-gray-300 bg-gray-50"
-                  }`}
+                  className={`min-h-40 border-2 border-dashed rounded-lg p-6 text-center transition-colors ${isDragOver
+                    ? "border-[#FFC107] bg-yellow-50"
+                    : "border-gray-300 bg-gray-50"
+                    }`}
                 >
                   {selectedIngredients.length === 0 ? (
                     <div className="text-gray-500">
@@ -693,66 +687,66 @@ export default function DrinkCustomizer() {
 
               {/* Preview Section - Mobile */}
               {selectedIngredients.length > 0 && (
-                <div className="bg-white rounded-lg shadow-md p-4">
-                   <div className="mb-4">
-                     <h3 className="text-lg font-semibold text-gray-900 mb-3">Preview</h3>
-                     <div className="flex gap-2 flex-wrap">
-                       {matchingPreview && matchingPreview.blendImage && (
-                         <Button
-                           variant="outline"
-                           size="sm"
-                           onClick={handleBlendClick}
-                           className="bg-[#FFC107] hover:bg-[#FFB300] text-black border-[#FFC107] text-xs"
-                         >
-                           <Zap className="h-3 w-3 mr-1" />
-                           {showBlendPreview ? 'Hide' : 'Show'} Blend
-                         </Button>
-                       )}
-                     </div>
-                   </div>
+                <div className="bg-white rounded-lg shadow-md p-6">
+                  <div className="mb-6">
+                    <h3 className="text-xl font-bold text-gray-900 mb-4">Preview</h3>
+                    <div className="flex gap-2 flex-wrap">
+                      {matchingPreview && matchingPreview.blendImage && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={handleBlendClick}
+                          className="bg-[#FFC107] hover:bg-[#FFB300] text-black border-[#FFC107] text-sm"
+                        >
+                          <Zap className="h-4 w-4 mr-2" />
+                          {showBlendPreview ? 'Hide' : 'Show'} Blend
+                        </Button>
+                      )}
+                    </div>
+                  </div>
 
                   {/* Show individual ingredient images */}
                   <div className="mb-4">
                     <h4 className="text-sm font-semibold text-gray-700 mb-2">Your Ingredients:</h4>
                     <div className="flex flex-wrap gap-2 justify-center">
                       {selectedIngredients.map((ingredient) => (
-                          <div key={ingredient._id} className="text-center max-w-[70px]">
-                            <img
-                              src={ingredient.image}
-                              alt={ingredient.name}
-                              className="w-12 h-12 object-cover rounded-lg border-2 border-[#FFC107] max-w-full"
-                            />
+                        <div key={ingredient._id} className="text-center max-w-[70px]">
+                          <img
+                            src={ingredient.image}
+                            alt={ingredient.name}
+                            className="w-12 h-12 object-cover rounded-lg border-2 border-[#FFC107] max-w-full"
+                          />
                           <p className="text-xs text-gray-600 mt-1">
                             {ingredient.name} x{ingredient.quantity}
                           </p>
                         </div>
-                  ))}
-                </div>
+                      ))}
+                    </div>
                   </div>
 
-                   {/* Show actual preview from database */}
-                   {matchingPreview && (
-                     <div className="text-center mb-4">
-                         <img
-                           src={matchingPreview.image}
-                           alt="Preview"
-                           className="w-24 h-24 object-contain rounded-lg mx-auto border-2 border-[#FFC107] max-w-full"
-                         />
-                       <p className="text-sm text-gray-600 mt-2">
-                         {matchingPreview.name}
-                       </p>
-              </div>
-            )}
+                  {/* Show actual preview from database */}
+                  {matchingPreview && (
+                    <div className="text-center mb-6">
+                      <img
+                        src={matchingPreview.image}
+                        alt="Preview"
+                        className="w-36 h-36 object-contain rounded-lg mx-auto border-2 border-[#FFC107] max-w-full"
+                      />
+                      <p className="text-base text-gray-600 mt-3 font-medium">
+                        {matchingPreview.name}
+                      </p>
+                    </div>
+                  )}
 
                   {/* Show blend preview when blend button is clicked */}
                   {showBlendPreview && matchingPreview && matchingPreview.blendImage && (
-                    <div className="text-center mb-4">
-                        <img
-                          src={matchingPreview.blendImage}
-                          alt="Blend Preview"
-                          className="w-24 h-24 object-contain rounded-lg mx-auto border-2 border-[#FFC107] max-w-full"
-                        />
-                      <p className="text-sm text-gray-600 mt-2">How your drink will look when blended</p>
+                    <div className="text-center mb-6">
+                      <img
+                        src={matchingPreview.blendImage}
+                        alt="Blend Preview"
+                        className="w-36 h-36 object-contain rounded-lg mx-auto border-2 border-[#FFC107] max-w-full"
+                      />
+                      <p className="text-base text-gray-600 mt-3 font-medium">How your drink will look when blended</p>
                     </div>
                   )}
 
@@ -794,23 +788,21 @@ export default function DrinkCustomizer() {
               )}
 
               {/* Size Selection - Mobile */}
-              <div className="space-y-3">
-                <h3 className="text-lg font-bold text-[#232323]">Size</h3>
-                <div className="grid grid-cols-2 gap-2">
+              <div className="space-y-4">
+                <h3 className="text-xl font-bold text-[#232323]">Size</h3>
+                <div className="grid grid-cols-2 gap-3">
                   {sizeOptions.map((size) => (
                     <button
                       key={size.name}
                       onClick={() => setSelectedSize(size.name)}
-                      className={`p-3 rounded-xl border-2 transition-all duration-200 ${
-                        selectedSize === size.name
-                          ? "border-[#FFC107] bg-[#FFC107]/20 text-[#FFC107] font-bold"
-                          : "border-gray-300 bg-white hover:border-[#FFC107]/50 text-gray-800 hover:bg-gray-50"
-                      }`}
+                      className={`p-4 rounded-xl border-2 transition-all duration-200 ${selectedSize === size.name
+                        ? "border-[#FFC107] bg-[#FFC107]/20 text-[#FFC107] font-bold"
+                        : "border-gray-300 bg-white hover:border-[#FFC107]/50 text-gray-800 hover:bg-gray-50"
+                        }`}
                     >
-                      <div className="text-sm font-semibold">{size.name}</div>
-                      <div className={`text-xs ${
-                        selectedSize === size.name ? "text-[#FFC107]/80" : "text-gray-600"
-                      }`}>
+                      <div className="text-base font-semibold">{size.name}</div>
+                      <div className={`text-sm ${selectedSize === size.name ? "text-[#FFC107]/80" : "text-gray-600"
+                        }`}>
                         +₱{size.price}
                       </div>
                     </button>
@@ -819,22 +811,22 @@ export default function DrinkCustomizer() {
               </div>
 
               {/* Action Buttons - Mobile */}
-              <div className="space-y-3">
+              <div className="space-y-4">
                 <Button
                   onClick={handleAddToCart}
                   disabled={selectedIngredients.length === 0 || addingToCart}
-                  className="w-full bg-[#FFC107] hover:bg-[#FFB300] text-black font-semibold h-12"
+                  className="w-full bg-[#FFC107] hover:bg-[#FFB300] text-black font-bold h-14 text-lg"
                 >
-                  <ShoppingCart className="h-5 w-5 mr-2" />
+                  <ShoppingCart className="h-6 w-6 mr-2" />
                   {addingToCart ? "Adding..." : "Add to Cart"}
                 </Button>
 
                 <Button
                   variant="outline"
                   onClick={resetCustomizer}
-                  className="w-full h-12"
+                  className="w-full h-14 text-lg"
                 >
-                  <RotateCcw className="h-5 w-5 mr-2" />
+                  <RotateCcw className="h-6 w-6 mr-2" />
                   Reset
                 </Button>
               </div>
@@ -843,15 +835,13 @@ export default function DrinkCustomizer() {
         </div>
 
         {/* Floating Ingredients Panel - Mobile Only */}
-        <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-gradient-to-t from-[#1a1a1a] via-[#232323] to-[#2a2a2a] border-t border-[#FFC107]/20 z-50 backdrop-blur-md">
-          <div className="px-4 py-4">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2">
-                <h3 className="text-lg font-bold text-white">Ingredients</h3>
-              </div>
-              <div className="text-xs text-[#BDBDBD] bg-white/10 px-2 py-1 rounded-full">Tap to add</div>
+        <div className="lg:hidden fixed bottom-4 left-4 right-4 z-50">
+          <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-xl p-3 border border-white/20">
+            <div className="flex items-center gap-2 mb-3">
+              <h3 className="text-base font-bold text-gray-900">Ingredients</h3>
+              <div className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">Tap to add</div>
             </div>
-            <div className="flex gap-3 overflow-x-auto pb-2 custom-scrollbar">
+            <div className="grid grid-cols-2 gap-2 max-h-32 overflow-y-auto custom-scrollbar">
               {ingredients?.filter(ingredient => !shouldHideIngredient(ingredient)).map((ingredient) => (
                 <div
                   key={ingredient._id}
@@ -859,28 +849,28 @@ export default function DrinkCustomizer() {
                   onDragStart={(e) => handleDragStart(e, ingredient)}
                   onDragEnd={handleDragEnd}
                   onClick={() => handleIngredientClick(ingredient)}
-                  className="flex-shrink-0 bg-white rounded-xl shadow-lg p-3 cursor-grab hover:shadow-xl transition-all duration-300 border-2 border-transparent hover:border-[#FFC107] hover:-translate-y-1 min-w-[80px] active:cursor-grabbing"
+                  className="group bg-white rounded-lg shadow-md p-2 cursor-grab hover:shadow-lg transition-all duration-300 border-2 border-transparent hover:border-[#FFC107] hover:-translate-y-1 active:cursor-grabbing"
                 >
                   <div className="text-center">
-                    <div className="relative mb-2">
+                    <div className="relative mb-1">
                       <img
                         src={ingredient.image}
                         alt={ingredient.name}
-                        className="w-12 h-12 object-cover rounded-full mx-auto border-2 border-[#FFC107] max-w-full flex-shrink-0"
+                        className="w-10 h-10 object-cover rounded-full mx-auto border-2 border-[#FFC107] max-w-full group-hover:scale-110 transition-transform duration-300"
                       />
-                      <div className="absolute -top-1 -right-1 w-4 h-4 bg-gradient-to-r from-[#FFC107] to-[#FFB300] rounded-full flex items-center justify-center">
+                      <div className="absolute -top-1 -right-1 w-3 h-3 bg-gradient-to-r from-[#FFC107] to-[#FFB300] rounded-full flex items-center justify-center">
                         <span className="text-black text-xs font-bold">+</span>
                       </div>
                     </div>
-                    <h4 className="font-bold text-gray-900 text-xs mb-1">{ingredient.name}</h4>
+                    <h4 className="font-bold text-gray-900 text-xs mb-1 leading-tight">{ingredient.name}</h4>
                     <p className="text-xs font-semibold text-[#FFC107]">₱{ingredient.price}</p>
                   </div>
                 </div>
               ))}
             </div>
           </div>
+        </div>
       </div>
-    </div>
     </CustomerLayout>
   );
 }
