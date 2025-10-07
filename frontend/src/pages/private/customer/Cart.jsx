@@ -41,8 +41,8 @@ export default function Cart() {
           res && Array.isArray(res.data)
             ? res.data
             : Array.isArray(res)
-            ? res
-            : []
+              ? res
+              : []
         ),
     enabled: !!userId,
   });
@@ -55,9 +55,9 @@ export default function Cart() {
       const addOnsKey =
         Array.isArray(item.addOns) && item.addOns.length > 0
           ? item.addOns
-              .map((a) => a.addonId || a._id || a.name)
-              .sort()
-              .join(",")
+            .map((a) => a.addonId || a._id || a.name)
+            .sort()
+            .join(",")
           : "";
 
       // For custom drinks, use customDrinkName and customIngredients for grouping
@@ -65,9 +65,9 @@ export default function Cart() {
       if (item.isCustomDrink) {
         const customIngredientsKey = Array.isArray(item.customIngredients) && item.customIngredients.length > 0
           ? item.customIngredients
-              .map((ing) => ing.ingredientId || ing.name)
-              .sort()
-              .join(",")
+            .map((ing) => ing.ingredientId || ing.name)
+            .sort()
+            .join(",")
           : "";
         key = `custom|${item.customDrinkName || item.productName}|${customIngredientsKey}|${item.customSize || item.size || ""}`;
       } else {
@@ -88,30 +88,38 @@ export default function Cart() {
   // Selection state for checkout
   const [selectedKeys, setSelectedKeys] = useState([]);
 
+  // Auto-select single item when cart has only 1 item
+  useEffect(() => {
+    if (groupedCart.length === 1) {
+      const singleItemKey = getGroupKey(groupedCart[0]);
+      if (!selectedKeys.includes(singleItemKey)) {
+        setSelectedKeys([singleItemKey]);
+      }
+    }
+  }, [groupedCart.length]);
+
   // Per-item loading state
   // loadingItem: { key: groupKey, action: 'inc' | 'dec' | 'del' } | null
   const [loadingItem, setLoadingItem] = useState(null);
 
-  // Helper to get group key for a cart item
+  // Helper to get group key for a cart item (must match groupCartItems logic)
   function getGroupKey(item) {
     if (item.isCustomDrink) {
       const customIngredientsKey = Array.isArray(item.customIngredients) && item.customIngredients.length > 0
         ? item.customIngredients
-            .map((ing) => ing.ingredientId || ing.name)
-            .sort()
-            .join(",")
+          .map((ing) => ing.ingredientId || ing.name)
+          .sort()
+          .join(",")
         : "";
       return `custom|${item.customDrinkName || item.productName}|${customIngredientsKey}|${item.customSize || item.size || ""}`;
     } else {
-      return (
-        item._id +
-        (item.size || "") +
-        (item.addOns &&
-          item.addOns
-            .map((a) => a.addonId || a._id || a.name)
-            .sort()
-            .join(","))
-      );
+      const addOnsKey = Array.isArray(item.addOns) && item.addOns.length > 0
+        ? item.addOns
+          .map((a) => a.addonId || a._id || a.name)
+          .sort()
+          .join(",")
+        : "";
+      return `${item.product}|${item.size || ""}|${addOnsKey}`;
     }
   }
 
@@ -185,7 +193,7 @@ export default function Cart() {
       // For custom drinks, calculate from custom ingredients + size price
       const ingredientsTotal = Array.isArray(item.customIngredients)
         ? item.customIngredients.reduce((sum, ingredient) =>
-            sum + (Number(ingredient.price) * Number(ingredient.quantity) || 0), 0)
+          sum + (Number(ingredient.price) * Number(ingredient.quantity) || 0), 0)
         : 0;
 
       // Add size price based on custom size
@@ -306,8 +314,8 @@ export default function Cart() {
         </h1>
         {/* Cart Items */}
         <div className="flex flex-wrap gap-6 justify-center mb-8 w-full max-w-5xl">
-          {/* Select All Checkbox */}
-          {groupedCart.length > 0 && (
+          {/* Select All Checkbox - Only show when there are multiple items */}
+          {groupedCart.length > 1 && (
             <div
               className="w-full flex items-center mb-4 px-2 gap-2 relative z-10"
               style={{ minHeight: 32 }}
@@ -328,198 +336,200 @@ export default function Cart() {
           )}
           {isLoading
             ? Array.from({ length: 3 }).map((_, i) => (
-                <div
-                  key={i}
-                  className="bg-[#232323] rounded-2xl shadow p-4 flex flex-col items-center w-[320px] min-h-[140px]"
-                >
-                  <Skeleton className="w-20 h-20 mb-2 rounded-xl bg-[#333]" />
-                  <Skeleton className="h-6 w-32 mb-2 bg-[#333]" />
-                  <Skeleton className="h-4 w-20 mb-2 bg-[#333]" />
-                  <Skeleton className="h-6 w-16 bg-[#333]" />
-                </div>
-              ))
+              <div
+                key={i}
+                className="bg-[#232323] rounded-2xl shadow p-4 flex flex-col items-center w-[320px] min-h-[140px]"
+              >
+                <Skeleton className="w-20 h-20 mb-2 rounded-xl bg-[#333]" />
+                <Skeleton className="h-6 w-32 mb-2 bg-[#333]" />
+                <Skeleton className="h-4 w-20 mb-2 bg-[#333]" />
+                <Skeleton className="h-6 w-16 bg-[#333]" />
+              </div>
+            ))
             : groupedCart.map((item) => {
-                const groupKey = getGroupKey(item);
-                return (
-                  <div
-                    key={groupKey}
-                    className="bg-white rounded-2xl shadow py-4 px-4 flex w-[320px] min-h-[140px] relative"
-                  >
-                    {/* Checkbox for selection */}
+              const groupKey = getGroupKey(item);
+              return (
+                <div
+                  key={groupKey}
+                  className="bg-white rounded-2xl shadow py-4 px-4 flex w-[320px] min-h-[140px] relative"
+                >
+                  {/* Checkbox for selection - Hide when only 1 item */}
+                  {groupedCart.length > 1 && (
                     <Checkbox
                       checked={selectedKeys.includes(groupKey)}
                       onCheckedChange={() => toggleSelectOne(groupKey)}
                       className="absolute top-3 left-3 w-5 h-5 border-2 border-[#FFC107] data-[state=checked]:bg-[#FFC107] data-[state=checked]:border-[#FFC107] data-[state=checked]:text-black rounded"
                       title="Select for checkout"
                     />
-                    {/* Left: Image and Info */}
-                    <div className="flex flex-col items-center justify-center mr-4">
-                      <img
-                        src={item.isCustomDrink ? (item.customImage || item.image || "/placeholder.png") : (item.image || "/placeholder.png")}
-                        alt={item.productName}
-                        className="w-20 h-20 object-cover rounded-xl bg-white"
-                      />
+                  )}
+                  {/* Left: Image and Info */}
+                  <div className="flex flex-col items-center justify-center mr-4">
+                    <img
+                      src={item.isCustomDrink ? (item.customImage || item.image || "/placeholder.png") : (item.image || "/placeholder.png")}
+                      alt={item.productName}
+                      className="w-20 h-20 object-cover rounded-xl bg-white"
+                    />
+                  </div>
+                  {/* Middle: Product Info */}
+                  <div className="flex-1 flex flex-col justify-center min-w-0">
+                    <div className="font-bold text-lg text-[#232323] truncate">
+                      {item.productName}
                     </div>
-                    {/* Middle: Product Info */}
-                    <div className="flex-1 flex flex-col justify-center min-w-0">
-                      <div className="font-bold text-lg text-[#232323] truncate">
-                        {item.productName}
+                    {(item.size || (item.isCustomDrink && item.customSize)) && (
+                      <div className="text-xs text-gray-500 font-semibold">
+                        {item.isCustomDrink ? item.customSize : item.size}
                       </div>
-                      {(item.size || (item.isCustomDrink && item.customSize)) && (
-                        <div className="text-xs text-gray-500 font-semibold">
-                          {item.isCustomDrink ? item.customSize : item.size}
-                        </div>
-                      )}
+                    )}
 
-                      {/* Custom Drink Ingredients */}
-                      {item.isCustomDrink && item.customIngredients && item.customIngredients.length > 0 && (
-                        <div className="mt-1">
-                          <div className="text-xs text-[#FFC107] font-bold">
-                            Custom Ingredients:
-                          </div>
-                          <ul className="text-xs text-[#232323]">
-                            {item.customIngredients.map((ingredient, idx) => (
-                              <li
-                                key={ingredient.ingredientId || idx}
-                                className="flex justify-between"
-                              >
-                                <span>{ingredient.name} x{ingredient.quantity}</span>
-                                <span>
-                                  ₱ {Number(ingredient.price * ingredient.quantity).toLocaleString()}
-                                </span>
-                              </li>
-                            ))}
-                          </ul>
+                    {/* Custom Drink Ingredients */}
+                    {item.isCustomDrink && item.customIngredients && item.customIngredients.length > 0 && (
+                      <div className="mt-1">
+                        <div className="text-xs text-[#FFC107] font-bold">
+                          Custom Ingredients:
                         </div>
-                      )}
-
-                      {/* Regular Add-ons */}
-                      {!item.isCustomDrink && item.addOns && item.addOns.length > 0 && (
-                        <div className="mt-1">
-                          <div className="text-xs text-[#FFC107] font-bold">
-                            Add-ons:
-                          </div>
-                          <ul className="text-xs text-[#232323]">
-                            {item.addOns.map((addon, idx) => (
-                              <li
-                                key={addon.addonId || addon._id || idx}
-                                className="flex justify-between"
-                              >
-                                <span>{addon.name}</span>
-                                <span>
-                                  ₱ {Number(addon.price).toLocaleString()}
-                                </span>
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
-                      <div className="text-[#232323] text-base font-bold mt-2">
-                        ₱{" "}
-                        {(
-                          getItemUnitTotal(item) * item.quantity
-                        ).toLocaleString()}
-                        <span className="block text-xs font-normal text-gray-400 mt-1">
-                          {item.isCustomDrink ? (
-                            <>
-                              (₱ {Array.isArray(item.customIngredients)
-                                ? item.customIngredients.reduce((sum, ing) => sum + (Number(ing.price) * Number(ing.quantity) || 0), 0).toLocaleString()
-                                : 0} ingredients + ₱ {getSizePrice(item.customSize || item.size).toLocaleString()} size) × {item.quantity}
-                            </>
-                          ) : (
-                            <>
-                              (₱ {Number(item.price).toLocaleString()} base
-                              {item.addOns && item.addOns.length > 0 && (
-                                <>
-                                  {" "}
-                                  + ₱{" "}
-                                  {item.addOns
-                                    .reduce(
-                                      (sum, a) => sum + (Number(a.price) || 0),
-                                      0
-                                    )
-                                    .toLocaleString()}{" "}
-                                  add-ons
-                                </>
-                              )}
-                              ) × {item.quantity}
-                            </>
-                          )}
-                        </span>
-                      </div>
-                    </div>
-                    {/* Right: Quantity Controls */}
-                    <div className="flex flex-col items-center justify-center gap-2 ml-4">
-                      {item.quantity > 1 ? (
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          className="rounded-full w-8 h-8 flex items-center justify-center"
-                          onClick={() => handleUpdateQuantity(item, -1)}
-                          disabled={
-                            !!loadingItem && loadingItem.key === groupKey
-                          }
-                        >
-                          {loadingItem &&
-                          loadingItem.key === groupKey &&
-                          loadingItem.action === "dec" ? (
-                            <Loader2 className="animate-spin text-[#FFC107] w-5 h-5" />
-                          ) : (
-                            "-"
-                          )}
-                        </Button>
-                      ) : (
-                        <button
-                          className="rounded-full w-8 h-8 flex items-center justify-center bg-red-100 hover:bg-red-200 text-red-600 text-lg shadow border border-gray-200"
-                          title="Remove from cart"
-                          onClick={() => handleDeleteGroup(item)}
-                          disabled={
-                            !!loadingItem && loadingItem.key === groupKey
-                          }
-                        >
-                          {loadingItem &&
-                          loadingItem.key === groupKey &&
-                          loadingItem.action === "del" ? (
-                            <Loader2 className="animate-spin text-[#FFC107] w-5 h-5" />
-                          ) : (
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              viewBox="0 0 20 20"
-                              fill="currentColor"
-                              width="20"
-                              height="20"
+                        <ul className="text-xs text-[#232323]">
+                          {item.customIngredients.map((ingredient, idx) => (
+                            <li
+                              key={ingredient.ingredientId || idx}
+                              className="flex justify-between"
                             >
-                              <path
-                                fillRule="evenodd"
-                                d="M7.5 3a1 1 0 0 1 1-1h3a1 1 0 0 1 1 1V4h3.25a.75.75 0 0 1 0 1.5h-.278l-.427 9.399A2.25 2.25 0 0 1 13.1 17.13l-.1.007H7a2.25 2.25 0 0 1-2.25-2.224L4.323 5.5H4.25a.75.75 0 0 1 0-1.5H7.5V3zm1 1v1h3V4h-3zm-2.177 1.5l.427 9.399a.75.75 0 0 0 .75.726h6a.75.75 0 0 0 .75-.726l.427-9.399H6.323z"
-                                clipRule="evenodd"
-                              />
-                            </svg>
-                          )}
-                        </button>
-                      )}
-                      <span className="font-bold text-[#232323]">
-                        {item.quantity}
-                      </span>
-                      <Button
-                        variant="yellow"
-                        size="icon"
-                        className="rounded-full w-8 h-8 flex items-center justify-center"
-                        onClick={() => handleUpdateQuantity(item, 1)}
-                        disabled={!!loadingItem && loadingItem.key === groupKey}
-                      >
-                        {loadingItem &&
-                        loadingItem.key === groupKey &&
-                        loadingItem.action === "inc" ? (
-                          <Loader2 className="animate-spin text-white w-5 h-5" />
+                              <span>{ingredient.name} x{ingredient.quantity}</span>
+                              <span>
+                                ₱ {Number(ingredient.price * ingredient.quantity).toLocaleString()}
+                              </span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+
+                    {/* Regular Add-ons */}
+                    {!item.isCustomDrink && item.addOns && item.addOns.length > 0 && (
+                      <div className="mt-1">
+                        <div className="text-xs text-[#FFC107] font-bold">
+                          Add-ons:
+                        </div>
+                        <ul className="text-xs text-[#232323]">
+                          {item.addOns.map((addon, idx) => (
+                            <li
+                              key={addon.addonId || addon._id || idx}
+                              className="flex justify-between"
+                            >
+                              <span>{addon.name}</span>
+                              <span>
+                                ₱ {Number(addon.price).toLocaleString()}
+                              </span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    <div className="text-[#232323] text-base font-bold mt-2">
+                      ₱{" "}
+                      {(
+                        getItemUnitTotal(item) * item.quantity
+                      ).toLocaleString()}
+                      <span className="block text-xs font-normal text-gray-400 mt-1">
+                        {item.isCustomDrink ? (
+                          <>
+                            (₱ {Array.isArray(item.customIngredients)
+                              ? item.customIngredients.reduce((sum, ing) => sum + (Number(ing.price) * Number(ing.quantity) || 0), 0).toLocaleString()
+                              : 0} ingredients + ₱ {getSizePrice(item.customSize || item.size).toLocaleString()} size) × {item.quantity}
+                          </>
                         ) : (
-                          "+"
+                          <>
+                            (₱ {Number(item.price).toLocaleString()} base
+                            {item.addOns && item.addOns.length > 0 && (
+                              <>
+                                {" "}
+                                + ₱{" "}
+                                {item.addOns
+                                  .reduce(
+                                    (sum, a) => sum + (Number(a.price) || 0),
+                                    0
+                                  )
+                                  .toLocaleString()}{" "}
+                                add-ons
+                              </>
+                            )}
+                            ) × {item.quantity}
+                          </>
                         )}
-                      </Button>
+                      </span>
                     </div>
                   </div>
-                );
-              })}
+                  {/* Right: Quantity Controls */}
+                  <div className="flex flex-col items-center justify-center gap-2 ml-4">
+                    {item.quantity > 1 ? (
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        className="rounded-full w-8 h-8 flex items-center justify-center"
+                        onClick={() => handleUpdateQuantity(item, -1)}
+                        disabled={
+                          !!loadingItem && loadingItem.key === groupKey
+                        }
+                      >
+                        {loadingItem &&
+                          loadingItem.key === groupKey &&
+                          loadingItem.action === "dec" ? (
+                          <Loader2 className="animate-spin text-[#FFC107] w-5 h-5" />
+                        ) : (
+                          "-"
+                        )}
+                      </Button>
+                    ) : (
+                      <button
+                        className="rounded-full w-8 h-8 flex items-center justify-center bg-red-100 hover:bg-red-200 text-red-600 text-lg shadow border border-gray-200"
+                        title="Remove from cart"
+                        onClick={() => handleDeleteGroup(item)}
+                        disabled={
+                          !!loadingItem && loadingItem.key === groupKey
+                        }
+                      >
+                        {loadingItem &&
+                          loadingItem.key === groupKey &&
+                          loadingItem.action === "del" ? (
+                          <Loader2 className="animate-spin text-[#FFC107] w-5 h-5" />
+                        ) : (
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 20 20"
+                            fill="currentColor"
+                            width="20"
+                            height="20"
+                          >
+                            <path
+                              fillRule="evenodd"
+                              d="M7.5 3a1 1 0 0 1 1-1h3a1 1 0 0 1 1 1V4h3.25a.75.75 0 0 1 0 1.5h-.278l-.427 9.399A2.25 2.25 0 0 1 13.1 17.13l-.1.007H7a2.25 2.25 0 0 1-2.25-2.224L4.323 5.5H4.25a.75.75 0 0 1 0-1.5H7.5V3zm1 1v1h3V4h-3zm-2.177 1.5l.427 9.399a.75.75 0 0 0 .75.726h6a.75.75 0 0 0 .75-.726l.427-9.399H6.323z"
+                              clipRule="evenodd"
+                            />
+                          </svg>
+                        )}
+                      </button>
+                    )}
+                    <span className="font-bold text-[#232323]">
+                      {item.quantity}
+                    </span>
+                    <Button
+                      variant="yellow"
+                      size="icon"
+                      className="rounded-full w-8 h-8 flex items-center justify-center"
+                      onClick={() => handleUpdateQuantity(item, 1)}
+                      disabled={!!loadingItem && loadingItem.key === groupKey}
+                    >
+                      {loadingItem &&
+                        loadingItem.key === groupKey &&
+                        loadingItem.action === "inc" ? (
+                        <Loader2 className="animate-spin text-white w-5 h-5" />
+                      ) : (
+                        "+"
+                      )}
+                    </Button>
+                  </div>
+                </div>
+              );
+            })}
         </div>
         {/* Promocode */}
         <div className="w-full max-w-5xl flex justify-start mb-6">
