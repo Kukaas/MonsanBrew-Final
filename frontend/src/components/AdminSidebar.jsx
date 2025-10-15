@@ -11,7 +11,6 @@ import {
   ShoppingCart,
   Plus,
   Package,
-  ChefHat,
   Layers,
   Eye,
   Coffee,
@@ -40,15 +39,11 @@ const navMaintenance = [
   },
   { title: "Add ons", icon: <Plus size={18} />, url: "/admin/add-ons" },
   {
-    title: "Raw  Materials Inventory",
+    title: "Inventory",
     icon: <Package size={20} />,
     url: "/admin/raw-materials",
   },
-  {
-    title: "Ingredients",
-    icon: <ChefHat size={20} />,
-    url: "/admin/ingredients",
-  },
+  { title: "Products", icon: <Coffee size={20} />, url: "/admin/products" },
   {
     title: "D&D Ingredients",
     icon: <Layers size={20} />,
@@ -59,7 +54,6 @@ const navMaintenance = [
     icon: <Eye size={20} />,
     url: "/admin/dnd-previews",
   },
-  { title: "Products", icon: <Coffee size={20} />, url: "/admin/products" },
   { title: "User Management", icon: <Users size={18} />, url: "/admin/users" },
 ];
 

@@ -165,7 +165,7 @@ export default function Products() {
 
     return (
         <AdminLayout>
-            <PageLayout title="Products" description="Manage your product inventory, pricing, and stock levels here."
+            <PageLayout title="Products" description="Manage your products, pricing, and availability here."
                 action={<Button variant="yellow" size="lg" onClick={() => navigate('/admin/products/create')}>Add Product</Button>}
             >
                 <DataTable columns={columns} data={mappedData} loading={isLoading} rowKey="id" />

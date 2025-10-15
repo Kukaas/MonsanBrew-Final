@@ -22,6 +22,7 @@ import CustomAlertDialog from "@/components/custom/CustomAlertDialog";
 import { AlertDialogCancel } from "@/components/ui/alert-dialog";
 import { Link } from "react-router-dom";
 import DashCard from "@/components/custom/DashCard";
+import DeliveryNavigation from "@/components/custom/DeliveryNavigation";
 
 export default function Home() {
   const { user } = useAuth();
@@ -359,6 +360,22 @@ export default function Home() {
                             </Button>
                           </Link>
                         </div>
+                        {order.address?.latitude && order.address?.longitude && (
+                          <div className="mt-3">
+                            <DeliveryNavigation
+                              deliveryAddress={formatAddress(order.address)}
+                              deliveryCoordinates={{
+                                latitude: order.address.latitude,
+                                longitude: order.address.longitude,
+                              }}
+                              restaurantCoordinates={{
+                                latitude: 13.32383,
+                                longitude: 121.845809,
+                              }}
+                              className="bg-[#232323] border-[#444]"
+                            />
+                          </div>
+                        )}
                       </div>
                     </CardContent>
                   </Card>
@@ -456,6 +473,22 @@ export default function Home() {
                             Accept
                           </Button>
                         </div>
+                        {order.address?.latitude && order.address?.longitude && (
+                          <div className="mt-3">
+                            <DeliveryNavigation
+                              deliveryAddress={formatAddress(order.address)}
+                              deliveryCoordinates={{
+                                latitude: order.address.latitude,
+                                longitude: order.address.longitude,
+                              }}
+                              restaurantCoordinates={{
+                                latitude: 13.32383,
+                                longitude: 121.845809,
+                              }}
+                              className="bg-white border-[#FFC107]/30"
+                            />
+                          </div>
+                        )}
                       </div>
                     </CardContent>
                   </Card>

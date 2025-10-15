@@ -43,7 +43,7 @@ const productSchema = new mongoose.Schema(
       {
         ingredientId: {
           type: mongoose.Schema.Types.ObjectId,
-          ref: "Ingredient",
+          ref: "Inventory",
           required: true,
         },
         quantity: {

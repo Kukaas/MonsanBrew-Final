@@ -120,31 +120,14 @@ export const rawMaterialsAPI = {
 };
 
 // Ingredients API functions
+// Alias Ingredients API to Inventory endpoints to unify source of truth
 export const ingredientsAPI = {
-  // Create ingredient
-  create: async (data) => {
-    return await api.post("/ingredients", data);
-  },
-  // Get all ingredients
-  getAll: async () => {
-    return await api.get("/ingredients");
-  },
-  // Get ingredient by ID
-  getById: async (id) => {
-    return await api.get(`/ingredients/${id}`);
-  },
-  // Update ingredient
-  update: async (id, data) => {
-    return await api.put(`/ingredients/${id}`, data);
-  },
-  // Delete ingredient
-  delete: async (id) => {
-    return await api.delete(`/ingredients/${id}`);
-  },
-  // Add stock to ingredient
-  addStock: async (id, quantity) => {
-    return await api.post(`/ingredients/${id}/add-stock`, { quantity });
-  },
+  create: async (data) => api.post("/inventory", data),
+  getAll: async () => api.get("/inventory"),
+  getById: async (id) => api.get(`/inventory/${id}`),
+  update: async (id, data) => api.put(`/inventory/${id}`, data),
+  delete: async (id) => api.delete(`/inventory/${id}`),
+  addStock: async (id, quantity) => api.post(`/inventory/${id}/add-stock`, { quantity }),
 };
 
 // Product API functions

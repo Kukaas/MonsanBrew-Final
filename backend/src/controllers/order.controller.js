@@ -1,6 +1,6 @@
 import Order from "../models/order.model.js";
 import Product from "../models/products.model.js";
-import Ingredient from "../models/ingredients.model.js";
+import Inventory from "../models/inventory.model.js";
 import { updateProductSales } from "./review.controller.js";
 
 // Define low stock thresholds for different units
@@ -421,8 +421,9 @@ export const updateOrderStatus = async (req, res) => {
                     productName: orderItem.productName,
                     ingredientId: ingredient.ingredientId,
                     ingredientName:
+                      ingredient.ingredientId?.productName ||
                       ingredient.ingredientId?.ingredientName ||
-                      "Unknown Ingredient",
+                      "Unknown Item",
                     quantityNeeded,
                     unit:
                       ingredient.unit || ingredient.ingredientId?.unit || "units",
@@ -431,35 +432,34 @@ export const updateOrderStatus = async (req, res) => {
               }
             }
 
-        // Now validate and deduct ingredients
+        // Now validate and deduct inventory items
         for (const deductionItem of totalIngredientsToDeduct) {
-          // Find the corresponding ingredient
-          const ingredient = await Ingredient.findById(
+          // Find the corresponding inventory item
+          const inventoryItem = await Inventory.findById(
             deductionItem.ingredientId
           );
 
-          if (ingredient) {
+          if (inventoryItem) {
             // Check if there's enough stock
-            if (ingredient.stock < deductionItem.quantityNeeded) {
+            if (inventoryItem.stock < deductionItem.quantityNeeded) {
               return res.status(400).json({
-                error: `Insufficient stock for ingredient: ${deductionItem.ingredientName}. Required: ${deductionItem.quantityNeeded} ${deductionItem.unit}, Available: ${ingredient.stock} ${ingredient.unit}`,
+                error: `Insufficient stock for inventory item: ${deductionItem.ingredientName}. Required: ${deductionItem.unit ? deductionItem.quantityNeeded + ' ' + deductionItem.unit : deductionItem.quantityNeeded}, Available: ${inventoryItem.stock} ${inventoryItem.unit || ''}`.trim(),
               });
             }
 
-            // Deduct the quantity from ingredient stock
-            const oldStock = ingredient.stock;
-            ingredient.stock =
+            // Deduct the quantity from inventory stock
+            inventoryItem.stock =
               Math.round(
-                (ingredient.stock - deductionItem.quantityNeeded) * 100
+                (inventoryItem.stock - deductionItem.quantityNeeded) * 100
               ) / 100;
 
             // Update status based on remaining stock
-            updateIngredientStatus(ingredient);
+            updateIngredientStatus(inventoryItem);
 
-            await ingredient.save();
+            await inventoryItem.save();
           } else {
             return res.status(400).json({
-              error: `Ingredient not found: ${deductionItem.ingredientName}. Please add this ingredient first.`,
+              error: `Inventory item not found: ${deductionItem.ingredientName}. Please add this inventory item first.`,
             });
           }
         }

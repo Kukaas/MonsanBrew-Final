@@ -258,7 +258,7 @@ export default function ViewProduct() {
                       className="text-white flex items-center gap-2"
                     >
                       <span className="font-bold text-[#FFC107]">
-                        {ing.ingredientId?.ingredientName || ing.ingredientId}
+                        {ing.ingredientId?.productName || ing.ingredientId?.ingredientName || ing.ingredientId}
                       </span>
                       <span className="ml-2 text-white font-medium">
                         Qty: {ing.quantity} {ing.unit ? ing.unit : ""}

@@ -553,7 +553,7 @@ export default function EditProduct() {
                         ingredientsLoaded
                           ? ingredientsOptions.map((i) => ({
                               value: i._id,
-                              label: `${i.ingredientName} (${i.stock} ${i.unit})`,
+                              label: `${i.productName || i.ingredientName} (${i.stock} ${i.unit})`,
                             }))
                           : []
                       }

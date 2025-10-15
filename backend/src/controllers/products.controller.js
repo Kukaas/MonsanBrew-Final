@@ -1,6 +1,5 @@
 import Product from "../models/products.model.js";
 import Inventory from "../models/inventory.model.js";
-import Ingredient from "../models/ingredients.model.js";
 
 // Define low stock thresholds for different units
 const LOW_STOCK_THRESHOLDS = {
@@ -81,21 +80,21 @@ export const createProduct = async (req, res) => {
       });
     }
 
-    // Validate ingredients
+    // Validate ingredients (now referencing Inventory directly)
     let ingredientsWithUnit = [];
     if (ingredients && ingredients.length > 0) {
       for (const ing of ingredients) {
-        const ingredient = await Ingredient.findById(ing.ingredientId);
-        if (!ingredient) {
+        const inventoryItem = await Inventory.findById(ing.ingredientId);
+        if (!inventoryItem) {
           return res.status(400).json({
-            message: `Ingredient with ID ${ing.ingredientId} not found.`,
+            message: `Inventory item with ID ${ing.ingredientId} not found.`,
           });
         }
 
         ingredientsWithUnit.push({
           ingredientId: ing.ingredientId,
           quantity: ing.quantity,
-          unit: ingredient.unit,
+          unit: inventoryItem.unit,
         });
       }
     }
@@ -126,7 +125,7 @@ export const getProducts = async (req, res) => {
     const products = await Product.find({ isDeleted: { $ne: true } })
       .populate("category", "category")
       .populate("addOns", "name price")
-      .populate("ingredients.ingredientId", "ingredientName unit stock")
+      .populate("ingredients.ingredientId", "productName unit stock")
       .lean();
     res.status(200).json(products);
   } catch (error) {
@@ -143,7 +142,7 @@ export const getProductById = async (req, res) => {
     })
       .populate("category", "category")
       .populate("addOns", "name price")
-      .populate("ingredients.ingredientId", "ingredientName unit stock")
+      .populate("ingredients.ingredientId", "productName unit stock")
       .lean();
     if (!product) {
       return res.status(404).json({ message: "Product not found" });
@@ -185,21 +184,21 @@ export const updateProduct = async (req, res) => {
       });
     }
 
-    // Validate ingredients
+    // Validate ingredients (now referencing Inventory directly)
     let ingredientsWithUnit = [];
     if (ingredients && ingredients.length > 0) {
       for (const ing of ingredients) {
-        const ingredient = await Ingredient.findById(ing.ingredientId);
-        if (!ingredient) {
+        const inventoryItem = await Inventory.findById(ing.ingredientId);
+        if (!inventoryItem) {
           return res.status(400).json({
-            message: `Ingredient with ID ${ing.ingredientId} not found.`,
+            message: `Inventory item with ID ${ing.ingredientId} not found.`,
           });
         }
 
         ingredientsWithUnit.push({
           ingredientId: ing.ingredientId,
           quantity: ing.quantity,
-          unit: ingredient.unit,
+          unit: inventoryItem.unit,
         });
       }
     }

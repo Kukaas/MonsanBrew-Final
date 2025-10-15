@@ -80,7 +80,7 @@ export default function RawMaterials() {
     const highlightedId = query.get('highlight');
 
     const { data, isLoading } = useQuery({
-        queryKey: ['raw-materials'],
+        queryKey: ['inventory'],
         queryFn: async () => {
             try {
                 const res = await rawMaterialsAPI.getAll();
@@ -97,7 +97,7 @@ export default function RawMaterials() {
         },
         onSuccess: () => {
             setAdding(false);
-            queryClient.invalidateQueries(['raw-materials']);
+            queryClient.invalidateQueries(['inventory']);
             setProductName("");
             setStock("");
             setExpirationDate("");
@@ -105,11 +105,11 @@ export default function RawMaterials() {
             setUnit("pieces");
             setFormError("");
             setOpen(false);
-            toast.success("Raw material added successfully!")
+            toast.success("Inventory item added successfully!")
         },
         onError: (error) => {
             setAdding(false);
-            setFormError(error?.response?.data?.error || "Failed to add raw material");
+            setFormError(error?.response?.data?.error || "Failed to add inventory item");
         }
     });
 
@@ -119,7 +119,7 @@ export default function RawMaterials() {
         },
         onSuccess: () => {
             setUpdating(false);
-            queryClient.invalidateQueries(['raw-materials']);
+            queryClient.invalidateQueries(['inventory']);
             setEditOpen(false);
             setEditItem(null);
             setEditProductName("");
@@ -129,11 +129,11 @@ export default function RawMaterials() {
             setEditUnit("pieces");
             setImage("");
             setEditImage("");
-            toast.success("Raw material updated successfully!");
+            toast.success("Inventory item updated successfully!");
         },
         onError: (error) => {
             setUpdating(false);
-            setFormError(error?.response?.data?.error || "Failed to update raw material");
+            setFormError(error?.response?.data?.error || "Failed to update inventory item");
         }
     });
 
@@ -143,14 +143,14 @@ export default function RawMaterials() {
         },
         onSuccess: () => {
             setDeleting(false);
-            queryClient.invalidateQueries(['raw-materials']);
+            queryClient.invalidateQueries(['inventory']);
             setDeleteOpen(false);
             setDeleteItem(null);
-            toast.success("Raw material deleted successfully!");
+            toast.success("Inventory item deleted successfully!");
         },
         onError: (error) => {
             setDeleting(false);
-            toast.error(error?.response?.data?.error || "Failed to delete raw material");
+            toast.error(error?.response?.data?.error || "Failed to delete inventory item");
         }
     });
 
@@ -187,7 +187,7 @@ export default function RawMaterials() {
     const mappedData = (data || []).map(item => ({ ...item, id: item._id }));
 
     const columns = [
-        { accessorKey: "productName", header: "Product Name" },
+        { accessorKey: "productName", header: "Item Name" },
         { accessorKey: "stock", header: "Stock" },
         {
             accessorKey: "unit",
@@ -220,7 +220,7 @@ export default function RawMaterials() {
             render: row => row.image ? (
                 <img
                     src={row.image}
-                    alt="Raw Material"
+                    alt="Inventory Item"
                     className="h-12 w-12 object-cover rounded border border-[#FFC107] mx-auto cursor-pointer hover:scale-110 transition-transform"
                     onClick={() => setPreviewImage(row.image)}
                 />
@@ -272,11 +272,11 @@ export default function RawMaterials() {
     return (
         <AdminLayout>
             <PageLayout
-                title="Raw Materials"
-                description="Manage your raw materials here."
+                title="Inventory"
+                description="Manage your inventory items here."
                 action={
                     <Button variant="yellow" size="lg" onClick={() => setOpen(true)}>
-                        Add Raw Material
+                        Add Item
                     </Button>
                 }
             >
@@ -289,8 +289,8 @@ export default function RawMaterials() {
                         setOpen(val);
                         if (!val) setImage("");
                     })}
-                    title="Add Raw Material"
-                    description="Enter a new raw material."
+                    title="Add Inventory Item"
+                    description="Enter a new inventory item."
                     actions={
                         <>
                             <AlertDialogCancel
@@ -366,8 +366,8 @@ export default function RawMaterials() {
                 <CustomAlertDialog
                     open={editOpen}
                     onOpenChange={updating ? undefined : setEditOpen}
-                    title="Edit Raw Material"
-                    description="Update the raw material."
+                    title="Edit Inventory Item"
+                    description="Update the inventory item."
                     actions={
                         <>
                             <AlertDialogCancel
@@ -443,7 +443,7 @@ export default function RawMaterials() {
                 <CustomAlertDialog
                     open={deleteOpen}
                     onOpenChange={deleting ? undefined : setDeleteOpen}
-                    title="Delete Raw Material"
+                    title="Delete Inventory Item"
                     description={`Are you sure you want to delete "${deleteItem?.productName}"? This action cannot be undone.`}
                     actions={
                         <>
