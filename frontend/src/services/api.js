@@ -366,6 +366,51 @@ export const dashboardAPI = {
   },
 };
 
+// Reports API functions
+export const reportsAPI = {
+  getSummary: async (filters = {}) => {
+    const params = new URLSearchParams();
+    if (filters.startDate) params.append("startDate", filters.startDate);
+    if (filters.endDate) params.append("endDate", filters.endDate);
+    if (filters.productId) params.append("productId", filters.productId);
+    if (filters.riderId) params.append("riderId", filters.riderId);
+    return await api.get(`/reports/summary?${params.toString()}`);
+  },
+  getOrders: async (filters = {}) => {
+    const params = new URLSearchParams();
+    if (filters.startDate) params.append("startDate", filters.startDate);
+    if (filters.endDate) params.append("endDate", filters.endDate);
+    if (filters.status) params.append("status", filters.status);
+    return await api.get(`/reports/orders?${params.toString()}`);
+  },
+  getDeliveryPerformance: async (filters = {}) => {
+    const params = new URLSearchParams();
+    if (filters.startDate) params.append("startDate", filters.startDate);
+    if (filters.endDate) params.append("endDate", filters.endDate);
+    if (filters.riderId) params.append("riderId", filters.riderId);
+    return await api.get(`/reports/delivery-performance?${params.toString()}`);
+  },
+  getFeedback: async (filters = {}) => {
+    const params = new URLSearchParams();
+    if (filters.startDate) params.append("startDate", filters.startDate);
+    if (filters.endDate) params.append("endDate", filters.endDate);
+    if (filters.limit) params.append("limit", String(filters.limit));
+    return await api.get(`/reports/feedback?${params.toString()}`);
+  },
+  getProductFeedback: async (productId, filters = {}) => {
+    const params = new URLSearchParams();
+    if (filters.startDate) params.append("startDate", filters.startDate);
+    if (filters.endDate) params.append("endDate", filters.endDate);
+    return await api.get(`/reports/feedback/product/${productId}?${params.toString()}`);
+  },
+  getRiderPerformance: async (filters = {}) => {
+    const params = new URLSearchParams();
+    if (filters.startDate) params.append("startDate", filters.startDate);
+    if (filters.endDate) params.append("endDate", filters.endDate);
+    return await api.get(`/reports/delivery-performance/riders?${params.toString()}`);
+  },
+};
+
 // Drink Customization Dnd Items API functions
 export const dndItemsAPI = {
   // Get all dnd items

@@ -30,6 +30,7 @@ const navMain = [
   { title: "Orders", icon: <ShoppingCart size={20} />, url: "/admin/orders" },
   { title: "Refunds", icon: <RotateCcw size={20} />, url: "/admin/refunds" },
   { title: "Expenses", icon: <DollarSign size={18} />, url: "/admin/expenses" },
+  { title: "Reports", icon: <BarChart2 size={18} />, url: "/admin/reports" },
 ];
 const navMaintenance = [
   {

@@ -5,7 +5,7 @@ import Order from "../models/order.model.js";
 // Create a new review
 export const createReview = async (req, res) => {
   try {
-    const { userId, productId, orderId, rating, comment, isAnonymous } =
+    const { userId, productId, orderId, rating, comment, isAnonymous, deliveryRating } =
       req.body;
 
     // Validate required fields
@@ -16,6 +16,11 @@ export const createReview = async (req, res) => {
     // Validate rating
     if (rating < 1 || rating > 5) {
       return res.status(400).json({ error: "Rating must be between 1 and 5." });
+    }
+
+    // Validate delivery rating if provided
+    if (deliveryRating !== undefined && (deliveryRating < 1 || deliveryRating > 5)) {
+      return res.status(400).json({ error: "Delivery rating must be between 1 and 5." });
     }
 
     // Check if order exists and is completed
@@ -72,6 +77,8 @@ export const createReview = async (req, res) => {
       rating,
       comment,
       isAnonymous: isAnonymous || false,
+      deliveryRating: deliveryRating || undefined,
+      riderId: order.riderId || undefined,
     });
 
     await review.save();

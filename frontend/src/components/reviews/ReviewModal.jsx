@@ -19,6 +19,7 @@ const ReviewModal = ({
 }) => {
   const { user } = useAuth();
   const [rating, setRating] = useState(0);
+  const [deliveryRating, setDeliveryRating] = useState(0);
   const [comment, setComment] = useState("");
   const [isAnonymous, setIsAnonymous] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -26,6 +27,11 @@ const ReviewModal = ({
   const handleSubmit = async () => {
     if (rating === 0) {
       toast.error("Please select a rating");
+      return;
+    }
+
+    if (deliveryRating === 0) {
+      toast.error("Please rate the delivery experience");
       return;
     }
 
@@ -49,10 +55,12 @@ const ReviewModal = ({
         rating,
         comment: comment.trim(),
         isAnonymous,
+        deliveryRating,
       });
 
       toast.success("Review submitted successfully!");
       setRating(0);
+      setDeliveryRating(0);
       setComment("");
       onOpenChange(false);
 
@@ -140,6 +148,44 @@ const ReviewModal = ({
           )}
         </div>
 
+        {/* Delivery Rating */}
+        <div className="space-y-3">
+          <label className="text-sm font-medium text-gray-300">
+            Delivery Experience
+          </label>
+          <div className="flex gap-2">
+            {[1, 2, 3, 4, 5].map((star) => (
+              <button
+                key={star}
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setDeliveryRating(star);
+                }}
+                className="focus:outline-none"
+                disabled={isSubmitting}
+              >
+                <Star
+                  className={`w-8 h-8 transition-colors ${
+                    star <= deliveryRating
+                      ? "fill-[#FFC107] text-[#FFC107]"
+                      : "text-gray-500 hover:text-[#FFC107]"
+                  }`}
+                />
+              </button>
+            ))}
+          </div>
+          {deliveryRating > 0 && (
+            <p className="text-sm text-gray-400">
+              {deliveryRating === 1 && "Very Slow / Poor"}
+              {deliveryRating === 2 && "Slow"}
+              {deliveryRating === 3 && "Okay"}
+              {deliveryRating === 4 && "Fast / Good"}
+              {deliveryRating === 5 && "Excellent"}
+            </p>
+          )}
+        </div>
+
         {/* Review Comment */}
         <div className="space-y-3">
           <label className="text-sm font-medium text-gray-300">
@@ -180,7 +226,7 @@ const ReviewModal = ({
           </div>
           {isAnonymous && (
             <p className="text-xs text-gray-400">
-              Your name will appear as "
+              Your name will appear as&quot;
               {user?.name
                 ? user.name.length <= 2
                   ? user.name.charAt(0) + "*****"
@@ -188,7 +234,7 @@ const ReviewModal = ({
                     "*****" +
                     user.name.charAt(user.name.length - 1)
                 : "*****"}
-              " instead of your full name
+              &quot; instead of your full name
             </p>
           )}
         </div>

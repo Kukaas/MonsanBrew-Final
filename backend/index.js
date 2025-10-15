@@ -16,6 +16,7 @@ import reviewRoutes from "./src/routes/review.routes.js";
 import dashboardRoutes from "./src/routes/dashboard.route.js";
 import expenseRoutes from "./src/routes/expense.route.js";
 import dndRoutes from "./src/routes/dnd.route.js";
+import reportsRoutes from "./src/routes/reports.route.js";
 
 const app = express();
 
@@ -51,6 +52,7 @@ app.use("/api/reviews", reviewRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/expenses", expenseRoutes);
 app.use("/api/dnd", dndRoutes);
+app.use("/api/reports", reportsRoutes);
 
 app.listen(ENV.PORT, () => {
   console.log(`Server is running on port ${ENV.PORT}`);

@@ -34,7 +34,6 @@ const roleOptions = [
   { value: "admin", label: "Admin" },
   { value: "rider", label: "Rider" },
   { value: "customer", label: "Customer" },
-  { value: "frontdesk", label: "Front Desk" },
 ];
 const statusOptions = ["Verified", "Not Verified"];
 const activationOptions = ["Active", "Inactive"];

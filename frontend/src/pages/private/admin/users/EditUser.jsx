@@ -36,7 +36,6 @@ export default function EditUser() {
   const roleOptions = [
     { value: "customer", label: "Customer" },
     { value: "rider", label: "Rider" },
-    { value: "frontdesk", label: "Front Desk" },
     { value: "admin", label: "Admin" },
   ];
 

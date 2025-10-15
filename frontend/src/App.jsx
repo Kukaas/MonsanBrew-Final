@@ -46,6 +46,7 @@ import Expenses from "./pages/private/admin/expenses/Expenses.jsx";
 import DnDIngredients from "./pages/private/admin/dnd/DnDIngredients.jsx";
 import DnDPreviews from "./pages/private/admin/dnd/DnDPreviews.jsx";
 import DrinkCustomizer from "./pages/private/customer/DrinkCustomizer.jsx";
+import Reports from "./pages/private/admin/reports/Reports.jsx";
 
 function RootRedirect() {
   const { user, loading } = useAuth();
@@ -217,6 +218,15 @@ function App() {
           element={
             <RequireAuth allowedRoles={["admin"]}>
               <RawMaterials />
+            </RequireAuth>
+          }
+        />
+
+        <Route
+          path="/admin/reports"
+          element={
+            <RequireAuth allowedRoles={["admin"]}>
+              <Reports />
             </RequireAuth>
           }
         />
