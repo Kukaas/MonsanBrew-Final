@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { dndAPI, cartAPI } from "@/services/api";
 import CustomerLayout from "@/layouts/CustomerLayout";
@@ -14,6 +14,7 @@ export default function DrinkCustomizer() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const dropZoneRef = useRef(null);
+  const ignoreNextClickRef = useRef(false);
 
   // State for selected ingredients
   const [selectedIngredients, setSelectedIngredients] = useState([]);
@@ -21,6 +22,16 @@ export default function DrinkCustomizer() {
   const [showBlendPreview, setShowBlendPreview] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [selectedSize, setSelectedSize] = useState("Medium");
+
+  // Touch drag and drop state
+  const [isTouchDragging, setIsTouchDragging] = useState(false);
+  const [draggedIngredient, setDraggedIngredient] = useState(null);
+  const [touchStartPos, setTouchStartPos] = useState({ x: 0, y: 0 });
+
+  const [currentTouchPos, setCurrentTouchPos] = useState({ x: 0, y: 0 });
+  const [hasMoved, setHasMoved] = useState(false);
+  const [touchStartTime, setTouchStartTime] = useState(0);
+  const [isOverMobileDropZone, setIsOverMobileDropZone] = useState(false);
 
   // Size options with pricing
   const sizeOptions = [
@@ -96,6 +107,97 @@ export default function DrinkCustomizer() {
     }
   };
 
+  // Touch event handlers for mobile drag and drop
+  const handleTouchStart = (e, ingredient) => {
+    const touch = e.touches[0];
+    setTouchStartPos({ x: touch.clientX, y: touch.clientY });
+    setCurrentTouchPos({ x: touch.clientX, y: touch.clientY });
+    setDraggedIngredient(ingredient);
+    setHasMoved(false);
+    setIsTouchDragging(false);
+    setTouchStartTime(Date.now());
+  };
+
+  const handleTouchMove = (e) => {
+    if (!draggedIngredient) return;
+
+    const touch = e.touches[0];
+    const deltaX = touch.clientX - touchStartPos.x;
+    const deltaY = touch.clientY - touchStartPos.y;
+    const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+    const timeElapsed = Date.now() - touchStartTime;
+    setCurrentTouchPos({ x: touch.clientX, y: touch.clientY });
+
+    // Track whether finger is over the mobile drop zone
+    const dropZone = dropZoneRef.current;
+    if (dropZone) {
+      const rect = dropZone.getBoundingClientRect();
+      const over =
+        touch.clientX >= rect.left &&
+        touch.clientX <= rect.right &&
+        touch.clientY >= rect.top &&
+        touch.clientY <= rect.bottom;
+      setIsOverMobileDropZone(over);
+    }
+
+    // Show preview early for UX (without blocking scroll yet)
+    if (distance > 5) {
+      setIsTouchDragging(true);
+      setHasMoved(true);
+    }
+
+    // Only block scroll in drop zone and when it's an intentional horizontal drag
+    if (
+      isOverMobileDropZone &&
+      distance > 20 && timeElapsed > 150 && Math.abs(deltaX) > Math.abs(deltaY)
+    ) {
+      e.preventDefault();
+    }
+  };
+
+  const handleTouchEnd = (e) => {
+    if (!draggedIngredient) return;
+
+    const touch = e.changedTouches[0];
+    const dropZone = dropZoneRef.current;
+    let isOverDrop = false;
+    if (dropZone) {
+      const rect = dropZone.getBoundingClientRect();
+      isOverDrop =
+        touch.clientX >= rect.left &&
+        touch.clientX <= rect.right &&
+        touch.clientY >= rect.top &&
+        touch.clientY <= rect.bottom;
+    }
+
+    // If we didn't move much, treat it as a click ONLY when not over drop zone
+    if (!hasMoved) {
+      if (!isOverDrop) {
+        addIngredient(draggedIngredient);
+        ignoreNextClickRef.current = true; // prevent synthetic click from adding again
+      }
+    } else if (isTouchDragging) {
+      if (isOverDrop) {
+        addIngredient(draggedIngredient);
+        ignoreNextClickRef.current = true;
+      }
+    }
+
+    // Reset touch drag state
+    setIsTouchDragging(false);
+    setDraggedIngredient(null);
+    setCurrentTouchPos({ x: 0, y: 0 });
+    setHasMoved(false);
+    setTouchStartTime(0);
+    setIsOverMobileDropZone(false);
+
+    // Reset the ignore click flag shortly after touch ends
+    setTimeout(() => {
+      ignoreNextClickRef.current = false;
+    }, 250);
+  };
+
+
   // Ingredient management
   const addIngredient = (ingredient) => {
     const existingIngredient = selectedIngredients.find(ing => ing._id === ingredient._id);
@@ -108,7 +210,6 @@ export default function DrinkCustomizer() {
     } else {
       setSelectedIngredients([...selectedIngredients, { ...ingredient, quantity: 1 }]);
     }
-    toast.success(`${ingredient.name} added!`);
   };
 
   // Check if ingredient should be hidden from draggable items
@@ -135,8 +236,10 @@ export default function DrinkCustomizer() {
   };
 
   const handleIngredientClick = (ingredient) => {
-    // Only add on click if not dragging
-    if (!isDragging) {
+    // Ignore synthetic click following a touch add
+    if (ignoreNextClickRef.current) return;
+    // Only add on click if not dragging (desktop) and not touch dragging (mobile)
+    if (!isDragging && !isTouchDragging) {
       addIngredient(ingredient);
     }
   };
@@ -249,6 +352,27 @@ export default function DrinkCustomizer() {
   };
 
   const matchingPreview = findMatchingPreview();
+
+  // Prevent scrolling only when actually dragging over the drop zone
+  useEffect(() => {
+    const handleGlobalTouchMove = (e) => {
+      if (isTouchDragging && draggedIngredient && isOverMobileDropZone) {
+        e.preventDefault();
+      }
+    };
+
+    if (isTouchDragging && draggedIngredient && isOverMobileDropZone) {
+      document.addEventListener('touchmove', handleGlobalTouchMove, { passive: false });
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'auto';
+    }
+
+    return () => {
+      document.removeEventListener('touchmove', handleGlobalTouchMove);
+      document.body.style.overflow = 'auto';
+    };
+  }, [isTouchDragging, draggedIngredient, isOverMobileDropZone]);
 
   // Handle blend button click
   const handleBlendClick = () => {
@@ -627,15 +751,41 @@ export default function DrinkCustomizer() {
                   onDragOver={handleDragOver}
                   onDragLeave={handleDragLeave}
                   onDrop={handleDrop}
-                  className={`min-h-40 border-2 border-dashed rounded-lg p-6 text-center transition-colors ${isDragOver
-                    ? "border-[#FFC107] bg-yellow-50"
+                  onTouchMove={(e) => { if (isTouchDragging) e.preventDefault(); }}
+                  className={`relative min-h-40 border-2 border-dashed rounded-lg p-6 text-center transition-all duration-300 ${isDragOver || (isTouchDragging && draggedIngredient)
+                    ? "border-[#FFC107] bg-gradient-to-br from-yellow-50 to-yellow-100 scale-105 shadow-lg"
                     : "border-gray-300 bg-gray-50"
                     }`}
+                  style={{ touchAction: isTouchDragging ? 'none' : 'auto' }}
                 >
+                  {/* Mobile in-zone drag preview */}
+                  {isTouchDragging && isOverMobileDropZone && draggedIngredient && (
+                    <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+                      <div className="bg-white/90 backdrop-blur-sm rounded-xl shadow-xl p-3 border-2 border-[#FFC107]">
+                        <div className="text-center">
+                          <img src={draggedIngredient.image} alt={draggedIngredient.name} className="w-12 h-12 object-cover rounded-full mx-auto border-2 border-[#FFC107] mb-2" />
+                          <p className="text-sm font-bold text-gray-900">{draggedIngredient.name}</p>
+                          <p className="text-xs text-[#FFC107] font-semibold">₱{draggedIngredient.price}</p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                   {selectedIngredients.length === 0 ? (
                     <div className="text-gray-500">
-                      <p className="text-base mb-2">Drop ingredients here!</p>
-                      <p className="text-sm">Tap ingredients from below</p>
+                      {isTouchDragging && draggedIngredient ? (
+                        <div className="flex flex-col items-center justify-center h-full">
+                          <div className="w-16 h-16 bg-[#FFC107]/20 rounded-full flex items-center justify-center mb-4 animate-pulse">
+                            <span className="text-2xl">🍹</span>
+                          </div>
+                          <p className="text-lg font-semibold mb-2 text-[#FFC107]">Drop {draggedIngredient.name} here!</p>
+                          <p className="text-sm">Release to add ingredient</p>
+                        </div>
+                      ) : (
+                        <>
+                          <p className="text-base mb-2">Your custom drink will appear here!</p>
+                          <p className="text-sm">Tap ingredients from below to add them</p>
+                        </>
+                      )}
                     </div>
                   ) : (
                     <div className="space-y-2">
@@ -822,22 +972,56 @@ export default function DrinkCustomizer() {
           </div>
         </div>
 
+        {/* Mobile Drag Indicator - follows finger exactly */}
+        {isTouchDragging && draggedIngredient && (
+          <div
+            className="fixed z-50 pointer-events-none"
+            style={{
+              left: `${currentTouchPos.x}px`,
+              top: `${currentTouchPos.y}px`,
+              transform: 'translate(-50%, -50%)'
+            }}
+          >
+            <div className="bg-white/95 backdrop-blur-sm rounded-xl shadow-2xl p-3 border-2 border-[#FFC107] animate-pulse">
+              <div className="text-center">
+                <img
+                  src={draggedIngredient.image}
+                  alt={draggedIngredient.name}
+                  className="w-12 h-12 object-cover rounded-full mx-auto border-2 border-[#FFC107] mb-2"
+                />
+                <p className="text-sm font-bold text-gray-900">{draggedIngredient.name}</p>
+                <p className="text-xs text-[#FFC107] font-semibold">₱{draggedIngredient.price}</p>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Floating Ingredients Panel - Mobile Only */}
         <div className="lg:hidden fixed bottom-20 left-4 right-4 z-50">
           <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-xl p-2 border border-white/20">
             <div className="flex items-center gap-2 mb-2">
               <h3 className="text-sm font-bold text-gray-900">Ingredients</h3>
-              <div className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">Tap to add</div>
+              <div className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">Hold & Drag to add</div>
             </div>
-            <div className="flex gap-2 overflow-x-auto pb-2 custom-scrollbar">
+            <div className="flex gap-2 overflow-x-auto pb-2 custom-scrollbar" style={{ touchAction: 'pan-y pan-x' }}>
               {ingredients?.filter(ingredient => !shouldHideIngredient(ingredient)).map((ingredient) => (
                 <div
                   key={ingredient._id}
                   draggable
                   onDragStart={(e) => handleDragStart(e, ingredient)}
                   onDragEnd={handleDragEnd}
+                  onTouchStart={(e) => handleTouchStart(e, ingredient)}
+                  onTouchMove={handleTouchMove}
+                  onTouchEnd={handleTouchEnd}
                   onClick={() => handleIngredientClick(ingredient)}
-                  className="flex-shrink-0 group bg-white rounded-lg shadow-md p-1 cursor-grab hover:shadow-lg transition-all duration-300 border-2 border-transparent hover:border-[#FFC107] hover:-translate-y-1 w-[120px] h-[80px] active:cursor-grabbing"
+                  className={`flex-shrink-0 group bg-white rounded-lg shadow-md p-1 cursor-grab hover:shadow-lg transition-all duration-300 border-2 border-transparent hover:border-[#FFC107] hover:-translate-y-1 w-[120px] h-[80px] active:cursor-grabbing select-none ${
+                    isTouchDragging && draggedIngredient?._id === ingredient._id ? 'opacity-30 scale-95' : ''
+                  }`}
+                  style={{
+                    userSelect: 'none',
+                    WebkitUserSelect: 'none',
+                    WebkitTouchCallout: 'none'
+                  }}
                 >
                   <div className="text-center h-full flex flex-col justify-between">
                     <div className="relative">
