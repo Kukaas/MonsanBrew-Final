@@ -90,6 +90,64 @@ export const placeOrder = async (req, res) => {
   }
 };
 
+// Create walk-in order (frontdesk)
+export const createWalkInOrder = async (req, res) => {
+  try {
+    const {
+      customerName,
+      customerContact,
+      orderType,
+      items,
+      frontdeskUserId,
+      paymentMethod,
+      total,
+    } = req.body;
+
+    // Validate required fields
+    if (
+      !customerName ||
+      !customerContact ||
+      !orderType ||
+      !items ||
+      !Array.isArray(items) ||
+      items.length === 0 ||
+      !frontdeskUserId ||
+      !paymentMethod ||
+      !total
+    ) {
+      return res.status(400).json({ error: "Missing required fields." });
+    }
+
+    // Validate orderType
+    const validOrderTypes = ["dine_in", "take_out"];
+    if (!validOrderTypes.includes(orderType)) {
+      return res.status(400).json({ error: "Invalid order type. Must be 'dine_in' or 'take_out'." });
+    }
+
+    const order = new Order({
+      isWalkInOrder: true,
+      customerName,
+      customerContact,
+      orderType,
+      items,
+      frontdeskUserId,
+      paymentMethod,
+      status: "preparing", // Start directly in preparing status
+      total,
+    });
+
+    await order.save();
+
+    res.status(201).json({
+      message: "Walk-in order created successfully.",
+      order
+    });
+  } catch (err) {
+    console.error("Walk-in order creation error:", err);
+    res.status(500).json({ error: "Failed to create walk-in order." });
+  }
+};
+
 export const getOrdersByUser = async (req, res) => {
   try {
     const { userId } = req.params;
@@ -194,6 +252,7 @@ export const getAllOrders = async (req, res) => {
       .populate("userId", "name email")
       .populate("items.productId", "name image")
       .populate("riderId", "name email contactNumber")
+      .populate("frontdeskUserId", "name email")
       .sort({ createdAt: -1 });
 
     res.status(200).json({ orders });
@@ -390,47 +449,47 @@ export const updateOrderStatus = async (req, res) => {
         .json({ error: "Cannot update completed or cancelled orders." });
     }
 
-        // Check if status is changing to "waiting_for_rider" and deduct ingredients
-        if (
-          status === "waiting_for_rider" &&
-          order.status !== "waiting_for_rider"
-        ) {
-          try {
-            let totalIngredientsToDeduct = [];
+    // Check if status is changing to "waiting_for_rider" and deduct ingredients
+    if (
+      status === "waiting_for_rider" &&
+      order.status !== "waiting_for_rider"
+    ) {
+      try {
+        let totalIngredientsToDeduct = [];
 
-            // Process each order item (only regular products for ingredient deduction)
-            for (let i = 0; i < order.items.length; i++) {
-              const orderItem = order.items[i];
+        // Process each order item (only regular products for ingredient deduction)
+        for (let i = 0; i < order.items.length; i++) {
+          const orderItem = order.items[i];
 
-              // Skip custom drinks for ingredient deduction
-              if (orderItem.isCustomDrink) {
-                continue;
-              }
+          // Skip custom drinks for ingredient deduction
+          if (orderItem.isCustomDrink) {
+            continue;
+          }
 
-              // Handle regular products only
-              const product = await Product.findById(orderItem.productId).populate("ingredients.ingredientId");
+          // Handle regular products only
+          const product = await Product.findById(orderItem.productId).populate("ingredients.ingredientId");
 
-              if (product && product.ingredients && product.ingredients.length > 0) {
-                // Process each ingredient in the product
-                for (let j = 0; j < product.ingredients.length; j++) {
-                  const ingredient = product.ingredients[j];
-                  const quantityNeeded = ingredient.quantity * orderItem.quantity;
+          if (product && product.ingredients && product.ingredients.length > 0) {
+            // Process each ingredient in the product
+            for (let j = 0; j < product.ingredients.length; j++) {
+              const ingredient = product.ingredients[j];
+              const quantityNeeded = ingredient.quantity * orderItem.quantity;
 
-                  // Add to deduction list
-                  totalIngredientsToDeduct.push({
-                    productName: orderItem.productName,
-                    ingredientId: ingredient.ingredientId,
-                    ingredientName:
-                      ingredient.ingredientId?.productName ||
-                      ingredient.ingredientId?.ingredientName ||
-                      "Unknown Item",
-                    quantityNeeded,
-                    unit:
-                      ingredient.unit || ingredient.ingredientId?.unit || "units",
-                  });
-                }
-              }
+              // Add to deduction list
+              totalIngredientsToDeduct.push({
+                productName: orderItem.productName,
+                ingredientId: ingredient.ingredientId,
+                ingredientName:
+                  ingredient.ingredientId?.productName ||
+                  ingredient.ingredientId?.ingredientName ||
+                  "Unknown Item",
+                quantityNeeded,
+                unit:
+                  ingredient.unit || ingredient.ingredientId?.unit || "units",
+              });
             }
+          }
+        }
 
         // Now validate and deduct inventory items
         for (const deductionItem of totalIngredientsToDeduct) {
@@ -468,6 +527,54 @@ export const updateOrderStatus = async (req, res) => {
         return res
           .status(500)
           .json({ error: "Failed to update ingredient quantities." });
+      }
+    }
+
+    // For walk-in orders: deduct ingredients when marking as completed
+    if (status === "completed" && order.isWalkInOrder) {
+      try {
+        let totalIngredientsToDeduct = [];
+        for (let i = 0; i < order.items.length; i++) {
+          const orderItem = order.items[i];
+          if (orderItem.isCustomDrink) continue;
+          const product = await Product.findById(orderItem.productId).populate("ingredients.ingredientId");
+          if (product && product.ingredients && product.ingredients.length > 0) {
+            for (let j = 0; j < product.ingredients.length; j++) {
+              const ingredient = product.ingredients[j];
+              const quantityNeeded = ingredient.quantity * orderItem.quantity;
+              totalIngredientsToDeduct.push({
+                productName: orderItem.productName,
+                ingredientId: ingredient.ingredientId,
+                ingredientName:
+                  ingredient.ingredientId?.productName ||
+                  ingredient.ingredientId?.ingredientName ||
+                  "Unknown Item",
+                quantityNeeded,
+                unit: ingredient.unit || ingredient.ingredientId?.unit || "units",
+              });
+            }
+          }
+        }
+        for (const deductionItem of totalIngredientsToDeduct) {
+          const inventoryItem = await Inventory.findById(deductionItem.ingredientId);
+          if (inventoryItem) {
+            if (inventoryItem.stock < deductionItem.quantityNeeded) {
+              return res.status(400).json({
+                error: `Insufficient stock for inventory item: ${deductionItem.ingredientName}. Required: ${deductionItem.unit ? deductionItem.quantityNeeded + ' ' + deductionItem.unit : deductionItem.quantityNeeded}, Available: ${inventoryItem.stock} ${inventoryItem.unit || ''}`.trim(),
+              });
+            }
+            inventoryItem.stock = Math.round((inventoryItem.stock - deductionItem.quantityNeeded) * 100) / 100;
+            updateIngredientStatus(inventoryItem);
+            await inventoryItem.save();
+          } else {
+            return res.status(400).json({
+              error: `Inventory item not found: ${deductionItem.ingredientName}. Please add this inventory item first.`,
+            });
+          }
+        }
+      } catch (ingredientError) {
+        console.error("Error deducting ingredients for walk-in completion:", ingredientError);
+        return res.status(500).json({ error: "Failed to update ingredient quantities." });
       }
     }
 

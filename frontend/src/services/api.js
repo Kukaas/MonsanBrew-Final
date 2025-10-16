@@ -241,6 +241,9 @@ export const orderAPI = {
   placeOrder: async (orderData) => {
     return await api.post("/orders", orderData);
   },
+  createWalkInOrder: async (walkInOrderData) => {
+    return await api.post("/orders/walk-in", walkInOrderData);
+  },
   getAllOrders: async () => {
     return await api.get("/orders");
   },

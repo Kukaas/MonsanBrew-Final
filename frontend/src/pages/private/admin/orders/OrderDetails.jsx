@@ -43,7 +43,7 @@ export default function OrderDetails() {
     refetchOnWindowFocus: false,
   });
 
-  // Fetch review for this order
+  // Fetch review for this order (not for walk-in orders)
   const { data: reviewData } = useQuery({
     queryKey: ["order-review", orderId],
     queryFn: async () => {
@@ -58,7 +58,7 @@ export default function OrderDetails() {
         throw error;
       }
     },
-    enabled: !!orderId && order?.status === "completed",
+    enabled: !!orderId && order?.status === "completed" && !order?.isWalkInOrder,
     staleTime: 1000 * 60 * 5, // 5 minutes
     cacheTime: 1000 * 60 * 10, // 10 minutes
     refetchOnWindowFocus: false,
@@ -83,7 +83,7 @@ export default function OrderDetails() {
         // For custom drinks, calculate from custom ingredients + size price
         const ingredientsTotal = Array.isArray(item.customIngredients)
           ? item.customIngredients.reduce((ingSum, ingredient) =>
-              ingSum + (Number(ingredient.price) * Number(ingredient.quantity) || 0), 0)
+            ingSum + (Number(ingredient.price) * Number(ingredient.quantity) || 0), 0)
           : 0;
         const sizePrice = getSizePrice(item.customSize || item.size);
         return sum + (ingredientsTotal + sizePrice) * item.quantity;
@@ -95,8 +95,8 @@ export default function OrderDetails() {
       }
     }, 0);
   };
-  // Delivery Fee is hardcoded to 15 pesos
-  const deliveryFee = 15;
+  // Delivery Fee: none for walk-in orders
+  const deliveryFee = order?.isWalkInOrder ? 0 : 15;
   const itemsTotal = order ? calculateItemsTotal() : 0;
   const grandTotal = itemsTotal + deliveryFee;
 
@@ -249,7 +249,7 @@ export default function OrderDetails() {
                                   (() => {
                                     const ingredientsTotal = Array.isArray(item.customIngredients)
                                       ? item.customIngredients.reduce((sum, ingredient) =>
-                                          sum + (Number(ingredient.price) * Number(ingredient.quantity) || 0), 0)
+                                        sum + (Number(ingredient.price) * Number(ingredient.quantity) || 0), 0)
                                       : 0;
                                     const sizePrice = getSizePrice(item.customSize || item.size);
                                     return ingredientsTotal + sizePrice;
@@ -290,7 +290,7 @@ export default function OrderDetails() {
                                   (() => {
                                     const ingredientsTotal = Array.isArray(item.customIngredients)
                                       ? item.customIngredients.reduce((sum, ingredient) =>
-                                          sum + (Number(ingredient.price) * Number(ingredient.quantity) || 0), 0)
+                                        sum + (Number(ingredient.price) * Number(ingredient.quantity) || 0), 0)
                                       : 0;
                                     const sizePrice = getSizePrice(item.customSize || item.size);
                                     return (ingredientsTotal + sizePrice) * item.quantity;
@@ -386,7 +386,7 @@ export default function OrderDetails() {
                     ))}
 
                   {/* Customer Review */}
-                  {order.status === "completed" && (
+                  {order.status === "completed" && !order.isWalkInOrder && (
                     <div className="border-t-2 border-[#FFC107]/30 pt-6 mt-8">
                       <div className="flex items-center gap-4 mb-6">
                         <div className="bg-[#FFC107] p-3 rounded-full">
@@ -406,11 +406,10 @@ export default function OrderDetails() {
                                   {[1, 2, 3, 4, 5].map((star) => (
                                     <Star
                                       key={star}
-                                      className={`w-6 h-6 ${
-                                        star <= reviewData.rating
-                                          ? "fill-[#FFC107] text-[#FFC107]"
-                                          : "text-gray-500"
-                                      }`}
+                                      className={`w-6 h-6 ${star <= reviewData.rating
+                                        ? "fill-[#FFC107] text-[#FFC107]"
+                                        : "text-gray-500"
+                                        }`}
                                     />
                                   ))}
                                 </div>
@@ -497,8 +496,13 @@ export default function OrderDetails() {
                   <div>
                     <span className="font-bold text-[#FFC107]">Customer: </span>
                     <span className="text-white font-medium">
-                      {order.userId?.name || "Unknown"}
+                      {order.isWalkInOrder ? order.customerName : (order.userId?.name || "Unknown")}
                     </span>
+                    {order.isWalkInOrder && (
+                      <span className="ml-2 text-[#FFC107] text-sm font-medium">
+                        (Walk-in • {order.orderType === "dine_in" ? "Dine In" : "Take Out"})
+                      </span>
+                    )}
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
@@ -519,11 +523,10 @@ export default function OrderDetails() {
               </div>
               <div className="mt-8 flex flex-wrap gap-4">
                 <Badge
-                  className={`${
-                    order.status === "refund"
-                      ? "bg-orange-500/20 text-orange-400 border-orange-500/30"
-                      : getStatusColor(order.status)
-                  } border rounded-full px-6 py-3 text-lg font-semibold shadow-md`}
+                  className={`${order.status === "refund"
+                    ? "bg-orange-500/20 text-orange-400 border-orange-500/30"
+                    : getStatusColor(order.status)
+                    } border rounded-full px-6 py-3 text-lg font-semibold shadow-md`}
                 >
                   <span className="flex items-center gap-2">
                     {getStatusIcon(order.status)}{" "}
@@ -558,7 +561,7 @@ export default function OrderDetails() {
                       Name:
                     </span>
                     <span className="text-white font-medium">
-                      {order.userId?.name || "Unknown"}
+                      {order.isWalkInOrder ? order.customerName : (order.userId?.name || "Unknown")}
                     </span>
                   </div>
                   <div>
@@ -566,18 +569,30 @@ export default function OrderDetails() {
                       Contact:
                     </span>
                     <span className="text-white font-medium">
-                      {order.address?.contactNumber || "N/A"}
+                      {order.isWalkInOrder ? order.customerContact : (order.address?.contactNumber || "N/A")}
                     </span>
                   </div>
                 </div>
-                <div>
-                  <span className="font-bold text-[#FFC107] block mb-1">
-                    Email:
-                  </span>
-                  <span className="text-white font-medium break-all">
-                    {order.userId?.email || "Unknown"}
-                  </span>
-                </div>
+                {!order.isWalkInOrder && (
+                  <div>
+                    <span className="font-bold text-[#FFC107] block mb-1">
+                      Email:
+                    </span>
+                    <span className="text-white font-medium break-all">
+                      {order.userId?.email || "Unknown"}
+                    </span>
+                  </div>
+                )}
+                {order.isWalkInOrder && (
+                  <div>
+                    <span className="font-bold text-[#FFC107] block mb-1">
+                      Order Type:
+                    </span>
+                    <span className="text-white font-medium">
+                      {order.orderType === "dine_in" ? "Dine In" : "Take Out"}
+                    </span>
+                  </div>
+                )}
                 {order.paymentMethod === "gcash" && order.referenceNumber && (
                   <div>
                     <span className="font-bold text-[#FFC107] block mb-1">
@@ -592,10 +607,7 @@ export default function OrderDetails() {
             </div>
 
             {/* Rider Information */}
-            {(order.riderId ||
-              order.status === "waiting_for_rider" ||
-              order.status === "out_for_delivery" ||
-              order.status === "completed") && (
+            {order.riderId && (
               <div>
                 <div className="flex items-center gap-3 mb-6">
                   <Truck className="w-7 h-7 text-[#FFC107]" />
@@ -604,96 +616,88 @@ export default function OrderDetails() {
                   </h3>
                 </div>
                 <div className="space-y-5 text-lg">
-                  {order.riderId ? (
-                    <>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-x-16 gap-y-5">
-                        <div>
-                          <span className="font-bold text-[#FFC107] block mb-1">
-                            Name:
-                          </span>
-                          <span className="text-white font-medium">
-                            {order.riderId.name || "Unknown"}
-                          </span>
-                        </div>
-                        <div>
-                          <span className="font-bold text-[#FFC107] block mb-1">
-                            Contact:
-                          </span>
-                          <span className="text-white font-medium">
-                            {order.riderId.contactNumber || "N/A"}
-                          </span>
-                        </div>
-                      </div>
-                      <div>
-                        <span className="font-bold text-[#FFC107] block mb-1">
-                          Email:
-                        </span>
-                        <span className="text-white font-medium break-all">
-                          {order.riderId.email || "Unknown"}
-                        </span>
-                      </div>
-                    </>
-                  ) : (
-                    <div className="text-center py-4">
-                      <span className="text-gray-400 font-medium">
-                        No rider assigned yet
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-16 gap-y-5">
+                    <div>
+                      <span className="font-bold text-[#FFC107] block mb-1">
+                        Name:
+                      </span>
+                      <span className="text-white font-medium">
+                        {order.riderId.name || "Unknown"}
                       </span>
                     </div>
-                  )}
+                    <div>
+                      <span className="font-bold text-[#FFC107] block mb-1">
+                        Contact:
+                      </span>
+                      <span className="text-white font-medium">
+                        {order.riderId.contactNumber || "N/A"}
+                      </span>
+                    </div>
+                  </div>
+                  <div>
+                    <span className="font-bold text-[#FFC107] block mb-1">
+                      Email:
+                    </span>
+                    <span className="text-white font-medium break-all">
+                      {order.riderId.email || "Unknown"}
+                    </span>
+                  </div>
                 </div>
               </div>
             )}
 
             <div className="border-t border-[#232323] my-4" />
-                         {/* Delivery Address */}
-             <div>
-               <div className="flex items-center gap-3 mb-6">
-                 <MapPin className="w-7 h-7 text-[#FFC107]" />
-                 <h3 className="text-[#FFC107] text-2xl font-extrabold tracking-widest uppercase">
-                   Delivery Address
-                 </h3>
-               </div>
-               <div className="text-lg text-white mb-6">
-                 <p className="font-medium">
-                   {order.address?.lotNo && `${order.address.lotNo}, `}
-                   {order.address?.purok && `${order.address.purok}, `}
-                   {order.address?.street && `${order.address.street}, `}
-                   {order.address?.barangay && `${order.address.barangay}, `}
-                   {order.address?.municipality &&
-                     `${order.address.municipality}, `}
-                   {order.address?.province}
-                 </p>
-                 {order.address?.landmark && (
-                   <p className="mt-2 text-[#BDBDBD]">
-                     <span className="font-bold text-[#FFC107]">Landmark: </span>
-                     {order.address.landmark}
-                   </p>
-                 )}
-                 {order.deliveryInstructions && (
-                   <p className="mt-2 text-[#BDBDBD]">
-                     <span className="font-bold text-[#FFC107]">
-                       Instructions:{" "}
-                     </span>
-                     {order.deliveryInstructions}
-                   </p>
-                 )}
-               </div>
+            {/* Delivery Address - Only for delivery orders */}
+            {!order.isWalkInOrder && (
+              <div>
+                <div className="flex items-center gap-3 mb-6">
+                  <MapPin className="w-7 h-7 text-[#FFC107]" />
+                  <h3 className="text-[#FFC107] text-2xl font-extrabold tracking-widest uppercase">
+                    Delivery Address
+                  </h3>
+                </div>
+                <div className="text-lg text-white mb-6">
+                  <p className="font-medium">
+                    {order.address?.lotNo && `${order.address.lotNo}, `}
+                    {order.address?.purok && `${order.address.purok}, `}
+                    {order.address?.street && `${order.address.street}, `}
+                    {order.address?.barangay && `${order.address.barangay}, `}
+                    {order.address?.municipality &&
+                      `${order.address.municipality}, `}
+                    {order.address?.province}
+                  </p>
+                  {order.address?.landmark && (
+                    <p className="mt-2 text-[#BDBDBD]">
+                      <span className="font-bold text-[#FFC107]">Landmark: </span>
+                      {order.address.landmark}
+                    </p>
+                  )}
+                  {order.deliveryInstructions && (
+                    <p className="mt-2 text-[#BDBDBD]">
+                      <span className="font-bold text-[#FFC107]">
+                        Instructions:{" "}
+                      </span>
+                      {order.deliveryInstructions}
+                    </p>
+                  )}
+                </div>
 
-               {/* Delivery Navigation */}
-               {order.address?.latitude && order.address?.longitude && (
-                 <div className="mb-6">
-                   <DeliveryNavigation
-                     deliveryAddress={`${order.address?.lotNo ? order.address.lotNo + ', ' : ''}${order.address?.purok ? order.address.purok + ', ' : ''}${order.address?.street ? order.address.street + ', ' : ''}${order.address?.barangay ? order.address.barangay + ', ' : ''}${order.address?.municipality ? order.address.municipality + ', ' : ''}${order.address?.province || ''}`}
-                     deliveryCoordinates={{
-                       latitude: order.address.latitude,
-                       longitude: order.address.longitude
-                     }}
-                     restaurantCoordinates={{ latitude: 13.323830, longitude: 121.845809 }}
-                     className="bg-[#232323] border-[#444]"
-                   />
-                 </div>
-               )}
-             </div>
+                {/* Delivery Navigation */}
+                {order.address?.latitude && order.address?.longitude && (
+                  <div className="mb-6">
+                    <DeliveryNavigation
+                      deliveryAddress={`${order.address?.lotNo ? order.address.lotNo + ', ' : ''}${order.address?.purok ? order.address.purok + ', ' : ''}${order.address?.street ? order.address.street + ', ' : ''}${order.address?.barangay ? order.address.barangay + ', ' : ''}${order.address?.municipality ? order.address.municipality + ', ' : ''}${order.address?.province || ''}`}
+                      deliveryCoordinates={{
+                        latitude: order.address.latitude,
+                        longitude: order.address.longitude
+                      }}
+                      restaurantCoordinates={{ latitude: 13.323830, longitude: 121.845809 }}
+                      className="bg-[#232323] border-[#444]"
+                    />
+                  </div>
+                )}
+              </div>
+            )}
             {/* Payment Proof */}
             {order.paymentMethod === "gcash" && order.proofImage && (
               <ImageDisplay

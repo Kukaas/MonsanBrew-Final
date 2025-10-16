@@ -1,6 +1,7 @@
 import express from "express";
 import {
   placeOrder,
+  createWalkInOrder,
   getOrdersByUser,
   getOrderById,
   cancelOrder,
@@ -21,6 +22,9 @@ const router = express.Router();
 
 // Place order
 router.post("/", placeOrder);
+
+// Create walk-in order (frontdesk)
+router.post("/walk-in", createWalkInOrder);
 
 // Get all orders (admin)
 router.get("/", getAllOrders);

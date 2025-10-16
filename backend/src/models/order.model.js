@@ -5,14 +5,45 @@ const OrderSchema = new mongoose.Schema(
     userId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
-      required: true,
+      required: function () {
+        return !this.isWalkInOrder;
+      }
+    },
+    // Walk-in order fields
+    isWalkInOrder: {
+      type: Boolean,
+      default: false
+    },
+    customerName: {
+      type: String,
+      required: function () {
+        return this.isWalkInOrder;
+      }
+    },
+    customerContact: {
+      type: String,
+      required: function () {
+        return this.isWalkInOrder;
+      }
+    },
+    orderType: {
+      type: String,
+      enum: ["delivery", "dine_in", "take_out"],
+      default: "delivery"
+    },
+    frontdeskUserId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: function () {
+        return this.isWalkInOrder;
+      }
     },
     items: [
       {
         productId: {
           type: mongoose.Schema.Types.ObjectId,
           ref: "Product",
-          required: function() {
+          required: function () {
             return !this.isCustomDrink;
           }
         },
@@ -68,7 +99,7 @@ const OrderSchema = new mongoose.Schema(
       longitude: Number,
     },
     deliveryInstructions: { type: String }, // optional
-    paymentMethod: { type: String, enum: ["gcash", "cod"], required: true },
+    paymentMethod: { type: String, enum: ["gcash", "cod", "cash"], required: true },
     referenceNumber: { type: String },
     proofImage: { type: String }, // base64 for GCash
     isReviewed: { type: Boolean, default: false },

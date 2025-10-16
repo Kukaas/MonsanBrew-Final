@@ -71,7 +71,7 @@ function fillDays(data, fromDate, toDate, keys = []) {
 
 // Helper to generate all week labels in a range (e.g., 'Week 1', 'Week 2', ...)
 // eslint-disable-next-line no-unused-vars
-  function fillWeeks(data, fromDate, toDate, keys = []) {
+function fillWeeks(data, fromDate, toDate, keys = []) {
   const start = new Date(fromDate);
   const end = new Date(toDate);
   const result = [];
@@ -188,8 +188,8 @@ export default function Dashboard() {
       month:
         typeof item.month === "number"
           ? dayjs()
-              .month(item.month - 1)
-              .format("MMMM")
+            .month(item.month - 1)
+            .format("MMMM")
           : item.month,
     }));
     formattedSalesData = fillMonths(formattedSalesData, ["sales", "expenses", "orders"]);
@@ -209,6 +209,12 @@ export default function Dashboard() {
     }));
   }
 
+  // Ensure we never show negative sales (e.g., walk-in totals should never be minus)
+  formattedSalesData = (formattedSalesData || []).map((d) => ({
+    ...d,
+    sales: Math.max(0, Number(d.sales) || 0),
+  }));
+
   // Format orders by status for chart (no change needed for months)
   ordersByStatus.map((item) => ({
     status: item._id?.replace("_", " ").toUpperCase() || "Unknown",
@@ -225,23 +231,22 @@ export default function Dashboard() {
     {
       accessorKey: "customerName",
       header: "Customer",
-      cell: ({ row }) => row.original.userId?.name || "Unknown",
+      cell: ({ row }) => row.original.userId?.name || row.original.customerName || "Unknown",
     },
     {
       accessorKey: "total",
       header: "Total",
-      cell: ({ row }) => `₱${row.original.total?.toFixed(2) || "0.00"}`,
+      cell: ({ row }) => `₱${(row.original.total ?? 0).toFixed(2)}`,
     },
     {
       accessorKey: "status",
       header: "Status",
       cell: ({ row }) => (
         <span
-          className={`${
-            row.original.status === "refund"
-              ? "bg-orange-500/20 text-orange-400 border-orange-500/30"
-              : getStatusColor(row.original.status)
-          } border rounded-full px-3 py-1 text-xs font-medium`}
+          className={`${row.original.status === "refund"
+            ? "bg-orange-500/20 text-orange-400 border-orange-500/30"
+            : getStatusColor(row.original.status)
+            } border rounded-full px-3 py-1 text-xs font-medium`}
         >
           {row.original.status === "refund"
             ? "Refund"
@@ -360,53 +365,53 @@ export default function Dashboard() {
         {/* Charts Section */}
         <div className="grid grid-cols-1 gap-6">
           {/* Sales Chart (Full Width) */}
-                     <DashboardAreaChart
-             data={
-               groupBy === "month"
-                 ? formattedSalesData.map((item) => ({
-                     ...item,
-                     date: item.month,
-                   }))
-                 : groupBy === "day"
-                 ? formattedSalesData.map((item) => ({
-                     ...item,
-                     date: item.day,
-                   }))
-                 : groupBy === "week"
-                 ? formattedSalesData
-                 : formattedSalesData
-             }
-             config={{
-               sales: {
-                 label: "Sales",
-                 color: "#F59E0B", // yellowish (amber)
-               },
-               expenses: {
-                 label: "Expenses",
-                 color: "#EF4444", // red
-               },
-             }}
-             title="Sales & Expenses Overview"
-             description="Sales and expenses trends for the selected period"
-             areaKeys={["sales", "expenses"]}
-             dateKey={
-               groupBy === "month"
-                 ? "month"
-                 : groupBy === "day"
-                 ? "day"
-                 : groupBy === "week"
-                 ? "week"
-                 : "date"
-             }
-             defaultTimeRange={
-               groupBy === "month" ? "90d" : groupBy === "week" ? "30d" : "7d"
-             }
-             timeRangeOptions={[
-               { value: "90d", label: "Last 3 months" },
-               { value: "30d", label: "Last 30 days" },
-               { value: "7d", label: "Last 7 days" },
-             ]}
-           />
+          <DashboardAreaChart
+            data={
+              groupBy === "month"
+                ? formattedSalesData.map((item) => ({
+                  ...item,
+                  date: item.month,
+                }))
+                : groupBy === "day"
+                  ? formattedSalesData.map((item) => ({
+                    ...item,
+                    date: item.day,
+                  }))
+                  : groupBy === "week"
+                    ? formattedSalesData
+                    : formattedSalesData
+            }
+            config={{
+              sales: {
+                label: "Sales",
+                color: "#F59E0B", // yellowish (amber)
+              },
+              expenses: {
+                label: "Expenses",
+                color: "#EF4444", // red
+              },
+            }}
+            title="Sales & Expenses Overview"
+            description="Sales and expenses trends for the selected period"
+            areaKeys={["sales", "expenses"]}
+            dateKey={
+              groupBy === "month"
+                ? "month"
+                : groupBy === "day"
+                  ? "day"
+                  : groupBy === "week"
+                    ? "week"
+                    : "date"
+            }
+            defaultTimeRange={
+              groupBy === "month" ? "90d" : groupBy === "week" ? "30d" : "7d"
+            }
+            timeRangeOptions={[
+              { value: "90d", label: "Last 3 months" },
+              { value: "30d", label: "Last 30 days" },
+              { value: "7d", label: "Last 7 days" },
+            ]}
+          />
         </div>
 
         {/* Tables Section */}

@@ -25,7 +25,7 @@ const userSchema = new mongoose.Schema({
     resetPasswordToken: { type: String },
     resetPasswordExpires: { type: Date },
     photo: { type: String }, // base64 string
-    role: { type: String, enum: ['admin', 'rider', 'customer', 'frontdesk'], default: 'customer' },
+    role: { type: String, enum: ['admin', 'rider', 'customer', 'frontdesk', 'front_desk'], default: 'customer' },
     createdAt: { type: Date, default: Date.now },
     updatedAt: { type: Date, default: Date.now },
 }, { timestamps: true });

@@ -33,6 +33,7 @@ import { Textarea } from "@/components/ui/textarea";
 const roleOptions = [
   { value: "admin", label: "Admin" },
   { value: "rider", label: "Rider" },
+  { value: "front_desk", label: "Front Desk" },
   { value: "customer", label: "Customer" },
 ];
 const statusOptions = ["Verified", "Not Verified"];
@@ -304,11 +305,10 @@ export default function Users() {
       render: (row) => (
         <div className="flex justify-center items-center w-full">
           <Badge
-            className={`${
-              row.isActive
+            className={`${row.isActive
                 ? "bg-green-500/20 text-green-400 border-green-500"
                 : "bg-red-500/20 text-red-400 border-red-500"
-            } border rounded-full px-3 py-1 text-xs font-medium flex items-center gap-1 w-fit`}
+              } border rounded-full px-3 py-1 text-xs font-medium flex items-center gap-1 w-fit`}
           >
             {row.isActive ? "Active" : "Inactive"}
           </Badge>

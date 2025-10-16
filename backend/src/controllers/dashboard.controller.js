@@ -39,7 +39,7 @@ export const getDashboardSummary = async (req, res) => {
       status: { $in: ["completed", "refund"] },
     };
 
-    // Calculate sales with refund adjustments and exclude delivery fee
+    // Calculate sales with refund adjustments and exclude delivery fee for non-walk-in
     const salesWithRefunds = await Order.aggregate([
       { $match: completedOrdersFilter },
       {
@@ -52,13 +52,17 @@ export const getDashboardSummary = async (req, res) => {
               else: 0,
             },
           },
+          // Delivery fee only for non-walk-in orders
+          deliveryFeeToSubtract: {
+            $cond: { if: { $eq: ["$isWalkInOrder", true] }, then: 0, else: 15 },
+          },
         },
       },
       {
         $addFields: {
-          // Calculate adjusted total (original total minus refunded amount and delivery fee)
+          // Calculate adjusted total (original total minus refunded amount and conditional delivery fee)
           adjustedTotal: {
-            $subtract: ["$total", { $add: ["$refundedAmount", 15] }], // Subtract both refund amount and delivery fee (15 pesos)
+            $subtract: ["$total", { $add: ["$refundedAmount", "$deliveryFeeToSubtract"] }],
           },
         },
       },
@@ -191,13 +195,16 @@ export const getSalesData = async (req, res) => {
               else: 0,
             },
           },
+          deliveryFeeToSubtract: {
+            $cond: { if: { $eq: ["$isWalkInOrder", true] }, then: 0, else: 15 },
+          },
         },
       },
       {
         $addFields: {
-          // Calculate adjusted total (original total minus refunded amount and delivery fee)
+          // Calculate adjusted total (original total minus refunded amount and conditional delivery fee)
           adjustedTotal: {
-            $subtract: ["$total", { $add: ["$refundedAmount", 15] }], // Subtract both refund amount and delivery fee (15 pesos)
+            $subtract: ["$total", { $add: ["$refundedAmount", "$deliveryFeeToSubtract"] }],
           },
         },
       },
@@ -283,13 +290,16 @@ export const getSalesDataWeekly = async (req, res) => {
               else: 0,
             },
           },
+          deliveryFeeToSubtract: {
+            $cond: { if: { $eq: ["$isWalkInOrder", true] }, then: 0, else: 15 },
+          },
         },
       },
       {
         $addFields: {
-          // Calculate adjusted total (original total minus refunded amount and delivery fee)
+          // Calculate adjusted total (original total minus refunded amount and conditional delivery fee)
           adjustedTotal: {
-            $subtract: ["$total", { $add: ["$refundedAmount", 15] }], // Subtract both refund amount and delivery fee (15 pesos)
+            $subtract: ["$total", { $add: ["$refundedAmount", "$deliveryFeeToSubtract"] }],
           },
         },
       },
@@ -391,13 +401,16 @@ export const getSalesDataMonthly = async (req, res) => {
               else: 0,
             },
           },
+          deliveryFeeToSubtract: {
+            $cond: { if: { $eq: ["$isWalkInOrder", true] }, then: 0, else: 15 },
+          },
         },
       },
       {
         $addFields: {
-          // Calculate adjusted total (original total minus refunded amount and delivery fee)
+          // Calculate adjusted total (original total minus refunded amount and conditional delivery fee)
           adjustedTotal: {
-            $subtract: ["$total", { $add: ["$refundedAmount", 15] }], // Subtract both refund amount and delivery fee (15 pesos)
+            $subtract: ["$total", { $add: ["$refundedAmount", "$deliveryFeeToSubtract"] }],
           },
         },
       },

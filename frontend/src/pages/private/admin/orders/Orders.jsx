@@ -91,8 +91,8 @@ export default function Orders() {
   const mappedData = (data || []).map((item) => ({
     ...item,
     id: item._id,
-    customerName: item.userId?.name || "Unknown",
-    customerEmail: item.userId?.email || "Unknown",
+    customerName: item.isWalkInOrder ? item.customerName : (item.userId?.name || "Unknown"),
+    customerEmail: item.isWalkInOrder ? item.customerContact : (item.userId?.email || "Unknown"),
     riderName: item.riderId?.name || "Unassigned",
     riderContact: item.riderId?.contactNumber || "",
     statusLabel: getStatusLabel(item.status),
@@ -105,6 +105,8 @@ export default function Orders() {
       hour: "2-digit",
       minute: "2-digit",
     }),
+    orderType: item.isWalkInOrder ? (item.orderType === "dine_in" ? "Dine In" : "Take Out") : "Delivery",
+    frontdeskUser: item.frontdeskUserId?.name || "",
     renderActions: (row) => (
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
@@ -138,17 +140,28 @@ export default function Orders() {
         <div>
           <div className="font-medium">{row.customerName}</div>
           <div className="text-sm text-gray-500">{row.customerEmail}</div>
+          {row.isWalkInOrder && (
+            <div className="text-xs text-[#FFC107] font-medium">
+              Walk-in • {row.orderType}
+            </div>
+          )}
         </div>
       ),
     },
     {
       accessorKey: "riderName",
-      header: "Rider",
+      header: "Rider/Frontdesk",
       render: (row) => (
         <div>
-          <div className="font-medium">{row.riderName}</div>
-          {row.riderContact && (
-            <div className="text-sm text-gray-500">{row.riderContact}</div>
+          <div className="font-medium">
+            {row.isWalkInOrder ? row.frontdeskUser || "Unknown" : row.riderName}
+          </div>
+          {row.isWalkInOrder ? (
+            <div className="text-sm text-gray-500">Frontdesk User</div>
+          ) : (
+            row.riderContact && (
+              <div className="text-sm text-gray-500">{row.riderContact}</div>
+            )
           )}
         </div>
       ),
@@ -166,11 +179,10 @@ export default function Orders() {
         if (isDisabled) {
           return (
             <Badge
-              className={`${
-                row.status === "refund"
-                  ? "bg-orange-500/20 text-orange-400 border-orange-500/30"
-                  : getStatusColor(row.status)
-              } border rounded-full px-3 py-1 text-xs font-medium`}
+              className={`${row.status === "refund"
+                ? "bg-orange-500/20 text-orange-400 border-orange-500/30"
+                : getStatusColor(row.status)
+                } border rounded-full px-3 py-1 text-xs font-medium`}
             >
               {row.status === "refund" ? "Refund" : row.statusLabel}
             </Badge>
@@ -214,15 +226,28 @@ export default function Orders() {
                   </SelectItem>
                 )}
                 {row.status === "preparing" && (
-                  <SelectItem value="waiting_for_rider">
-                    <span
-                      className={`flex items-center gap-1 ${getStatusTextColor(
-                        "waiting_for_rider"
-                      )}`}
-                    >
-                      {getStatusIcon("waiting_for_rider")} Waiting for Rider
-                    </span>
-                  </SelectItem>
+                  <>
+                    {!row.isWalkInOrder && (
+                      <SelectItem value="waiting_for_rider">
+                        <span
+                          className={`flex items-center gap-1 ${getStatusTextColor(
+                            "waiting_for_rider"
+                          )}`}
+                        >
+                          {getStatusIcon("waiting_for_rider")} Waiting for Rider
+                        </span>
+                      </SelectItem>
+                    )}
+                    <SelectItem value="completed">
+                      <span
+                        className={`flex items-center gap-1 ${getStatusTextColor(
+                          "completed"
+                        )}`}
+                      >
+                        {getStatusIcon("completed")} Completed
+                      </span>
+                    </SelectItem>
+                  </>
                 )}
               </SelectContent>
             </Select>

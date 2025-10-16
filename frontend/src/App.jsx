@@ -15,6 +15,7 @@ import Home from "./pages/private/rider/Home.jsx";
 import RiderOrders from "./pages/private/rider/Orders.jsx";
 import Profile from "./pages/private/Profile.jsx";
 import FrontdeskDashboard from "./pages/private/frontdesk/Dashboard.jsx";
+import FrontdeskCreateOrder from "./pages/private/frontdesk/CreateOrder.jsx";
 import { useAuth } from "./context/AuthContext";
 import PropTypes from "prop-types";
 import Menus from "./pages/Menus";
@@ -61,6 +62,7 @@ function RootRedirect() {
     case "rider":
       return <Navigate to="/rider/dashboard" replace />;
     case "frontdesk":
+    case "front_desk":
       return <Navigate to="/frontdesk/dashboard" replace />;
     case "customer":
       if (location.search.includes("is_from_login=true")) {
@@ -111,7 +113,7 @@ function RoleRedirect() {
       return <Navigate to="/admin/dashboard" replace />;
     case "rider":
       return <Navigate to="/rider/dashboard" replace />;
-    case "frontdesk":
+    case "front_desk":
       return <Navigate to="/frontdesk/dashboard" replace />;
     case "customer":
       return <Navigate to="/?is_from_login=true" replace />;
@@ -337,7 +339,7 @@ function App() {
           path="/profile"
           element={
             <RequireAuth
-              allowedRoles={["admin", "customer", "frontdesk", "rider"]}
+              allowedRoles={["admin", "customer", "frontdesk", "front_desk", "rider"]}
             >
               <Profile />
             </RequireAuth>
@@ -347,7 +349,7 @@ function App() {
           path="/profile/:userId"
           element={
             <RequireAuth
-              allowedRoles={["admin", "customer", "frontdesk", "rider"]}
+              allowedRoles={["admin", "customer", "frontdesk", "front_desk", "rider"]}
             >
               <Profile />
             </RequireAuth>
@@ -357,8 +359,16 @@ function App() {
         <Route
           path="/frontdesk/dashboard"
           element={
-            <RequireAuth allowedRoles={["frontdesk"]}>
+            <RequireAuth allowedRoles={["frontdesk", "front_desk"]}>
               <FrontdeskDashboard />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/frontdesk/create-order"
+          element={
+            <RequireAuth allowedRoles={["frontdesk", "front_desk"]}>
+              <FrontdeskCreateOrder />
             </RequireAuth>
           }
         />
