@@ -157,7 +157,7 @@ export default function ProductDetail() {
         toast.success("Added to favorites!");
       }
     },
-    onError: () => {},
+    onError: () => { },
     onSettled: () => {
       setFavoriteLoading(false);
     },
@@ -184,10 +184,10 @@ export default function ProductDetail() {
     Array.isArray(product?.sizes) && product.sizes.length > 0
       ? product.sizes
       : Array.isArray(product?.size)
-      ? product.size
-      : product?.size
-      ? [product.size]
-      : [];
+        ? product.size
+        : product?.size
+          ? [product.size]
+          : [];
   const [selectedSize, setSelectedSize] = useState(null);
 
   // Set default selected size to 'small' if exists, else first size
@@ -283,9 +283,9 @@ export default function ProductDetail() {
         addOns: selectedAddons,
         price: selectedSize
           ? (() => {
-              const found = product.sizes.find((s) => s.label === selectedSize);
-              return found ? found.price : product.price;
-            })()
+            const found = product.sizes.find((s) => s.label === selectedSize);
+            return found ? found.price : product.price;
+          })()
           : product.price,
       };
 
@@ -377,11 +377,10 @@ export default function ProductDetail() {
                 {/* Favorite Button */}
                 <button
                   onClick={() => favoriteMutation.mutate(favorite)}
-                  className={`w-10 h-10 flex items-center justify-center rounded-lg border transition-all shadow ${
-                    favorite
-                      ? "bg-[#FFC107] border-[#FFC107]"
-                      : "bg-white border-gray-200"
-                  } hover:scale-105`}
+                  className={`w-10 h-10 flex items-center justify-center rounded-lg border transition-all shadow ${favorite
+                    ? "bg-[#FFC107] border-[#FFC107]"
+                    : "bg-white border-gray-200"
+                    } hover:scale-105`}
                   aria-label={
                     favorite ? "Remove from favorites" : "Add to favorites"
                   }
@@ -390,9 +389,8 @@ export default function ProductDetail() {
                   {favoriteLoading ? (
                     <span className="flex items-center justify-center w-6 h-6">
                       <svg
-                        className={`animate-spin ${
-                          favorite ? "text-white" : "text-[#FFC107]"
-                        }`}
+                        className={`animate-spin ${favorite ? "text-white" : "text-[#FFC107]"
+                          }`}
                         width="24"
                         height="24"
                         viewBox="0 0 24 24"
@@ -510,8 +508,8 @@ export default function ProductDetail() {
             <div className="flex items-center gap-4 mb-2 flex-wrap">
               <div className="text-3xl font-bold text-[#FFC107]">
                 {Array.isArray(product.sizes) &&
-                product.sizes.length > 0 &&
-                selectedSize ? (
+                  product.sizes.length > 0 &&
+                  selectedSize ? (
                   (() => {
                     const found = product.sizes.find(
                       (s) => s.label === selectedSize
@@ -619,7 +617,7 @@ export default function ProductDetail() {
             {isCustomizable && (
               <div className="bg-gray-50 rounded-xl p-4 mb-2 border border-gray-200">
                 <div className="font-bold text-[#232323] mb-3 text-lg">
-                  Customize your order
+                  Add ons
                 </div>
                 {loadingAddons ? (
                   <Skeleton className="h-8 w-32 bg-[#333] rounded-lg" />
@@ -629,16 +627,19 @@ export default function ProductDetail() {
                       addons.map((addon) => (
                         <label
                           key={addon._id}
-                          className={`flex items-center gap-3 ${
-                            !addon.isAvailable
-                              ? "cursor-not-allowed"
-                              : "cursor-pointer"
-                          }`}
+                          className={`flex items-center gap-3 ${!addon.isAvailable
+                            ? "cursor-not-allowed"
+                            : "cursor-pointer"
+                            }`}
                         >
                           <input
                             type="checkbox"
                             checked={selectedAddons.includes(addon._id)}
-                            onChange={() => handleAddonToggle(addon._id)}
+                            onChange={() => {
+                              if (addon.isAvailable) {
+                                handleAddonToggle(addon._id);
+                              }
+                            }}
                             disabled={!addon.isAvailable}
                             className="accent-[#FFC107] w-5 h-5"
                           />
@@ -650,11 +651,10 @@ export default function ProductDetail() {
                             />
                           )}
                           <span
-                            className={`font-medium ${
-                              !addon.isAvailable
-                                ? "text-gray-500"
-                                : "text-[#232323]"
-                            }`}
+                            className={`font-medium ${!addon.isAvailable
+                              ? "text-gray-500"
+                              : "text-[#232323]"
+                              }`}
                           >
                             {addon.name}
                           </span>
@@ -686,11 +686,7 @@ export default function ProductDetail() {
                 disabled={addCartLoading || !product.isAvailable}
                 loading={addCartLoading}
               >
-                {addCartLoading
-                  ? "Adding..."
-                  : !product.isAvailable
-                  ? "Not Available"
-                  : "Add to Cart"}
+                {addCartLoading ? "Adding..." : "Add to Cart"}
               </Button>
               <Button
                 variant="yellow"
@@ -699,20 +695,9 @@ export default function ProductDetail() {
                 disabled={buyNowLoading || !product.isAvailable}
                 loading={buyNowLoading}
               >
-                {buyNowLoading
-                  ? "Processing..."
-                  : !product.isAvailable
-                  ? "Not Available"
-                  : "Buy Now"}
+                {buyNowLoading ? "Processing..." : "Buy Now"}
               </Button>
             </div>
-            {!product.isAvailable && (
-              <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg">
-                <p className="text-red-700 text-sm font-medium text-center">
-                  This product is currently not available for purchase.
-                </p>
-              </div>
-            )}
           </div>
         </div>
         {/* Product Description (bottom, full width) */}
@@ -797,11 +782,10 @@ export default function ProductDetail() {
                             {[1, 2, 3, 4, 5].map((star) => (
                               <Star
                                 key={star}
-                                className={`w-4 h-4 ${
-                                  star <= review.rating
-                                    ? "fill-[#FFC107] text-[#FFC107]"
-                                    : "text-gray-300"
-                                }`}
+                                className={`w-4 h-4 ${star <= review.rating
+                                  ? "fill-[#FFC107] text-[#FFC107]"
+                                  : "text-gray-300"
+                                  }`}
                               />
                             ))}
                           </div>
