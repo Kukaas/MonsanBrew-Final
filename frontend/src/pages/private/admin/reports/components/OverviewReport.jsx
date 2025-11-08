@@ -44,8 +44,13 @@ export default function OverviewReport() {
   ];
 
   function exportCSV() {
+    // Filter to only completed orders
+    const completedOrders = orders.filter((o) =>
+      o.status?.toLowerCase() === "completed"
+    );
+
     const headers = ["Date", "Customer", "Status", "Total", "Items"];
-    const rows = orders.map((o) => {
+    const rows = completedOrders.map((o) => {
       const dt = new Date(o.createdAt);
       const pad = (n) => String(n).padStart(2, "0");
       // Include time, and use a comma-safe format
@@ -58,10 +63,11 @@ export default function OverviewReport() {
         o.items?.length || 0,
       ];
     });
-    // Append footer with Delivery Fees (₱15 each) and Total Sales (Net)
-    const orderCount = Number(summaryData?.summary?.orderCount || 0);
+    // Calculate totals from completed orders only
+    const orderCount = completedOrders.length;
+    const grossSales = completedOrders.reduce((sum, o) => sum + (Number(o.total) || 0), 0);
     const deliveryFees = (orderCount * 15).toFixed(2);
-    const netSales = Number(summaryData?.summary?.netSales || 0).toFixed(2);
+    const netSales = grossSales.toFixed(2);
     rows.push(["", "", "", "", ""]);
     rows.push(["", "", "Delivery Fees (₱15 each)", deliveryFees, ""]);
     rows.push(["", "", "Total Sales (Net)", netSales, ""]);
@@ -85,13 +91,209 @@ export default function OverviewReport() {
     document.body.removeChild(link);
   }
 
+  function handlePrint() {
+    // Filter to only completed orders
+    const completedOrders = orders.filter((o) =>
+      o.status?.toLowerCase() === "completed"
+    );
+
+    const printWindow = window.open("", "_blank");
+
+    // Calculate totals from completed orders only
+    const orderCount = completedOrders.length;
+    const grossSales = completedOrders.reduce((sum, o) => sum + (Number(o.total) || 0), 0).toFixed(2);
+    const totalRefunds = Number(summaryData?.summary?.totalRefunds || 0).toFixed(2);
+    const netSales = grossSales;
+    const deliveryFees = (orderCount * 15).toFixed(2);
+
+    const dateRange = filters.startDate && filters.endDate
+      ? `${filters.startDate} to ${filters.endDate}`
+      : "All Time";
+
+    const printContent = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Sales Report</title>
+          <style>
+            @media print {
+              @page {
+                margin: 1cm;
+              }
+            }
+            body {
+              font-family: Arial, sans-serif;
+              padding: 20px;
+              color: #000;
+            }
+            h1 {
+              text-align: center;
+              margin-bottom: 10px;
+              color: #000;
+            }
+            .date-range {
+              text-align: center;
+              margin-bottom: 30px;
+              color: #666;
+            }
+            .summary {
+              display: grid;
+              grid-template-columns: repeat(4, 1fr);
+              gap: 15px;
+              margin-bottom: 30px;
+            }
+            .summary-card {
+              border: 1px solid #ddd;
+              padding: 15px;
+              border-radius: 8px;
+              background: #f9f9f9;
+            }
+            .summary-title {
+              font-size: 12px;
+              color: #666;
+              margin-bottom: 5px;
+            }
+            .summary-value {
+              font-size: 20px;
+              font-weight: bold;
+              color: #000;
+            }
+            table {
+              width: 100%;
+              border-collapse: collapse;
+              margin-bottom: 20px;
+            }
+            th, td {
+              border: 1px solid #ddd;
+              padding: 10px;
+              text-align: left;
+            }
+            th {
+              background-color: #f2f2f2;
+              font-weight: bold;
+            }
+            tr:nth-child(even) {
+              background-color: #f9f9f9;
+            }
+            .footer {
+              margin-top: 30px;
+              padding-top: 20px;
+              border-top: 2px solid #000;
+            }
+            .footer-row {
+              display: flex;
+              justify-content: space-between;
+              margin: 10px 0;
+              font-weight: bold;
+            }
+            .print-date {
+              text-align: right;
+              margin-top: 20px;
+              color: #666;
+              font-size: 12px;
+            }
+          </style>
+        </head>
+        <body>
+          <h1>Sales Report</h1>
+          <div class="date-range">Period: ${dateRange}</div>
+
+          <div class="summary">
+            <div class="summary-card">
+              <div class="summary-title">Orders</div>
+              <div class="summary-value">${orderCount}</div>
+            </div>
+            <div class="summary-card">
+              <div class="summary-title">Gross Sales</div>
+              <div class="summary-value">₱${grossSales}</div>
+            </div>
+            <div class="summary-card">
+              <div class="summary-title">Refunds</div>
+              <div class="summary-value">₱${totalRefunds}</div>
+            </div>
+            <div class="summary-card">
+              <div class="summary-title">Net Sales</div>
+              <div class="summary-value">₱${netSales}</div>
+            </div>
+          </div>
+
+          <table>
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Customer</th>
+                <th>Status</th>
+                <th>Total</th>
+                <th>Items</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${completedOrders.map((o) => {
+      const dt = new Date(o.createdAt);
+      const dateStr = dt.toLocaleString();
+      return `
+                  <tr>
+                    <td>${dateStr}</td>
+                    <td>${o.userId?.name || "Unknown"}</td>
+                    <td>${o.status}</td>
+                    <td>₱${Number(o.total || 0).toFixed(2)}</td>
+                    <td>${o.items?.length || 0}</td>
+                  </tr>
+                `;
+    }).join("")}
+            </tbody>
+          </table>
+
+          <div class="footer">
+            <div class="footer-row">
+              <span>Delivery Fees (₱15 each):</span>
+              <span>₱${deliveryFees}</span>
+            </div>
+            <div class="footer-row">
+              <span>Total Sales (Net):</span>
+              <span>₱${netSales}</span>
+            </div>
+          </div>
+
+          <div class="print-date">
+            Printed on: ${new Date().toLocaleString()}
+          </div>
+        </body>
+      </html>
+    `;
+
+    printWindow.document.write(printContent);
+    printWindow.document.close();
+    printWindow.focus();
+
+    // Wait for content to load, then print
+    setTimeout(() => {
+      printWindow.print();
+      // Optionally close the window after printing
+      // printWindow.close();
+    }, 250);
+  }
+
   return (
     <>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         <FormInput label="Start Date" type="date" value={filters.startDate} onChange={(e) => setFilters((f) => ({ ...f, startDate: e.target.value }))} variant="dark" />
         <FormInput label="End Date" type="date" value={filters.endDate} onChange={(e) => setFilters((f) => ({ ...f, endDate: e.target.value }))} variant="dark" />
-        <div className="flex items-end">
-          <Button variant="yellow" onClick={exportCSV} disabled={mapped.length === 0}>Export CSV</Button>
+        <div className="flex items-end gap-2">
+          <Button
+            variant="yellow"
+            onClick={exportCSV}
+            disabled={orders.filter((o) => o.status?.toLowerCase() === "completed").length === 0}
+          >
+            Export CSV
+          </Button>
+          <Button
+            variant="yellow-outline"
+            onClick={handlePrint}
+            disabled={orders.filter((o) => o.status?.toLowerCase() === "completed").length === 0}
+          >
+            Print
+          </Button>
         </div>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
