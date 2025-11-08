@@ -26,6 +26,24 @@ export default function OverviewReport() {
   });
 
   const orders = ordersData?.orders || [];
+
+  // Filter to only completed orders for summary calculations
+  const completedOrders = orders.filter((o) =>
+    o.status?.toLowerCase() === "completed"
+  );
+
+  // Calculate summary from completed orders only
+  // Note: o.total already includes delivery fee (e.g., 145 + 15 = 160)
+  const completedOrderCount = completedOrders.length;
+  const DELIVERY_FEE = 15;
+  const completedGrossSales = completedOrders.reduce((sum, o) => sum + (Number(o.total) || 0), 0); // Gross = total (includes delivery fee)
+  const totalRefunds = Number(summaryData?.summary?.totalRefunds || 0);
+  // Net sales = (total - delivery fee) - refunds, matching backend calculation
+  const completedNetSales = completedOrders.reduce((sum, o) => {
+    const refunded = o.refundStatus === "refund_processed" ? (Number(o.refundAmount) || 0) : 0;
+    return sum + Math.max(0, (Number(o.total) || 0) - DELIVERY_FEE - refunded);
+  }, 0);
+
   const mapped = orders.map((o) => ({
     id: o._id,
     date: new Date(o.createdAt).toLocaleString(),
@@ -64,13 +82,25 @@ export default function OverviewReport() {
       ];
     });
     // Calculate totals from completed orders only
+    // Note: o.total already includes delivery fee
     const orderCount = completedOrders.length;
-    const grossSales = completedOrders.reduce((sum, o) => sum + (Number(o.total) || 0), 0);
-    const deliveryFees = (orderCount * 15).toFixed(2);
-    const netSales = grossSales.toFixed(2);
+    const DELIVERY_FEE = 15;
+    const grossSales = completedOrders.reduce((sum, o) => sum + (Number(o.total) || 0), 0); // Gross = total (includes delivery fee)
+    const deliveryFees = (orderCount * DELIVERY_FEE).toFixed(2);
+    // Net sales = (total - delivery fee) - refunds, matching backend calculation
+    const totalRefunds = completedOrders.reduce((sum, o) => {
+      const refunded = o.refundStatus === "refund_processed" ? (Number(o.refundAmount) || 0) : 0;
+      return sum + refunded;
+    }, 0);
+    const netSales = completedOrders.reduce((sum, o) => {
+      const refunded = o.refundStatus === "refund_processed" ? (Number(o.refundAmount) || 0) : 0;
+      return sum + Math.max(0, (Number(o.total) || 0) - DELIVERY_FEE - refunded);
+    }, 0);
     rows.push(["", "", "", "", ""]);
     rows.push(["", "", "Delivery Fees (₱15 each)", deliveryFees, ""]);
-    rows.push(["", "", "Total Sales (Net)", netSales, ""]);
+    rows.push(["", "", "Gross Sales", grossSales.toFixed(2), ""]);
+    rows.push(["", "", "Refunds", totalRefunds.toFixed(2), ""]);
+    rows.push(["", "", "Total Sales (Net)", netSales.toFixed(2), ""]);
     const escape = (val) => {
       const s = String(val ?? "");
       const needsQuote = /[",\n]/.test(s);
@@ -100,11 +130,20 @@ export default function OverviewReport() {
     const printWindow = window.open("", "_blank");
 
     // Calculate totals from completed orders only
+    // Note: o.total already includes delivery fee
     const orderCount = completedOrders.length;
-    const grossSales = completedOrders.reduce((sum, o) => sum + (Number(o.total) || 0), 0).toFixed(2);
-    const totalRefunds = Number(summaryData?.summary?.totalRefunds || 0).toFixed(2);
-    const netSales = grossSales;
-    const deliveryFees = (orderCount * 15).toFixed(2);
+    const DELIVERY_FEE = 15;
+    const grossSales = completedOrders.reduce((sum, o) => sum + (Number(o.total) || 0), 0); // Gross = total (includes delivery fee)
+    const deliveryFees = orderCount * DELIVERY_FEE;
+    // Net sales = (total - delivery fee) - refunds, matching backend calculation
+    const totalRefunds = completedOrders.reduce((sum, o) => {
+      const refunded = o.refundStatus === "refund_processed" ? (Number(o.refundAmount) || 0) : 0;
+      return sum + refunded;
+    }, 0);
+    const netSales = completedOrders.reduce((sum, o) => {
+      const refunded = o.refundStatus === "refund_processed" ? (Number(o.refundAmount) || 0) : 0;
+      return sum + Math.max(0, (Number(o.total) || 0) - DELIVERY_FEE - refunded);
+    }, 0);
 
     const dateRange = filters.startDate && filters.endDate
       ? `${filters.startDate} to ${filters.endDate}`
@@ -205,15 +244,15 @@ export default function OverviewReport() {
             </div>
             <div class="summary-card">
               <div class="summary-title">Gross Sales</div>
-              <div class="summary-value">₱${grossSales}</div>
+              <div class="summary-value">₱${grossSales.toFixed(2)}</div>
             </div>
             <div class="summary-card">
               <div class="summary-title">Refunds</div>
-              <div class="summary-value">₱${totalRefunds}</div>
+              <div class="summary-value">₱${totalRefunds.toFixed(2)}</div>
             </div>
             <div class="summary-card">
               <div class="summary-title">Net Sales</div>
-              <div class="summary-value">₱${netSales}</div>
+              <div class="summary-value">₱${netSales.toFixed(2)}</div>
             </div>
           </div>
 
@@ -247,11 +286,19 @@ export default function OverviewReport() {
           <div class="footer">
             <div class="footer-row">
               <span>Delivery Fees (₱15 each):</span>
-              <span>₱${deliveryFees}</span>
+              <span>₱${deliveryFees.toFixed(2)}</span>
+            </div>
+            <div class="footer-row">
+              <span>Gross Sales:</span>
+              <span>₱${grossSales.toFixed(2)}</span>
+            </div>
+            <div class="footer-row">
+              <span>Refunds:</span>
+              <span>₱${totalRefunds.toFixed(2)}</span>
             </div>
             <div class="footer-row">
               <span>Total Sales (Net):</span>
-              <span>₱${netSales}</span>
+              <span>₱${netSales.toFixed(2)}</span>
             </div>
           </div>
 
@@ -297,10 +344,10 @@ export default function OverviewReport() {
         </div>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        <SummaryCard title="Orders" value={summaryData?.summary?.orderCount || 0} />
-        <SummaryCard title="Gross Sales" value={`₱${Number(summaryData?.summary?.grossSales || 0).toFixed(2)}`} />
+        <SummaryCard title="Orders" value={completedOrderCount} />
+        <SummaryCard title="Gross Sales" value={`₱${completedGrossSales.toFixed(2)}`} />
         <SummaryCard title="Refunds" value={`₱${Number(summaryData?.summary?.totalRefunds || 0).toFixed(2)}`} />
-        <SummaryCard title="Net Sales" value={`₱${Number(summaryData?.summary?.netSales || 0).toFixed(2)}`} />
+        <SummaryCard title="Net Sales" value={`₱${completedNetSales.toFixed(2)}`} />
       </div>
       <DataTable columns={columns} data={mapped} loading={isLoading} rowKey="id" />
     </>
