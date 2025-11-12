@@ -2,6 +2,10 @@ import Order from "../models/order.model.js";
 import Product from "../models/products.model.js";
 import Inventory from "../models/inventory.model.js";
 import { updateProductSales } from "./review.controller.js";
+import {
+  createNotificationForRole,
+  createNotificationForUser,
+} from "./notification.controller.js";
 
 // Define low stock thresholds for different units
 const LOW_STOCK_THRESHOLDS = {
@@ -79,6 +83,19 @@ export const placeOrder = async (req, res) => {
     // Only add deliveryInstructions if present
     if (deliveryInstructions) order.deliveryInstructions = deliveryInstructions;
     await order.save();
+
+    // Notify customer: order placed
+    try {
+      await createNotificationForUser({
+        userId,
+        type: "order_status",
+        title: "Order placed",
+        message: "Your order has been placed and is now pending approval.",
+        orderId: order._id,
+      });
+    } catch (e) {
+      console.error("Failed to create notification for order placement:", e);
+    }
 
     // Note: Product sales are updated when order is completed, not when placed
     // This prevents double-counting if order is cancelled
@@ -239,6 +256,21 @@ export const cancelOrder = async (req, res) => {
     order.cancellationReason = reason;
     await order.save();
 
+    // Notify customer cancelled
+    try {
+      if (order.userId) {
+        await createNotificationForUser({
+          userId: order.userId,
+          type: "order_status",
+          title: "Order cancelled",
+          message: "Your order has been cancelled.",
+          orderId: order._id,
+        });
+      }
+    } catch (notifyErr) {
+      console.error("Failed to create cancel order notification:", notifyErr);
+    }
+
     res.status(200).json({ message: "Order cancelled successfully.", order });
   } catch (err) {
     console.error("Cancel order error:", err);
@@ -345,6 +377,21 @@ export const acceptOrder = async (req, res) => {
     order.status = "out_for_delivery";
     await order.save();
 
+    // Notify customer that order is out for delivery
+    try {
+      if (order.userId) {
+        await createNotificationForUser({
+          userId: order.userId,
+          type: "order_status",
+          title: "Order out for delivery",
+          message: "Your order is now out for delivery.",
+          orderId: order._id,
+        });
+      }
+    } catch (notifyErr) {
+      console.error("Failed to create accept order notification:", notifyErr);
+    }
+
     res.status(200).json({ message: "Order accepted successfully.", order });
   } catch (err) {
     console.error("Accept order error:", err);
@@ -400,6 +447,21 @@ export const completeOrder = async (req, res) => {
     // Update product sales count
     for (const item of order.items) {
       await updateProductSales(item.productId, item.quantity);
+    }
+
+    // Notify customer completed
+    try {
+      if (order.userId) {
+        await createNotificationForUser({
+          userId: order.userId,
+          type: "order_status",
+          title: "Order delivered",
+          message: "Your order has been delivered. Enjoy!",
+          orderId: order._id,
+        });
+      }
+    } catch (notifyErr) {
+      console.error("Failed to create complete order notification:", notifyErr);
     }
 
     res.status(200).json({ message: "Order completed successfully.", order });
@@ -582,6 +644,42 @@ export const updateOrderStatus = async (req, res) => {
     order.status = status;
     await order.save();
 
+    // Notifications for status change (customer + rider when applicable)
+    try {
+      // Customer notifications for status changes
+      const customerMessages = {
+        pending: "Your order is pending approval.",
+        approved: "Your order has been approved.",
+        preparing: "Your order is being prepared.",
+        waiting_for_rider:
+          "Your order is ready and waiting for a rider to pick up.",
+        out_for_delivery: "Your order is on the way!",
+        completed: "Your order has been completed.",
+        cancelled: "Your order has been cancelled.",
+      };
+      if (order.userId && customerMessages[status]) {
+        await createNotificationForUser({
+          userId: order.userId,
+          type: "order_status",
+          title: "Order update",
+          message: customerMessages[status],
+          orderId: order._id,
+        });
+      }
+      // Rider broadcast when an order is waiting to be accepted
+      if (status === "waiting_for_rider") {
+        await createNotificationForRole({
+          role: "rider",
+          type: "order_waiting_for_rider",
+          title: "New delivery available",
+          message: "A new order is ready for pickup.",
+          orderId: order._id,
+        });
+      }
+    } catch (notifyErr) {
+      console.error("Failed to create status change notification:", notifyErr);
+    }
+
     res
       .status(200)
       .json({ message: "Order status updated successfully.", order });
@@ -709,6 +807,21 @@ export const requestRefund = async (req, res) => {
 
     await order.save();
 
+    // Notify customer refund requested
+    try {
+      if (order.userId) {
+        await createNotificationForUser({
+          userId: order.userId,
+          type: "refund",
+          title: "Refund requested",
+          message: "Your refund request has been submitted.",
+          orderId: order._id,
+        });
+      }
+    } catch (notifyErr) {
+      console.error("Failed to create refund request notification:", notifyErr);
+    }
+
     res.status(200).json({
       message: "Refund request submitted successfully.",
       order,
@@ -748,6 +861,21 @@ export const approveRefund = async (req, res) => {
     order.refundAmount = refundAmount || order.refundAmount; // Use provided amount or calculated amount
 
     await order.save();
+
+    // Notify customer refund approved
+    try {
+      if (order.userId) {
+        await createNotificationForUser({
+          userId: order.userId,
+          type: "refund",
+          title: "Refund approved",
+          message: "Your refund request has been approved.",
+          orderId: order._id,
+        });
+      }
+    } catch (notifyErr) {
+      console.error("Failed to create refund approved notification:", notifyErr);
+    }
 
     res.status(200).json({
       message: "Refund approved successfully.",
@@ -792,6 +920,21 @@ export const rejectRefund = async (req, res) => {
     order.refundRejectionMessage = rejectionMessage;
 
     await order.save();
+
+    // Notify customer refund rejected
+    try {
+      if (order.userId) {
+        await createNotificationForUser({
+          userId: order.userId,
+          type: "refund",
+          title: "Refund rejected",
+          message: "Your refund request has been rejected.",
+          orderId: order._id,
+        });
+      }
+    } catch (notifyErr) {
+      console.error("Failed to create refund rejected notification:", notifyErr);
+    }
 
     res.status(200).json({
       message: "Refund rejected successfully.",
@@ -839,6 +982,21 @@ export const processRefund = async (req, res) => {
     order.refundPaymentProof = refundPaymentProof;
 
     await order.save();
+
+    // Notify customer refund processed
+    try {
+      if (order.userId) {
+        await createNotificationForUser({
+          userId: order.userId,
+          type: "refund",
+          title: "Refund processed",
+          message: "Your refund has been processed.",
+          orderId: order._id,
+        });
+      }
+    } catch (notifyErr) {
+      console.error("Failed to create refund processed notification:", notifyErr);
+    }
 
     res.status(200).json({
       message: "Refund processed successfully.",

@@ -1,6 +1,7 @@
 import { Link, useLocation } from 'react-router-dom';
 import { ClipboardList, CheckCircle, User } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import RiderNotificationDropdown from './notifications/RiderNotificationDropdown';
 
 export default function RiderMobileNavBar() {
     const location = useLocation();
@@ -19,6 +20,13 @@ export default function RiderMobileNavBar() {
                 <CheckCircle size={24} className={isActive('/rider/orders', true) ? 'text-[#FFC107]' : 'text-white group-hover:text-[#FFC107]'} />
                 <span className={isActive('/rider/orders', true) ? 'text-[#FFC107] font-bold' : 'text-white'}>Orders</span>
             </Link>
+            <div className="flex flex-col items-center justify-center text-xs gap-1 px-2 py-1">
+                <RiderNotificationDropdown
+                    triggerClassName="w-10 h-10 text-white hover:text-[#FFC107]"
+                    iconSize={24}
+                />
+                <span className="text-white">Alerts</span>
+            </div>
             <Link to={user ? `/profile/${user._id}` : '/rider/profile'} className="flex flex-col items-center justify-center text-xs gap-1 px-2 py-1 focus:outline-none group">
                 <User size={24} className={isActive('/profile', false) ? 'text-[#FFC107] font-bold' : 'text-white'} />
                 <span className={isActive('/profile', false) ? 'text-[#FFC107] font-bold' : 'text-white'}>Profile</span>

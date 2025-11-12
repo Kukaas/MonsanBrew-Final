@@ -7,6 +7,7 @@ import { Separator } from './ui/separator';
 import CustomAlertDialog from "./custom/CustomAlertDialog";
 import { Button } from "./ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from './ui/avatar';
+import RiderNotificationDropdown from './notifications/RiderNotificationDropdown';
 
 export default function RiderHeader() {
     const { user, isAuthenticated, logout } = useAuth();
@@ -42,6 +43,10 @@ export default function RiderHeader() {
                 <nav className="flex items-center gap-8 text-lg font-semibold">
                     <Link to="/rider/dashboard" className={isActive('/rider/dashboard', true) ? 'text-[#FFC107] font-bold' : 'hover:text-[#FFC107]'}>Dashboard</Link>
                     <Link to="/rider/orders" className={isActive('/rider/orders', true) ? 'text-[#FFC107] font-bold' : 'hover:text-[#FFC107]'}>Orders</Link>
+                    <RiderNotificationDropdown
+                        triggerClassName="text-white hover:text-[#FFC107]"
+                        iconSize={26}
+                    />
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                             <button

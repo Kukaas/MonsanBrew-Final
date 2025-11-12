@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
-import { Search, ShoppingCart, MessageCircle } from 'lucide-react';
+import { Search, ShoppingCart } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
+import NotificationDropdown from './notifications/NotificationDropdown';
 
 export default function MobileTopBar() {
     const { user } = useAuth();
@@ -22,9 +23,10 @@ export default function MobileTopBar() {
                 <Link to={user ? `/cart?user=${user._id}` : '/cart'} className="text-[#FFC107] hover:text-[#b38f00]" aria-label="Cart">
                     <ShoppingCart size={24} />
                 </Link>
-                <Link to="/messages" className="text-[#FFC107] hover:text-[#b38f00]" aria-label="Messages">
-                    <MessageCircle size={24} />
-                </Link>
+                <NotificationDropdown
+                    triggerClassName="w-9 h-9 text-[#FFC107] hover:text-[#b38f00]"
+                    iconSize={24}
+                />
             </div>
         </div>
     );

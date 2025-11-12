@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { ShoppingCart, Bell, User, LogOut } from 'lucide-react';
+import { ShoppingCart, User, LogOut } from 'lucide-react';
 import { Avatar, AvatarImage, AvatarFallback } from '../components/ui/avatar';
 import {
     DropdownMenu,
@@ -12,6 +12,7 @@ import {
 import { Separator } from '../components/ui/separator';
 import CustomAlertDialog from "./custom/CustomAlertDialog";
 import { Button } from "./ui/button";
+import NotificationDropdown from './notifications/NotificationDropdown';
 
 export default function Header() {
     const { user, isAuthenticated, logout } = useAuth();
@@ -20,7 +21,6 @@ export default function Header() {
 
     const [logoutOpen, setLogoutOpen] = useState(false);
     const [logoutLoading, setLogoutLoading] = useState(false);
-
     const handleLogout = async () => {
         setLogoutLoading(true);
         try {
@@ -55,9 +55,10 @@ export default function Header() {
                     <Link to={user ? `/cart?user=${user._id}` : '/cart'} className={isActive('/cart', true) ? 'text-[#FFC107]' : 'hover:text-[#FFC107]'} aria-label="Cart">
                         <ShoppingCart size={28} />
                     </Link>
-                    <Link to="/notifications" className={isActive('/notifications', true) ? 'text-[#FFC107]' : 'hover:text-[#FFC107]'} aria-label="Notifications">
-                        <Bell size={28} />
-                    </Link>
+                    <NotificationDropdown
+                        triggerClassName="text-white hover:text-[#FFC107]"
+                        iconSize={28}
+                    />
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                             <button

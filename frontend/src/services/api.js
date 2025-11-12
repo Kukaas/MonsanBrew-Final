@@ -299,6 +299,25 @@ export const orderAPI = {
   },
 };
 
+// Notifications API (customers and riders only)
+export const notificationAPI = {
+  // Fetch notifications for a user (customer) and/or role (rider)
+  get: async ({ userId, role } = {}) => {
+    const params = new URLSearchParams();
+    if (userId) params.append("userId", userId);
+    if (role) params.append("role", role);
+    return await api.get(`/notifications?${params.toString()}`);
+  },
+  // Mark single notification as read
+  markRead: async (id) => {
+    return await api.patch(`/notifications/${id}/read`);
+  },
+  // Mark all as read for a user or role
+  markAllRead: async ({ userId, role } = {}) => {
+    return await api.patch(`/notifications/read-all`, { userId, role });
+  },
+};
+
 // Review API functions
 export const reviewAPI = {
   // Create a review
