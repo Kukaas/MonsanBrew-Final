@@ -59,7 +59,7 @@ export default function Menus() {
 
   // Then filter by selected tab
   if (selectedTab === "Featured") {
-    filteredProducts = filteredProducts.filter((p) => p.isFeatured);
+    filteredProducts = filteredProducts.filter((p) => p.isFeatured || p.totalSold >= 5);
   } else if (selectedTab !== "All") {
     filteredProducts = filteredProducts.filter(
       (p) => p.category?.category === selectedTab
@@ -107,11 +107,10 @@ export default function Menus() {
                 <button
                   key={tab}
                   onClick={() => setSelectedTab(tab)}
-                  className={`text-lg font-bold pb-1 border-b-2 transition-colors flex-shrink-0 ${
-                    selectedTab === tab
+                  className={`text-lg font-bold pb-1 border-b-2 transition-colors flex-shrink-0 ${selectedTab === tab
                       ? "text-[#FFC107] border-[#FFC107]"
                       : "text-[#BDBDBD] border-transparent hover:text-[#FFC107]"
-                  }`}
+                    }`}
                 >
                   {tab}
                 </button>
