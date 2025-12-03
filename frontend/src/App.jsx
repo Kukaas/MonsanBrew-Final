@@ -37,6 +37,7 @@ import Cart from "./pages/private/customer/Cart";
 import Favorites from "./pages/private/customer/Favorites.jsx";
 import Checkout from "./pages/private/customer/Checkout.jsx";
 import Address from "./pages/private/customer/Address.jsx";
+import AddressList from "./pages/private/customer/AddressList.jsx";
 import Orders from "./pages/private/customer/Orders.jsx";
 import OrderDetail from "./pages/private/customer/OrderDetail.jsx";
 import ChangePassword from "./pages/public/ChangePassword.jsx";
@@ -406,7 +407,15 @@ function App() {
           }
         />
         <Route
-          path="/profile/address"
+          path="/profile/addresses"
+          element={
+            <RequireAuth allowedRoles={["customer"]}>
+              <AddressList />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/profile/address/:addressId"
           element={
             <RequireAuth allowedRoles={["customer"]}>
               <Address />

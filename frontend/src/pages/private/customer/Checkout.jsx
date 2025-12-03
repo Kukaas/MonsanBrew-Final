@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useLocation, useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft } from 'lucide-react';
-import { userAPI, orderAPI, cartAPI, addonsAPI } from '@/services/api';
+import { ArrowLeft, Edit, Trash2 } from 'lucide-react';
+import { userAPI, orderAPI, cartAPI, addonsAPI, addressAPI } from '@/services/api';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
 import FormInput from '@/components/custom/FormInput';
@@ -10,6 +10,8 @@ import codLogo from '@/assets/cod.png';
 import ImageUpload from '@/components/custom/ImageUpload';
 import { toast } from 'sonner';
 import PropTypes from 'prop-types';
+import CustomAlertDialog from '@/components/custom/CustomAlertDialog';
+import { AlertDialogCancel } from '@/components/ui/alert-dialog';
 
 export default function Checkout() {
     const { state } = useLocation();
@@ -67,6 +69,11 @@ export default function Checkout() {
 
     // All hooks must be called before any return
     const [address, setAddress] = useState(null);
+    const [addresses, setAddresses] = useState([]);
+    const [showAddressSelector, setShowAddressSelector] = useState(false);
+    const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+    const [addressToDelete, setAddressToDelete] = useState(null);
+    const [isDeleting, setIsDeleting] = useState(false);
     const [addressLoading, setAddressLoading] = useState(true);
     const [deliveryInstructions, setDeliveryInstructions] = useState('');
     const [paymentMethod, setPaymentMethod] = useState('gcash');
@@ -75,13 +82,19 @@ export default function Checkout() {
     const [placingOrder, setPlacingOrder] = useState(false);
 
     useEffect(() => {
-        userAPI.getAddress()
+        // Fetch all addresses
+        addressAPI.getAll()
             .then(res => {
-                setAddress(res.address || null);
+                const addressList = res.addresses || res.data?.addresses || [];
+                setAddresses(addressList);
+                // Set default address
+                const defaultAddr = addressList.find(addr => addr.isDefault);
+                setAddress(defaultAddr || addressList[0] || null);
             })
             .catch((err) => {
                 console.error('API error:', err);
                 setAddress(null);
+                setAddresses([]);
             })
             .finally(() => setAddressLoading(false));
     }, []);
@@ -375,18 +388,169 @@ export default function Checkout() {
                         </div>
                     )}
                 </div>
-                <Button
-                    variant="yellow"
-                    size="sm"
-                    className="ml-auto mt-2"
-                    onClick={() => navigate('/profile/address', {
-                        state: {
-                            returnTo: isBuyNow ? `/checkout/${user._id}?buyNow=true` : `/checkout/${userId}`
-                        }
-                    })}
-                    disabled={addressLoading}
-                >Edit</Button>
+                <div className="flex gap-2 mt-2">
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        className="flex-1"
+                        onClick={() => setShowAddressSelector(true)}
+                        disabled={addressLoading || addresses.length === 0}
+                    >
+                        Change Address
+                    </Button>
+                    <Button
+                        variant="yellow"
+                        size="sm"
+                        className="flex-1"
+                        onClick={() => navigate('/profile/address/new', {
+                            state: {
+                                returnTo: isBuyNow ? `/checkout/${user._id}?buyNow=true` : `/checkout/${userId}`
+                            }
+                        })}
+                    >
+                        Add New Address
+                    </Button>
+                </div>
             </div>
+
+            {/* Address Selector Modal */}
+            <CustomAlertDialog
+                open={showAddressSelector}
+                onOpenChange={setShowAddressSelector}
+                title="Select Delivery Address"
+                description="Choose an address for this order"
+            >
+                <div className="space-y-4">
+                    {addresses.map((addr) => (
+                        <div
+                            key={addr._id}
+                            className={`border-2 rounded-xl p-4 cursor-pointer transition-all ${address?._id === addr._id
+                                ? 'border-[#FFC107] bg-[#FFFBEA]'
+                                : 'border-gray-600 hover:border-[#FFC107] bg-[#1a1a1a]'
+                                }`}
+                            onClick={() => {
+                                setAddress(addr);
+                                setShowAddressSelector(false);
+                            }}
+                        >
+                            <div className="flex items-start justify-between mb-2">
+                                <div className={`font-bold text-base ${address?._id === addr._id ? 'text-[#232323]' : 'text-white'
+                                    }`}>
+                                    {addr.label || 'Home'}
+                                </div>
+                                {addr.isDefault && (
+                                    <span className="text-xs bg-[#FFC107] text-black px-2 py-1 rounded-full font-semibold">
+                                        Default
+                                    </span>
+                                )}
+                            </div>
+                            <div className={`text-sm ${address?._id === addr._id ? 'text-gray-700' : 'text-gray-300'
+                                }`}>
+                                <div className="font-semibold">{addr.contactNumber}</div>
+                                <div>
+                                    {addr.lotNo}
+                                    {addr.purok && `, ${addr.purok}`}
+                                    {addr.street && `, ${addr.street}`}
+                                </div>
+                                <div>
+                                    {addr.barangay}, {addr.municipality}, {addr.province}
+                                </div>
+                            </div>
+
+                            {/* Action Buttons */}
+                            <div className="flex gap-2 mt-3" onClick={(e) => e.stopPropagation()}>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="flex-1 text-xs"
+                                    onClick={() => {
+                                        setShowAddressSelector(false);
+                                        navigate(`/profile/address/${addr._id}`, {
+                                            state: {
+                                                returnTo: isBuyNow ? `/checkout/${user._id}?buyNow=true` : `/checkout/${userId}`
+                                            }
+                                        });
+                                    }}
+                                >
+                                    <Edit className="w-3 h-3 mr-1" />
+                                    Edit
+                                </Button>
+                                <Button
+                                    variant="destructive"
+                                    size="sm"
+                                    className="flex-1 text-xs"
+                                    onClick={() => {
+                                        setAddressToDelete(addr);
+                                        setDeleteConfirmOpen(true);
+                                    }}
+                                    disabled={addr.isDefault}
+                                >
+                                    <Trash2 className="w-3 h-3 mr-1" />
+                                    Delete
+                                </Button>
+                            </div>
+                        </div>
+                    ))}
+                    <AlertDialogCancel className="w-full rounded-lg font-bold py-3 text-lg border-[#FFC107] text-[#FFC107] hover:bg-[#FFC107] hover:text-white transition">
+                        Close
+                    </AlertDialogCancel>
+                </div>
+            </CustomAlertDialog>
+
+            {/* Delete Confirmation Dialog */}
+            <CustomAlertDialog
+                open={deleteConfirmOpen}
+                onOpenChange={setDeleteConfirmOpen}
+                title="Delete Address"
+                description={`Are you sure you want to delete "${addressToDelete?.label || 'this address'}"? This action cannot be undone.`}
+                actions={
+                    <>
+                        <Button
+                            variant="outline"
+                            onClick={() => {
+                                setDeleteConfirmOpen(false);
+                                setAddressToDelete(null);
+                            }}
+                            disabled={isDeleting}
+                        >
+                            Cancel
+                        </Button>
+                        <Button
+                            variant="destructive"
+                            onClick={async () => {
+                                if (!addressToDelete) return;
+                                setIsDeleting(true);
+                                try {
+                                    await addressAPI.deleteAddress(addressToDelete._id);
+                                    toast.success('Address deleted successfully!');
+                                    // Refresh addresses
+                                    const response = await addressAPI.getAllAddresses();
+                                    const fetchedAddresses = response.data?.addresses || response.addresses || [];
+                                    setAddresses(fetchedAddresses);
+                                    // If deleted address was selected, switch to default
+                                    if (address?._id === addressToDelete._id) {
+                                        const defaultAddr = fetchedAddresses.find(a => a.isDefault);
+                                        if (defaultAddr) {
+                                            setAddress(defaultAddr);
+                                        }
+                                    }
+                                    setDeleteConfirmOpen(false);
+                                    setAddressToDelete(null);
+                                } catch (error) {
+                                    console.error('Error deleting address:', error);
+                                    toast.error(error.response?.data?.error || 'Failed to delete address');
+                                } finally {
+                                    setIsDeleting(false);
+                                }
+                            }}
+                            disabled={isDeleting}
+                            loading={isDeleting}
+                        >
+                            {isDeleting ? 'Deleting...' : 'Delete'}
+                        </Button>
+                    </>
+                }
+            />
             {/* Payment Section */}
             <div className="w-full max-w-2xl bg-white rounded-2xl p-4 sm:p-6 shadow flex flex-col gap-4 mb-10">
                 <div className="font-bold text-base sm:text-lg mb-2">Payment</div>
@@ -419,24 +583,26 @@ export default function Checkout() {
                 </div>
             </div>
             {/* Reference Number and Image Upload for GCash */}
-            {paymentMethod === 'gcash' && (
-                <div className="w-full max-w-2xl bg-white rounded-2xl p-4 sm:p-6 shadow flex flex-col gap-4 mb-10">
-                    <FormInput
-                        label="Reference Number"
-                        name="referenceNumber"
-                        value={referenceNumber}
-                        onChange={e => setReferenceNumber(e.target.value)}
-                        placeholder="Enter reference number"
-                        variant="white"
-                    />
-                    <ImageUpload
-                        label="Upload proof here"
-                        value={proofImage}
-                        onChange={setProofImage}
-                        variant="white"
-                    />
-                </div>
-            )}
+            {
+                paymentMethod === 'gcash' && (
+                    <div className="w-full max-w-2xl bg-white rounded-2xl p-4 sm:p-6 shadow flex flex-col gap-4 mb-10">
+                        <FormInput
+                            label="Reference Number"
+                            name="referenceNumber"
+                            value={referenceNumber}
+                            onChange={e => setReferenceNumber(e.target.value)}
+                            placeholder="Enter reference number"
+                            variant="white"
+                        />
+                        <ImageUpload
+                            label="Upload proof here"
+                            value={proofImage}
+                            onChange={setProofImage}
+                            variant="white"
+                        />
+                    </div>
+                )
+            }
             <div className="w-full max-w-2xl bg-white rounded-2xl p-4 sm:p-8 shadow flex flex-col gap-4 mb-8 overflow-x-auto">
                 {isBuyNow ? (
                     <div className="flex flex-col sm:flex-row items-center gap-4 border-b pb-4 mb-4 last:border-b-0 last:pb-0 last:mb-0 min-w-0">
@@ -490,22 +656,24 @@ export default function Checkout() {
                 </div>
             </div>
             {/* Minimum Order Warning */}
-            {!meetsMinimum && (
-                <div className="bg-yellow-50 border-2 border-[#FFC107] rounded-xl p-4 -mx-2">
-                    <div className="flex items-start gap-3">
-                        <div className="text-2xl">ℹ️</div>
-                        <div className="flex-1">
-                            <div className="font-bold text-base text-[#232323] mb-1">
-                                Minimum Order Required
-                            </div>
-                            <div className="text-sm text-gray-700">
-                                Your current order is <span className="font-bold">₱{subtotal.toFixed(2)}</span>.
-                                You need <span className="font-bold text-[#FFC107]">₱{(MINIMUM_ORDER - subtotal).toFixed(2)}</span> more to reach the minimum order of <span className="font-bold">₱{MINIMUM_ORDER.toFixed(2)}</span> (excluding delivery fee).
+            {
+                !meetsMinimum && (
+                    <div className="bg-yellow-50 border-2 border-[#FFC107] rounded-xl p-4 -mx-2">
+                        <div className="flex items-start gap-3">
+                            <div className="text-2xl">ℹ️</div>
+                            <div className="flex-1">
+                                <div className="font-bold text-base text-[#232323] mb-1">
+                                    Minimum Order Required
+                                </div>
+                                <div className="text-sm text-gray-700">
+                                    Your current order is <span className="font-bold">₱{subtotal.toFixed(2)}</span>.
+                                    You need <span className="font-bold text-[#FFC107]">₱{(MINIMUM_ORDER - subtotal).toFixed(2)}</span> more to reach the minimum order of <span className="font-bold">₱{MINIMUM_ORDER.toFixed(2)}</span> (excluding delivery fee).
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            )}
+                )
+            }
             <Button
                 variant="yellow"
                 className="w-full max-w-2xl text-xl font-bold py-4 mb-10"
@@ -514,6 +682,6 @@ export default function Checkout() {
             >
                 {placingOrder ? 'Placing Order...' : 'Place Order'}
             </Button>
-        </div>
+        </div >
     );
 }

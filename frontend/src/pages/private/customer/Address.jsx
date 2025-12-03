@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
-import { userAPI } from '@/services/api';
+import { addressAPI } from '@/services/api';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, MapPin } from 'lucide-react';
@@ -10,58 +10,69 @@ import MapSelector from '@/components/custom/MapSelector';
 export default function Address() {
     const navigate = useNavigate();
     const { user } = useAuth();
-    const { userId } = useParams();
+    const { addressId } = useParams(); // 'new' for create, or actual ID for edit
     const location = useLocation();
-    const returnTo = location.state?.returnTo || `/checkout/${user?._id || userId}`;
+    const returnTo = location.state?.returnTo || '/profile/addresses';
+    const isEditMode = addressId && addressId !== 'new';
+
     const [form, setForm] = useState({
-        contactNumber: '', lotNo: '', purok: '', street: '', landmark: '', barangay: '', municipality: '', province: ''
+        label: 'Home',
+        contactNumber: '',
+        lotNo: '',
+        purok: '',
+        street: '',
+        landmark: '',
+        barangay: '',
+        municipality: '',
+        province: '',
+        isDefault: false
     });
     const [coordinates, setCoordinates] = useState({
         latitude: 13.323830,
         longitude: 121.845809
     });
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(isEditMode);
     const [saving, setSaving] = useState(false);
     const [showMap, setShowMap] = useState(true);
 
     useEffect(() => {
-        userAPI.getAddress()
-            .then(res => {
-                const address = res.address || {};
-                setForm({
-                    contactNumber: address.contactNumber,
-                    lotNo: address.lotNo,
-                    purok: address.purok,
-                    street: address.street,
-                    landmark: address.landmark,
-                    barangay: address.barangay,
-                    municipality: address.municipality,
-                    province: address.province,
-                });
-                if (address.latitude && address.longitude) {
-                    setCoordinates({
-                        latitude: address.latitude,
-                        longitude: address.longitude
+        if (isEditMode) {
+            addressAPI.getById(addressId)
+                .then(res => {
+                    const address = res.address || res.data?.address || {};
+                    setForm({
+                        label: address.label || 'Home',
+                        contactNumber: address.contactNumber || '',
+                        lotNo: address.lotNo || '',
+                        purok: address.purok || '',
+                        street: address.street || '',
+                        landmark: address.landmark || '',
+                        barangay: address.barangay || '',
+                        municipality: address.municipality || '',
+                        province: address.province || '',
+                        isDefault: address.isDefault || false
                     });
-                }
-            })
-            .catch(() => {
-                setForm({
-                    contactNumber: '',
-                    lotNo: '',
-                    purok: '',
-                    street: '',
-                    landmark: '',
-                    barangay: '',
-                    municipality: '',
-                    province: '',
-                });
-            })
-            .finally(() => setLoading(false));
-    }, []);
+                    if (address.latitude && address.longitude) {
+                        setCoordinates({
+                            latitude: address.latitude,
+                            longitude: address.longitude
+                        });
+                    }
+                })
+                .catch((err) => {
+                    console.error('Failed to load address:', err);
+                    toast.error('Failed to load address');
+                    navigate('/profile/addresses');
+                })
+                .finally(() => setLoading(false));
+        } else {
+            setLoading(false);
+        }
+    }, [addressId, isEditMode, navigate]);
 
     const handleChange = e => {
-        setForm(f => ({ ...f, [e.target.name]: e.target.value }));
+        const { name, value, type, checked } = e.target;
+        setForm(f => ({ ...f, [name]: type === 'checkbox' ? checked : value }));
     };
 
     const handleLocationSelect = (locationData) => {
@@ -81,14 +92,21 @@ export default function Address() {
                 latitude: coordinates.latitude,
                 longitude: coordinates.longitude
             };
-            await userAPI.updateAddress(addressData);
-            toast.success('Address updated successfully!');
+
+            if (isEditMode) {
+                await addressAPI.update(addressId, addressData);
+                toast.success('Address updated successfully!');
+            } else {
+                await addressAPI.create(addressData);
+                toast.success('Address created successfully!');
+            }
+
             setTimeout(() => {
                 navigate(returnTo);
             }, 1000);
         } catch (error) {
-            console.error('Failed to update address:', error);
-            toast.error('Failed to update address.');
+            console.error('Failed to save address:', error);
+            toast.error(error.response?.data?.message || 'Failed to save address');
         } finally {
             setSaving(false);
         }
@@ -105,7 +123,9 @@ export default function Address() {
                 >
                     <ArrowLeft size={28} />
                 </button>
-                <h1 className="text-xl font-extrabold text-white flex-1 text-center mr-8">Edit Delivery Address</h1>
+                <h1 className="text-xl font-extrabold text-white flex-1 text-center mr-8">
+                    {isEditMode ? 'Edit Address' : 'Add New Address'}
+                </h1>
             </div>
 
             <div className="w-full max-w-md bg-white rounded-2xl shadow-lg p-0 mt-6 mb-8">
@@ -124,6 +144,18 @@ export default function Address() {
                     <div className="text-center text-gray-500 py-8">Loading...</div>
                 ) : (
                     <form className="flex flex-col gap-4 px-6 py-6" onSubmit={handleSubmit}>
+                        {/* Label */}
+                        <div>
+                            <label className="block text-xs font-bold text-gray-700 mb-1">Address Label</label>
+                            <input
+                                name="label"
+                                value={form.label}
+                                onChange={handleChange}
+                                placeholder="e.g., Home, Work, Office"
+                                className="border border-gray-300 rounded px-3 py-2 w-full focus:outline-[#FFC107]"
+                            />
+                        </div>
+
                         {/* Map Selector */}
                         <div className="mb-4">
                             <div className="flex items-center justify-between mb-2">
@@ -158,42 +190,125 @@ export default function Address() {
 
                         <div>
                             <label className="block text-xs font-bold text-gray-700 mb-1">Contact Number</label>
-                            <input name="contactNumber" value={form.contactNumber} onChange={handleChange} placeholder="09xxxxxxxxx" className="border border-gray-300 rounded px-3 py-2 w-full focus:outline-[#FFC107]" />
+                            <input
+                                name="contactNumber"
+                                value={form.contactNumber}
+                                onChange={handleChange}
+                                placeholder="09xxxxxxxxx"
+                                className="border border-gray-300 rounded px-3 py-2 w-full focus:outline-[#FFC107]"
+                                required
+                            />
                         </div>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
                                 <label className="block text-xs font-bold text-gray-700 mb-1">Lot No</label>
-                                <input name="lotNo" value={form.lotNo} onChange={handleChange} placeholder="Lot No" className="border border-gray-300 rounded px-3 py-2 w-full focus:outline-[#FFC107]" />
+                                <input
+                                    name="lotNo"
+                                    value={form.lotNo}
+                                    onChange={handleChange}
+                                    placeholder="Lot No"
+                                    className="border border-gray-300 rounded px-3 py-2 w-full focus:outline-[#FFC107]"
+                                    required
+                                />
                             </div>
                             <div>
                                 <label className="block text-xs font-bold text-gray-700 mb-1">Purok</label>
-                                <input name="purok" value={form.purok} onChange={handleChange} placeholder="Purok" className="border border-gray-300 rounded px-3 py-2 w-full focus:outline-[#FFC107]" />
+                                <input
+                                    name="purok"
+                                    value={form.purok}
+                                    onChange={handleChange}
+                                    placeholder="Purok"
+                                    className="border border-gray-300 rounded px-3 py-2 w-full focus:outline-[#FFC107]"
+                                />
                             </div>
                         </div>
                         <div>
                             <label className="block text-xs font-bold text-gray-700 mb-1">Street</label>
-                            <input name="street" value={form.street} onChange={handleChange} placeholder="Street" className="border border-gray-300 rounded px-3 py-2 w-full focus:outline-[#FFC107]" />
+                            <input
+                                name="street"
+                                value={form.street}
+                                onChange={handleChange}
+                                placeholder="Street"
+                                className="border border-gray-300 rounded px-3 py-2 w-full focus:outline-[#FFC107]"
+                            />
                         </div>
                         <div>
                             <label className="block text-xs font-bold text-gray-700 mb-1">Landmark</label>
-                            <input name="landmark" value={form.landmark} onChange={handleChange} placeholder="Landmark (optional)" className="border border-gray-300 rounded px-3 py-2 w-full focus:outline-[#FFC107]" />
+                            <input
+                                name="landmark"
+                                value={form.landmark}
+                                onChange={handleChange}
+                                placeholder="Landmark (optional)"
+                                className="border border-gray-300 rounded px-3 py-2 w-full focus:outline-[#FFC107]"
+                            />
                         </div>
                         <div>
                             <label className="block text-xs font-bold text-gray-700 mb-1">Barangay</label>
-                            <input name="barangay" value={form.barangay} onChange={handleChange} placeholder="Barangay" className="border border-gray-300 rounded px-3 py-2 w-full focus:outline-[#FFC107]" />
+                            <input
+                                name="barangay"
+                                value={form.barangay}
+                                onChange={handleChange}
+                                placeholder="Barangay"
+                                className="border border-gray-300 rounded px-3 py-2 w-full focus:outline-[#FFC107]"
+                                required
+                            />
                         </div>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
                                 <label className="block text-xs font-bold text-gray-700 mb-1">Municipality</label>
-                                <input name="municipality" value={form.municipality} onChange={handleChange} placeholder="Municipality" className="border border-gray-300 rounded px-3 py-2 w-full focus:outline-[#FFC107]" />
+                                <input
+                                    name="municipality"
+                                    value={form.municipality}
+                                    onChange={handleChange}
+                                    placeholder="Municipality"
+                                    className="border border-gray-300 rounded px-3 py-2 w-full focus:outline-[#FFC107]"
+                                    required
+                                />
                             </div>
                             <div>
                                 <label className="block text-xs font-bold text-gray-700 mb-1">Province</label>
-                                <input name="province" value={form.province} onChange={handleChange} placeholder="Province" className="border border-gray-300 rounded px-3 py-2 w-full focus:outline-[#FFC107]" />
+                                <input
+                                    name="province"
+                                    value={form.province}
+                                    onChange={handleChange}
+                                    placeholder="Province"
+                                    className="border border-gray-300 rounded px-3 py-2 w-full focus:outline-[#FFC107]"
+                                    required
+                                />
                             </div>
                         </div>
-                        <Button type="submit" variant="yellow" className="mt-2 text-lg font-bold py-3 w-full" disabled={saving}>{saving ? 'Saving...' : 'Save Address'}</Button>
-                        <Button type="button" variant="outline" className="mt-1 w-full" onClick={() => navigate(-1)}>Cancel</Button>
+
+                        {/* Set as Default Checkbox */}
+                        <div className="flex items-center gap-2">
+                            <input
+                                type="checkbox"
+                                id="isDefault"
+                                name="isDefault"
+                                checked={form.isDefault}
+                                onChange={handleChange}
+                                className="w-4 h-4 accent-[#FFC107]"
+                            />
+                            <label htmlFor="isDefault" className="text-sm font-semibold text-gray-700">
+                                Set as default address
+                            </label>
+                        </div>
+
+                        <Button
+                            type="submit"
+                            variant="yellow"
+                            className="mt-2 text-lg font-bold py-3 w-full"
+                            disabled={saving}
+                        >
+                            {saving ? 'Saving...' : isEditMode ? 'Update Address' : 'Save Address'}
+                        </Button>
+                        <Button
+                            type="button"
+                            variant="outline"
+                            className="mt-1 w-full"
+                            onClick={() => navigate(-1)}
+                        >
+                            Cancel
+                        </Button>
                     </form>
                 )}
             </div>

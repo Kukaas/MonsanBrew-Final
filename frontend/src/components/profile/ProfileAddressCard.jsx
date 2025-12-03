@@ -3,6 +3,7 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { MapPin, Navigation } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import CustomAlertDialog from "@/components/custom/CustomAlertDialog";
 import MapSelector from "@/components/custom/MapSelector";
 
@@ -16,6 +17,7 @@ function ProfileAddressCard({
   handleCancel,
   isLoading,
 }) {
+  const navigate = useNavigate();
   const [showMapDialog, setShowMapDialog] = useState(false);
   const [coordinates, setCoordinates] = useState({
     latitude: user?.latitude || 13.323830,
@@ -39,6 +41,9 @@ function ProfileAddressCard({
     setShowMapDialog(false);
   };
 
+  // For customers, show read-only address with "Manage Addresses" button
+  const isCustomer = user?.role === "customer";
+
   return (
     <Card className="bg-[#2A2A2A] border-[#444]">
       <CardHeader>
@@ -54,7 +59,7 @@ function ProfileAddressCard({
           >
             <div className="flex-1 min-w-0">
               <p className="text-gray-400 text-xs font-medium">{label}</p>
-              {isEditing ? (
+              {isEditing && !isCustomer ? (
                 <input
                   type="text"
                   name={key}
@@ -71,7 +76,22 @@ function ProfileAddressCard({
             </div>
           </div>
         ))}
-        {!isEditing && (
+
+        {/* For customers: Show "Manage Addresses" button */}
+        {isCustomer && !isEditing && (
+          <div className="flex justify-center gap-2 mt-4">
+            <Button
+              onClick={() => navigate('/profile/addresses')}
+              variant="yellow"
+              size="sm"
+            >
+              Manage Addresses
+            </Button>
+          </div>
+        )}
+
+        {/* For other roles: Show edit/save buttons */}
+        {!isCustomer && !isEditing && (
           <div className="flex justify-center gap-2 mt-4">
             <Button onClick={handleEditToggle} variant="yellow" size="sm">
               Edit Address
@@ -87,7 +107,7 @@ function ProfileAddressCard({
             </Button>
           </div>
         )}
-        {isEditing && (
+        {!isCustomer && isEditing && (
           <div className="flex justify-center gap-2 mt-4">
             <Button
               onClick={handleSaveProfile}
@@ -105,38 +125,40 @@ function ProfileAddressCard({
         )}
       </CardContent>
 
-      {/* Map Selector Dialog */}
-      <CustomAlertDialog
-        open={showMapDialog}
-        onOpenChange={setShowMapDialog}
-        title="Set Location on Map"
-        description="Select your delivery location on the map"
-        className="max-w-2xl"
-        actions={
-          <div className="flex justify-end gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => setShowMapDialog(false)}
-            >
-              Close
-            </Button>
+      {/* Map Selector Dialog - Only for non-customers */}
+      {!isCustomer && (
+        <CustomAlertDialog
+          open={showMapDialog}
+          onOpenChange={setShowMapDialog}
+          title="Set Location on Map"
+          description="Select your delivery location on the map"
+          className="max-w-2xl"
+          actions={
+            <div className="flex justify-end gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setShowMapDialog(false)}
+              >
+                Close
+              </Button>
+            </div>
+          }
+        >
+          <div className="p-4">
+            <MapSelector
+              onLocationSelect={handleLocationSelect}
+              initialLatitude={coordinates.latitude}
+              initialLongitude={coordinates.longitude}
+              className="mb-4"
+            />
+            <div className="text-xs text-gray-400 mt-2">
+              Current coordinates: {coordinates.latitude.toFixed(6)}, {coordinates.longitude.toFixed(6)}
+            </div>
           </div>
-        }
-      >
-        <div className="p-4">
-          <MapSelector
-            onLocationSelect={handleLocationSelect}
-            initialLatitude={coordinates.latitude}
-            initialLongitude={coordinates.longitude}
-            className="mb-4"
-          />
-          <div className="text-xs text-gray-400 mt-2">
-            Current coordinates: {coordinates.latitude.toFixed(6)}, {coordinates.longitude.toFixed(6)}
-          </div>
-        </div>
-      </CustomAlertDialog>
+        </CustomAlertDialog>
+      )}
     </Card>
   );
 }

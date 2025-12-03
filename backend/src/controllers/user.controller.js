@@ -1,4 +1,5 @@
 import User from "../models/user.model.js";
+import Address from "../models/address.model.js";
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
 import {
@@ -7,20 +8,26 @@ import {
   sendActivationEmail,
 } from "../services/email.service.js";
 
-// Get current user's address
+// Get current user's address (backward compatibility - returns default address)
 export const getAddress = async (req, res) => {
   try {
-    const user = await User.findById(req.user._id).select(
-      "contactNumber lotNo purok street landmark barangay municipality province latitude longitude"
-    );
-    if (!user) return res.status(404).json({ message: "User not found" });
-    res.status(200).json({ address: user });
+    const address = await Address.findOne({
+      userId: req.user._id,
+      isDefault: true
+    });
+
+    if (!address) {
+      return res.status(404).json({ message: "No address found" });
+    }
+
+    res.status(200).json({ address });
   } catch (error) {
+    console.error('Get address error:', error);
     res.status(500).json({ message: "Failed to fetch address" });
   }
 };
 
-// Update current user's address
+// Update current user's address (backward compatibility - updates default address)
 export const updateAddress = async (req, res) => {
   try {
     const {
@@ -35,9 +42,17 @@ export const updateAddress = async (req, res) => {
       latitude,
       longitude,
     } = req.body;
-    const user = await User.findByIdAndUpdate(
-      req.user._id,
-      {
+
+    // Find default address
+    let address = await Address.findOne({
+      userId: req.user._id,
+      isDefault: true
+    });
+
+    // If no default address exists, create one
+    if (!address) {
+      address = new Address({
+        userId: req.user._id,
         contactNumber,
         lotNo,
         purok,
@@ -48,17 +63,28 @@ export const updateAddress = async (req, res) => {
         province,
         latitude,
         longitude,
-      },
-      {
-        new: true,
-        runValidators: true,
-        fields:
-          "contactNumber lotNo purok street landmark barangay municipality province latitude longitude",
-      }
-    );
-    if (!user) return res.status(404).json({ message: "User not found" });
-    res.status(200).json({ address: user });
+        isDefault: true,
+        label: 'Home'
+      });
+      await address.save();
+    } else {
+      // Update existing default address
+      address.contactNumber = contactNumber;
+      address.lotNo = lotNo;
+      address.purok = purok;
+      address.street = street;
+      address.landmark = landmark;
+      address.barangay = barangay;
+      address.municipality = municipality;
+      address.province = province;
+      address.latitude = latitude;
+      address.longitude = longitude;
+      await address.save();
+    }
+
+    res.status(200).json({ address });
   } catch (error) {
+    console.error('Update address error:', error);
     res.status(500).json({ message: "Failed to update address" });
   }
 };

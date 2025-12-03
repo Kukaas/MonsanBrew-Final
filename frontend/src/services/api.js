@@ -237,6 +237,37 @@ export const userAPI = {
   },
 };
 
+export const addressAPI = {
+  // Create new address
+  create: async (addressData) => {
+    return await api.post("/addresses", addressData);
+  },
+  // Get all addresses for current user
+  getAll: async () => {
+    return await api.get("/addresses");
+  },
+  // Get default address
+  getDefault: async () => {
+    return await api.get("/addresses/default");
+  },
+  // Get address by ID
+  getById: async (id) => {
+    return await api.get(`/addresses/${id}`);
+  },
+  // Update address
+  update: async (id, addressData) => {
+    return await api.put(`/addresses/${id}`, addressData);
+  },
+  // Delete address
+  delete: async (id) => {
+    return await api.delete(`/addresses/${id}`);
+  },
+  // Set address as default
+  setDefault: async (id) => {
+    return await api.patch(`/addresses/${id}/set-default`);
+  },
+};
+
 export const orderAPI = {
   placeOrder: async (orderData) => {
     return await api.post("/orders", orderData);
