@@ -233,6 +233,10 @@ export default function Cart() {
   const shipping = selectedCart.length > 0 ? 15 : 0;
   const total = subtotal - discount + shipping;
 
+  // Minimum order requirement (excluding delivery fee)
+  const MINIMUM_ORDER = 150;
+  const meetsMinimum = subtotal >= MINIMUM_ORDER;
+
   if (isLoading) {
     return (
       <CustomerLayout>
@@ -537,6 +541,23 @@ export default function Cart() {
             Apply promocode &gt;
           </button>
         </div>
+        {/* Minimum Order Warning */}
+        {selectedCart.length > 0 && !meetsMinimum && (
+          <div className="w-full max-w-md mx-auto bg-yellow-50 border-2 border-[#FFC107] rounded-2xl p-4 shadow mb-4">
+            <div className="flex items-start gap-3">
+              <div className="text-2xl">ℹ️</div>
+              <div className="flex-1">
+                <div className="font-bold text-base text-[#232323] mb-1">
+                  Minimum Order Required
+                </div>
+                <div className="text-sm text-gray-700">
+                  Your current order is <span className="font-bold">₱{subtotal.toFixed(2)}</span>.
+                  You need <span className="font-bold text-[#FFC107]">₱{(MINIMUM_ORDER - subtotal).toFixed(2)}</span> more to reach the minimum order of <span className="font-bold">₱{MINIMUM_ORDER.toFixed(2)}</span> (excluding delivery fee).
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
         {/* Summary */}
         <div className="w-full max-w-md mx-auto bg-white rounded-2xl p-8 shadow flex flex-col gap-4 mb-8">
           <div className="flex justify-between text-lg font-bold text-[#232323]">
@@ -560,7 +581,7 @@ export default function Cart() {
         <Button
           variant="yellow"
           className="w-full max-w-md text-xl font-bold py-4"
-          disabled={selectedCart.length === 0}
+          disabled={selectedCart.length === 0 || !meetsMinimum}
           onClick={() => {
             console.log("Selected cart items:", selectedCart);
             console.log("Selected cart length:", selectedCart.length);

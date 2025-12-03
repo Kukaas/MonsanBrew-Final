@@ -131,6 +131,10 @@ export default function Checkout() {
         }, 0);
     const total = subtotal + deliveryFee;
 
+    // Minimum order requirement (excluding delivery fee)
+    const MINIMUM_ORDER = 150;
+    const meetsMinimum = subtotal >= MINIMUM_ORDER;
+
     // Place order handler
     const handlePlaceOrder = async () => {
         // Validate data before proceeding
@@ -154,6 +158,12 @@ export default function Checkout() {
             return;
         }
 
+        // Validate minimum order
+        if (!meetsMinimum) {
+            toast.error(`Minimum order of ₱${MINIMUM_ORDER.toFixed(2)} required (excluding delivery fee). You need ₱${(MINIMUM_ORDER - subtotal).toFixed(2)} more.`);
+            return;
+        }
+
         setPlacingOrder(true);
         try {
             // Prepare order data
@@ -161,28 +171,28 @@ export default function Checkout() {
 
             if (isBuyNow) {
                 // Buy now order
-                            orderData = {
-                userId: user?._id || userId,
-                items: [{
-                    productId: buyNowItem.product,
-                    productName: buyNowItem.productName,
-                    image: buyNowItem.image,
-                    size: buyNowItem.size,
-                    addOns: buyNowAddons,
-                    quantity: buyNowItem.quantity,
-                    price: buyNowItem.price
-                }],
-                address: {
-                    ...address,
-                    latitude: address?.latitude || 13.323830,
-                    longitude: address?.longitude || 121.845809
-                },
-                deliveryInstructions,
-                paymentMethod,
-                referenceNumber: paymentMethod === 'gcash' ? referenceNumber : undefined,
-                proofImage: paymentMethod === 'gcash' ? proofImage : undefined,
-                total: total
-            };
+                orderData = {
+                    userId: user?._id || userId,
+                    items: [{
+                        productId: buyNowItem.product,
+                        productName: buyNowItem.productName,
+                        image: buyNowItem.image,
+                        size: buyNowItem.size,
+                        addOns: buyNowAddons,
+                        quantity: buyNowItem.quantity,
+                        price: buyNowItem.price
+                    }],
+                    address: {
+                        ...address,
+                        latitude: address?.latitude || 13.323830,
+                        longitude: address?.longitude || 121.845809
+                    },
+                    deliveryInstructions,
+                    paymentMethod,
+                    referenceNumber: paymentMethod === 'gcash' ? referenceNumber : undefined,
+                    proofImage: paymentMethod === 'gcash' ? proofImage : undefined,
+                    total: total
+                };
             } else {
                 // Cart order
                 const validItems = selectedCart.filter(item =>
@@ -278,7 +288,7 @@ export default function Checkout() {
         address.province;
 
     // Final order placement validation
-    const canPlaceOrderWithAddress = canPlaceOrder && isAddressComplete;
+    const canPlaceOrderWithAddress = canPlaceOrder && isAddressComplete && meetsMinimum;
 
     // Helper to render info row
     const InfoRow = ({ label, value }) => (
@@ -479,6 +489,23 @@ export default function Checkout() {
                     <span>₱ {total.toFixed(2)}</span>
                 </div>
             </div>
+            {/* Minimum Order Warning */}
+            {!meetsMinimum && (
+                <div className="bg-yellow-50 border-2 border-[#FFC107] rounded-xl p-4 -mx-2">
+                    <div className="flex items-start gap-3">
+                        <div className="text-2xl">ℹ️</div>
+                        <div className="flex-1">
+                            <div className="font-bold text-base text-[#232323] mb-1">
+                                Minimum Order Required
+                            </div>
+                            <div className="text-sm text-gray-700">
+                                Your current order is <span className="font-bold">₱{subtotal.toFixed(2)}</span>.
+                                You need <span className="font-bold text-[#FFC107]">₱{(MINIMUM_ORDER - subtotal).toFixed(2)}</span> more to reach the minimum order of <span className="font-bold">₱{MINIMUM_ORDER.toFixed(2)}</span> (excluding delivery fee).
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
             <Button
                 variant="yellow"
                 className="w-full max-w-2xl text-xl font-bold py-4 mb-10"
