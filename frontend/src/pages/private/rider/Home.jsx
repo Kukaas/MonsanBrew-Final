@@ -115,9 +115,10 @@ export default function Home() {
     (order) => new Date(order.updatedAt) >= last7Days
   );
 
-  // Fixed delivery fee of ₱15 per delivery
-  const deliveryFee = 15;
-  const totalEarnings = recentCompletedOrders.length * deliveryFee;
+  // Calculate total earnings from dynamic delivery fees
+  const totalEarnings = recentCompletedOrders.reduce((sum, order) => {
+    return sum + (order.deliveryFee || 15);
+  }, 0);
 
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString("en-US", {

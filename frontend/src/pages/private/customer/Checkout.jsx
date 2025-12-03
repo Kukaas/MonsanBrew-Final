@@ -13,6 +13,35 @@ import PropTypes from 'prop-types';
 import CustomAlertDialog from '@/components/custom/CustomAlertDialog';
 import { AlertDialogCancel } from '@/components/ui/alert-dialog';
 
+// Haversine formula to calculate distance between two coordinates in kilometers
+const calculateDistance = (lat1, lon1, lat2, lon2) => {
+    const R = 6371; // Radius of the Earth in kilometers
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a =
+        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+        Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    const distance = R * c;
+    return distance;
+};
+
+// Calculate delivery fee based on distance
+const calculateDeliveryFee = (distance) => {
+    const BASE_FEE = 15;
+    const BASE_DISTANCE = 3; // km
+    const ADDITIONAL_FEE_PER_KM = 5;
+
+    if (distance <= BASE_DISTANCE) {
+        return BASE_FEE;
+    }
+
+    const additionalDistance = distance - BASE_DISTANCE;
+    const additionalFee = Math.ceil(additionalDistance) * ADDITIONAL_FEE_PER_KM;
+    return BASE_FEE + additionalFee;
+};
+
 export default function Checkout() {
     const { state } = useLocation();
     const { userId } = useParams();
@@ -121,8 +150,55 @@ export default function Checkout() {
         return null;
     }
 
-    // Delivery fee
-    const deliveryFee = 15;
+    const [distance, setDistance] = useState(0);
+    const [deliveryFee, setDeliveryFee] = useState(15);
+    const [calculatingFee, setCalculatingFee] = useState(false);
+
+    // Store location (MonsanBrew default coordinates)
+    const STORE_LAT = 13.323830;
+    const STORE_LON = 121.845809;
+
+    // Calculate distance and delivery fee using Mapbox API (Driving Distance)
+    useEffect(() => {
+        const fetchDistance = async () => {
+            if (address?.latitude && address?.longitude) {
+                setCalculatingFee(true);
+                try {
+                    const start = `${STORE_LON},${STORE_LAT}`;
+                    const end = `${address.longitude},${address.latitude}`;
+                    const response = await fetch(
+                        `https://api.mapbox.com/directions/v5/mapbox/driving/${start};${end}?access_token=${import.meta.env.VITE_MAPBOX_API_KEY}`
+                    );
+                    const data = await response.json();
+
+                    if (data.routes && data.routes.length > 0) {
+                        const distanceInMeters = data.routes[0].distance;
+                        const distanceInKm = distanceInMeters / 1000;
+                        setDistance(distanceInKm);
+                        setDeliveryFee(calculateDeliveryFee(distanceInKm));
+                    } else {
+                        // Fallback to Haversine if no route found
+                        const dist = calculateDistance(STORE_LAT, STORE_LON, address.latitude, address.longitude);
+                        setDistance(dist);
+                        setDeliveryFee(calculateDeliveryFee(dist));
+                    }
+                } catch (error) {
+                    console.error("Error fetching distance:", error);
+                    // Fallback to Haversine on error
+                    const dist = calculateDistance(STORE_LAT, STORE_LON, address.latitude, address.longitude);
+                    setDistance(dist);
+                    setDeliveryFee(calculateDeliveryFee(dist));
+                } finally {
+                    setCalculatingFee(false);
+                }
+            } else {
+                setDistance(0);
+                setDeliveryFee(15);
+            }
+        };
+
+        fetchDistance();
+    }, [address]);
 
     // Calculate total with proper validation
     const subtotal = isBuyNow ?
@@ -249,7 +325,8 @@ export default function Checkout() {
                     paymentMethod,
                     referenceNumber: paymentMethod === 'gcash' ? referenceNumber : undefined,
                     proofImage: paymentMethod === 'gcash' ? proofImage : undefined,
-                    total: total
+                    total: total,
+                    deliveryFee: deliveryFee
                 };
             }
             // Place order
@@ -521,10 +598,10 @@ export default function Checkout() {
                                 if (!addressToDelete) return;
                                 setIsDeleting(true);
                                 try {
-                                    await addressAPI.deleteAddress(addressToDelete._id);
+                                    await addressAPI.delete(addressToDelete._id);
                                     toast.success('Address deleted successfully!');
                                     // Refresh addresses
-                                    const response = await addressAPI.getAllAddresses();
+                                    const response = await addressAPI.getAll();
                                     const fetchedAddresses = response.data?.addresses || response.addresses || [];
                                     setAddresses(fetchedAddresses);
                                     // If deleted address was selected, switch to default
@@ -646,7 +723,17 @@ export default function Checkout() {
                     <span>₱ {subtotal.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between text-lg font-bold text-[#232323]">
-                    <span>Delivery Fee</span>
+                    <div className="flex flex-col">
+                        <span>Delivery Fee</span>
+                        {calculatingFee ? (
+                            <span className="text-xs font-normal text-gray-500">Calculating...</span>
+                        ) : distance > 0 && (
+                            <span className="text-xs font-normal text-gray-500">
+                                {distance.toFixed(2)} km from store
+                                {distance > 3 && ` (₱15 base + ₱${((deliveryFee - 15)).toFixed(0)} for ${Math.ceil(distance - 3)} km)`}
+                            </span>
+                        )}
+                    </div>
                     <span>₱ {deliveryFee.toFixed(2)}</span>
                 </div>
                 <hr className="my-2 border-gray-300" />
@@ -677,10 +764,10 @@ export default function Checkout() {
             <Button
                 variant="yellow"
                 className="w-full max-w-2xl text-xl font-bold py-4 mb-10"
-                disabled={!canPlaceOrderWithAddress || placingOrder}
+                disabled={!canPlaceOrderWithAddress || placingOrder || calculatingFee}
                 onClick={handlePlaceOrder}
             >
-                {placingOrder ? 'Placing Order...' : 'Place Order'}
+                {placingOrder ? 'Placing Order...' : calculatingFee ? 'Calculating Fee...' : 'Place Order'}
             </Button>
         </div >
     );

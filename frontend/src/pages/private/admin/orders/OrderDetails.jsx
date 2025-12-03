@@ -95,10 +95,11 @@ export default function OrderDetails() {
       }
     }, 0);
   };
-  // Delivery Fee: none for walk-in orders
-  const deliveryFee = order?.isWalkInOrder ? 0 : 15;
+  // Delivery Fee: none for walk-in orders, otherwise use order.deliveryFee or default to 15
+  const deliveryFee = order?.isWalkInOrder ? 0 : (order?.deliveryFee || 15);
   const itemsTotal = order ? calculateItemsTotal() : 0;
-  const grandTotal = itemsTotal + deliveryFee;
+  // Use total from order directly if available to ensure accuracy
+  const grandTotal = order?.total || (itemsTotal + deliveryFee);
 
   if (isLoading)
     return (

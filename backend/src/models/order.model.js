@@ -121,6 +121,7 @@ const OrderSchema = new mongoose.Schema(
     riderId: { type: mongoose.Schema.Types.ObjectId, ref: "User" }, // assigned rider
     deliveryProofImage: { type: String }, // base64 for delivery proof
     total: { type: Number, required: true },
+    deliveryFee: { type: Number, default: 15 }, // Dynamic delivery fee calculated on frontend
     // Refund related fields
     refundStatus: {
       type: String,

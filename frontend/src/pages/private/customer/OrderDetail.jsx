@@ -1,4 +1,4 @@
-  import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { orderAPI, reviewAPI } from "@/services/api";
 import { Button } from "@/components/ui/button";
@@ -93,7 +93,7 @@ export default function OrderDetail() {
       // For custom drinks, calculate from custom ingredients + size price
       const ingredientsTotal = Array.isArray(item.customIngredients)
         ? item.customIngredients.reduce((sum, ingredient) =>
-            sum + (Number(ingredient.price) * Number(ingredient.quantity) || 0), 0)
+          sum + (Number(ingredient.price) * Number(ingredient.quantity) || 0), 0)
         : 0;
 
       // Add size price based on custom size
@@ -127,7 +127,7 @@ export default function OrderDetail() {
         // For custom drinks, calculate from custom ingredients + size price
         const ingredientsTotal = Array.isArray(item.customIngredients)
           ? item.customIngredients.reduce((ingSum, ingredient) =>
-              ingSum + (Number(ingredient.price) * Number(ingredient.quantity) || 0), 0)
+            ingSum + (Number(ingredient.price) * Number(ingredient.quantity) || 0), 0)
           : 0;
         const sizePrice = getSizePrice(item.customSize || item.size);
         return sum + (ingredientsTotal + sizePrice) * item.quantity;
@@ -139,10 +139,11 @@ export default function OrderDetail() {
       }
     }, 0);
   };
-  // Delivery Fee is hardcoded to 15 pesos
-  const deliveryFee = 15;
+  // Use delivery fee from order or default to 15
+  const deliveryFee = order?.deliveryFee || 15;
   const itemsTotal = order ? calculateItemsTotal() : 0;
-  const grandTotal = itemsTotal + deliveryFee;
+  // Use total from order directly if available to ensure accuracy
+  const grandTotal = order?.total || (itemsTotal + deliveryFee);
 
   if (isLoading) {
     return (
@@ -334,10 +335,10 @@ export default function OrderDetail() {
                     "refund_rejected",
                     "refund_processed",
                   ].includes(order.refundStatus) && (
-                    <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-bold bg-gray-100 text-gray-800 border border-gray-300">
-                      {order.refundStatus}
-                    </span>
-                  )}
+                      <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-bold bg-gray-100 text-gray-800 border border-gray-300">
+                        {order.refundStatus}
+                      </span>
+                    )}
                 </div>
               </div>
 
@@ -554,11 +555,10 @@ export default function OrderDetail() {
                   {[1, 2, 3, 4, 5].map((star) => (
                     <Star
                       key={star}
-                      className={`w-5 h-5 ${
-                        star <= reviewData.rating
-                          ? "fill-[#FFC107] text-[#FFC107]"
-                          : "text-gray-400"
-                      }`}
+                      className={`w-5 h-5 ${star <= reviewData.rating
+                        ? "fill-[#FFC107] text-[#FFC107]"
+                        : "text-gray-400"
+                        }`}
                     />
                   ))}
                   <span className="text-sm font-medium text-gray-700 ml-2">

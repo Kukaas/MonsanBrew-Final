@@ -47,6 +47,7 @@ export const placeOrder = async (req, res) => {
       referenceNumber,
       proofImage,
       total,
+      deliveryFee,
     } = req.body;
 
     // Validate required fields (do not require deliveryInstructions)
@@ -79,6 +80,7 @@ export const placeOrder = async (req, res) => {
       isReviewed: false,
       status: "pending",
       total,
+      deliveryFee: deliveryFee || 15, // Default to 15 if not provided
     });
     // Only add deliveryInstructions if present
     if (deliveryInstructions) order.deliveryInstructions = deliveryInstructions;

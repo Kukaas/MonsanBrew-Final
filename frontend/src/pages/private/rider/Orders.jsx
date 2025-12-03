@@ -156,7 +156,7 @@ export default function Orders() {
         // For custom drinks, calculate from custom ingredients + size price
         const ingredientsTotal = Array.isArray(item.customIngredients)
           ? item.customIngredients.reduce((ingSum, ingredient) =>
-              ingSum + (Number(ingredient.price) * Number(ingredient.quantity) || 0), 0)
+            ingSum + (Number(ingredient.price) * Number(ingredient.quantity) || 0), 0)
           : 0;
         const sizePrice = getSizePrice(item.customSize || item.size);
         return sum + (ingredientsTotal + sizePrice) * item.quantity;
@@ -168,11 +168,10 @@ export default function Orders() {
       }
     }, 0);
   };
-  const deliveryFee = 15;
-
   const renderOrderCard = (order, isActive = false) => {
     const itemsTotal = calculateItemsTotal(order);
-    const grandTotal = itemsTotal + deliveryFee;
+    const deliveryFee = order.deliveryFee || 15;
+    const grandTotal = order.total || (itemsTotal + deliveryFee);
     return (
       <Card
         key={order._id}
@@ -272,7 +271,7 @@ export default function Orders() {
                       (() => {
                         const ingredientsTotal = Array.isArray(item.customIngredients)
                           ? item.customIngredients.reduce((sum, ingredient) =>
-                              sum + (Number(ingredient.price) * Number(ingredient.quantity) || 0), 0)
+                            sum + (Number(ingredient.price) * Number(ingredient.quantity) || 0), 0)
                           : 0;
                         const sizePrice = getSizePrice(item.customSize || item.size);
                         return ingredientsTotal + sizePrice;

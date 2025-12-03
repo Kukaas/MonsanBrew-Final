@@ -54,7 +54,7 @@ export const getDashboardSummary = async (req, res) => {
           },
           // Delivery fee only for non-walk-in orders
           deliveryFeeToSubtract: {
-            $cond: { if: { $eq: ["$isWalkInOrder", true] }, then: 0, else: 15 },
+            $cond: { if: { $eq: ["$isWalkInOrder", true] }, then: 0, else: { $ifNull: ["$deliveryFee", 15] } },
           },
         },
       },
@@ -196,7 +196,7 @@ export const getSalesData = async (req, res) => {
             },
           },
           deliveryFeeToSubtract: {
-            $cond: { if: { $eq: ["$isWalkInOrder", true] }, then: 0, else: 15 },
+            $cond: { if: { $eq: ["$isWalkInOrder", true] }, then: 0, else: { $ifNull: ["$deliveryFee", 15] } },
           },
         },
       },
@@ -291,7 +291,7 @@ export const getSalesDataWeekly = async (req, res) => {
             },
           },
           deliveryFeeToSubtract: {
-            $cond: { if: { $eq: ["$isWalkInOrder", true] }, then: 0, else: 15 },
+            $cond: { if: { $eq: ["$isWalkInOrder", true] }, then: 0, else: { $ifNull: ["$deliveryFee", 15] } },
           },
         },
       },
@@ -402,7 +402,7 @@ export const getSalesDataMonthly = async (req, res) => {
             },
           },
           deliveryFeeToSubtract: {
-            $cond: { if: { $eq: ["$isWalkInOrder", true] }, then: 0, else: 15 },
+            $cond: { if: { $eq: ["$isWalkInOrder", true] }, then: 0, else: { $ifNull: ["$deliveryFee", 15] } },
           },
         },
       },
