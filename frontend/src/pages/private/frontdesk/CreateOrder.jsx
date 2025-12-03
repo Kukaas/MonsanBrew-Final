@@ -37,7 +37,6 @@ export default function CreateOrder() {
 
     // Form state
     const [customerName, setCustomerName] = useState("");
-    const [customerContact, setCustomerContact] = useState("");
     const [orderType, setOrderType] = useState("dine_in");
     const [cart, setCart] = useState([]);
     const [selectedProduct, setSelectedProduct] = useState(null);
@@ -141,7 +140,6 @@ export default function CreateOrder() {
             toast.success("Walk-in order created successfully!");
             setCart([]);
             setCustomerName("");
-            setCustomerContact("");
             setOrderType("dine_in");
             queryClient.invalidateQueries(["admin-orders"]);
         },
@@ -153,14 +151,13 @@ export default function CreateOrder() {
 
     // Handle order submission
     const handleSubmit = () => {
-        if (!customerName || !customerContact || cart.length === 0) {
+        if (!customerName || cart.length === 0) {
             toast.error("Please fill in all required fields and add items to cart");
             return;
         }
 
         const orderData = {
             customerName,
-            customerContact,
             orderType,
             items: cart,
             frontdeskUserId: user._id,
@@ -195,8 +192,6 @@ export default function CreateOrder() {
                         <FrontdeskCustomerInfo
                             customerName={customerName}
                             setCustomerName={setCustomerName}
-                            customerContact={customerContact}
-                            setCustomerContact={setCustomerContact}
                             orderType={orderType}
                             setOrderType={setOrderType}
                         />
@@ -228,7 +223,7 @@ export default function CreateOrder() {
                                 total={calculateTotal()}
                                 onSubmit={handleSubmit}
                                 isCreating={isCreating}
-                                disabled={isCreating || !customerName || !customerContact || cart.length === 0}
+                                disabled={isCreating || !customerName || cart.length === 0}
                             />
                         )}
                     </div>

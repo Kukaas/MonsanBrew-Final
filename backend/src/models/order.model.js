@@ -22,9 +22,7 @@ const OrderSchema = new mongoose.Schema(
     },
     customerContact: {
       type: String,
-      required: function () {
-        return this.isWalkInOrder;
-      }
+      required: false
     },
     orderType: {
       type: String,

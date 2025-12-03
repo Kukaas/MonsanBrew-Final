@@ -114,7 +114,6 @@ export const createWalkInOrder = async (req, res) => {
   try {
     const {
       customerName,
-      customerContact,
       orderType,
       items,
       frontdeskUserId,
@@ -125,7 +124,6 @@ export const createWalkInOrder = async (req, res) => {
     // Validate required fields
     if (
       !customerName ||
-      !customerContact ||
       !orderType ||
       !items ||
       !Array.isArray(items) ||
@@ -146,7 +144,6 @@ export const createWalkInOrder = async (req, res) => {
     const order = new Order({
       isWalkInOrder: true,
       customerName,
-      customerContact,
       orderType,
       items,
       frontdeskUserId,

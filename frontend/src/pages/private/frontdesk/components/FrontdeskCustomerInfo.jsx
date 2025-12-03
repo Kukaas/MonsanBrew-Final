@@ -4,7 +4,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ShoppingCart, Utensils, User } from "lucide-react";
 
-export default function FrontdeskCustomerInfo({ customerName, setCustomerName, customerContact, setCustomerContact, orderType, setOrderType }) {
+export default function FrontdeskCustomerInfo({ customerName, setCustomerName, orderType, setOrderType }) {
     return (
         <Card className="relative bg-gradient-to-br from-[#232323] to-[#1a1a1a] rounded-2xl border-4 border-[#FFC107] shadow-xl">
             <CardHeader>
@@ -24,16 +24,6 @@ export default function FrontdeskCustomerInfo({ customerName, setCustomerName, c
                         value={customerName}
                         onChange={(e) => setCustomerName(e.target.value)}
                         placeholder="Enter customer name"
-                        className="bg-[#232323] border-[#444] text-white placeholder:text-[#BDBDBD]"
-                    />
-                </div>
-                <div>
-                    <Label htmlFor="customerContact" className="text-white">Contact Number *</Label>
-                    <Input
-                        id="customerContact"
-                        value={customerContact}
-                        onChange={(e) => setCustomerContact(e.target.value)}
-                        placeholder="Enter contact number"
                         className="bg-[#232323] border-[#444] text-white placeholder:text-[#BDBDBD]"
                     />
                 </div>
