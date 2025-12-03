@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import PropTypes from "prop-types";
-import { reportsAPI } from "@/services/api";
+import { reportsAPI, expensesAPI } from "@/services/api";
 import FormInput from "@/components/custom/FormInput";
 import DataTable from "@/components/custom/DataTable";
 import { Button } from "@/components/ui/button";
@@ -25,7 +25,17 @@ export default function OverviewReport() {
     },
   });
 
+  // Fetch expenses for the selected period
+  const { data: expensesData } = useQuery({
+    queryKey: ["reports-expenses", filters],
+    queryFn: async () => {
+      const res = await expensesAPI.getAll({ startDate: filters.startDate, endDate: filters.endDate });
+      return res.data || res;
+    },
+  });
+
   const orders = ordersData?.orders || [];
+  const expenses = expensesData?.expenses || [];
 
   // Filter to only completed orders for summary calculations
   const completedOrders = orders.filter((o) =>
@@ -96,11 +106,19 @@ export default function OverviewReport() {
       const refunded = o.refundStatus === "refund_processed" ? (Number(o.refundAmount) || 0) : 0;
       return sum + Math.max(0, (Number(o.total) || 0) - DELIVERY_FEE - refunded);
     }, 0);
+
+    // Calculate expenses
+    const totalExpenses = expenses.reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
+    const netProfit = netSales - totalExpenses;
+
     rows.push(["", "", "", "", ""]);
     rows.push(["", "", "Delivery Fees (₱15 each)", deliveryFees, ""]);
     rows.push(["", "", "Gross Sales", grossSales.toFixed(2), ""]);
     rows.push(["", "", "Refunds", totalRefunds.toFixed(2), ""]);
     rows.push(["", "", "Total Sales (Net)", netSales.toFixed(2), ""]);
+    rows.push(["", "", "Total Expenses", totalExpenses.toFixed(2), ""]);
+    rows.push(["", "", "Net Profit", netProfit.toFixed(2), ""]);
+
     const escape = (val) => {
       const s = String(val ?? "");
       const needsQuote = /[",\n]/.test(s);
@@ -145,6 +163,10 @@ export default function OverviewReport() {
       return sum + Math.max(0, (Number(o.total) || 0) - DELIVERY_FEE - refunded);
     }, 0);
 
+    // Calculate expenses
+    const totalExpenses = expenses.reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
+    const netProfit = netSales - totalExpenses;
+
     const dateRange = filters.startDate && filters.endDate
       ? `${filters.startDate} to ${filters.endDate}`
       : "All Time";
@@ -177,7 +199,7 @@ export default function OverviewReport() {
             }
             .summary {
               display: grid;
-              grid-template-columns: repeat(4, 1fr);
+              grid-template-columns: repeat(3, 1fr);
               gap: 15px;
               margin-bottom: 30px;
             }
@@ -231,6 +253,14 @@ export default function OverviewReport() {
               color: #666;
               font-size: 12px;
             }
+            .section-title {
+              font-size: 18px;
+              font-weight: bold;
+              margin-top: 30px;
+              margin-bottom: 15px;
+              border-bottom: 2px solid #eee;
+              padding-bottom: 5px;
+            }
           </style>
         </head>
         <body>
@@ -254,8 +284,17 @@ export default function OverviewReport() {
               <div class="summary-title">Net Sales</div>
               <div class="summary-value">₱${netSales.toFixed(2)}</div>
             </div>
+            <div class="summary-card">
+              <div class="summary-title">Total Expenses</div>
+              <div class="summary-value">₱${totalExpenses.toFixed(2)}</div>
+            </div>
+            <div class="summary-card" style="background-color: #e8f5e9; border-color: #c8e6c9;">
+              <div class="summary-title">Net Profit</div>
+              <div class="summary-value" style="color: #2e7d32;">₱${netProfit.toFixed(2)}</div>
+            </div>
           </div>
 
+          <div class="section-title">Orders</div>
           <table>
             <thead>
               <tr>
@@ -283,6 +322,32 @@ export default function OverviewReport() {
             </tbody>
           </table>
 
+          <div class="section-title">Expenses</div>
+          <table>
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Description</th>
+                <th>Category</th>
+                <th>Amount</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${expenses.map((e) => {
+      const dt = new Date(e.date);
+      const dateStr = dt.toLocaleDateString();
+      return `
+                  <tr>
+                    <td>${dateStr}</td>
+                    <td>${e.description}</td>
+                    <td>${e.category}</td>
+                    <td>₱${Number(e.amount || 0).toFixed(2)}</td>
+                  </tr>
+                `;
+    }).join("")}
+            </tbody>
+          </table>
+
           <div class="footer">
             <div class="footer-row">
               <span>Delivery Fees (₱15 each):</span>
@@ -299,6 +364,14 @@ export default function OverviewReport() {
             <div class="footer-row">
               <span>Total Sales (Net):</span>
               <span>₱${netSales.toFixed(2)}</span>
+            </div>
+            <div class="footer-row">
+              <span>Total Expenses:</span>
+              <span>₱${totalExpenses.toFixed(2)}</span>
+            </div>
+            <div class="footer-row" style="font-size: 1.2em; margin-top: 15px;">
+              <span>Net Profit:</span>
+              <span>₱${netProfit.toFixed(2)}</span>
             </div>
           </div>
 
